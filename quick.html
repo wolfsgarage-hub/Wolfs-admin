@@ -186,7 +186,7 @@ html,body{margin:0;padding:0;background:#0A0A0A;color:#F5F1E8;font-family:'Work 
     dbg('creating recognition instance');
     pendingStop=false;
     rec=new SR();
-    rec.continuous=true;
+    rec.continuous=false;
     rec.interimResults=true;
     rec.lang='en-US';
     $('mic').classList.add('prep');
@@ -207,8 +207,12 @@ html,body{margin:0;padding:0;background:#0A0A0A;color:#F5F1E8;font-family:'Work 
       }
     };
     rec.onresult=e=>{
-      let txt='';
-      for(let i=0;i<e.results.length;i++)txt+=e.results[i][0].transcript;
+      let final='',interim='';
+      for(let i=0;i<e.results.length;i++){
+        if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+        else interim+=e.results[i][0].transcript;
+      }
+      const txt=(final+' '+interim).trim();
       $('heard').textContent=txt;
       dbg('onresult: '+txt.slice(0,60));
     };
