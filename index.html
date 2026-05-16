@@ -608,19 +608,19 @@
   </div>
 
   <div class="stat-grid">
-    <div class="stat-card" id="dash-listings">
+    <div class="stat-card" id="dash-listings" onclick="switchTab('listings')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-listings">0</div>
       <div class="stat-lbl">LISTINGS PENDING</div>
     </div>
-    <div class="stat-card" id="dash-pack">
+    <div class="stat-card" id="dash-pack" onclick="switchTab('pack')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-pack">0</div>
       <div class="stat-lbl">PHOTOS PENDING</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" onclick="switchTab('morning')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-todo">0</div>
       <div class="stat-lbl">TO-DO OPEN</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" onclick="switchTab('listings')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-live">0</div>
       <div class="stat-lbl">LISTINGS LIVE</div>
     </div>
@@ -962,6 +962,10 @@ try {
   fbReady = true;
   fbAuth.onAuthStateChanged(user => {
     fbUser = user;
+    // Refresh dashboard counters (always — they depend on admin auth)
+    if (document.getElementById('dash-stat-listings')) {
+      renderDashboard().catch(()=>{});
+    }
     // Re-render the moderation view if it's currently visible
     const panel = document.getElementById('panel-pack-photos');
     if (panel && !panel.classList.contains('hidden')) {
@@ -1078,22 +1082,39 @@ async function renderDashboard() {
   document.getElementById('dash-date').textContent =
     '// ' + now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
-  const listings = await Store.get(K.LISTINGS) || [];
-  const pack = await Store.get(K.PACK) || [];
   const todo = await Store.get(K.TODO) || [];
-
-  const pendingL = listings.filter(l => l.status === 'pending').length;
-  const liveL = listings.filter(l => l.status === 'approved').length;
-  const pendingP = pack.filter(p => p.status === 'pending').length;
   const openTodo = todo.filter(t => !t.done).length;
+  document.getElementById('dash-stat-todo').textContent = openTodo;
+
+  // Firestore-backed counters (live data when admin is signed in)
+  let pendingL = 0, liveL = 0, pendingP = 0;
+  if (fbReady && fbIsAdmin()) {
+    try {
+      const lSnap = await fbDb.collection('listings').get();
+      lSnap.docs.forEach(d => {
+        const s = d.data().status;
+        if (s === 'pending') pendingL++;
+        else if (s === 'approved') liveL++;
+      });
+      const pSnap = await fbDb.collection('gallery').where('isWolf', '==', false).where('status', '==', 'pending').get();
+      pendingP = pSnap.size;
+    } catch (err) {
+      console.warn('Dashboard Firestore read failed:', err);
+    }
+  }
 
   document.getElementById('dash-stat-listings').textContent = pendingL;
   document.getElementById('dash-stat-pack').textContent = pendingP;
-  document.getElementById('dash-stat-todo').textContent = openTodo;
   document.getElementById('dash-stat-live').textContent = liveL;
 
   document.getElementById('dash-listings').classList.toggle('has-badge', pendingL > 0);
   document.getElementById('dash-pack').classList.toggle('has-badge', pendingP > 0);
+
+  // Tab badges
+  const badgeL = document.getElementById('badge-listings');
+  const badgeP = document.getElementById('badge-pack');
+  if (badgeL) { badgeL.textContent = pendingL; badgeL.classList.toggle('zero', pendingL === 0); }
+  if (badgeP) { badgeP.textContent = pendingP; badgeP.classList.toggle('zero', pendingP === 0); }
 
   // Notes
   const notes = await Store.get(K.NOTES_DASH) || '';
@@ -2061,6 +2082,9 @@ function setupPWA(logoDataUrl) {
 
 // ============== INIT ==============
 async function initApp() {
+  // Auto sign-in to Firebase as admin (one prompt, then good for the session)
+  await ensureFirebaseAdmin();
+
   await renderDashboard();
   await renderMorning();
   await renderListings();
@@ -2069,6 +2093,27 @@ async function initApp() {
   syncCloudData(true).then(r => {
     if (r && r.added > 0) toast(`+${r.added} from cloud`);
   }).catch(()=>{});
+}
+
+async function ensureFirebaseAdmin() {
+  if (!fbReady) return;
+  if (fbIsAdmin()) return;
+  // Wait briefly for onAuthStateChanged to fire if user is already signed in
+  await new Promise(r => setTimeout(r, 300));
+  if (fbIsAdmin()) return;
+  // Not signed in — prompt once at boot
+  const wantSignIn = confirm('Sign in to Firebase for live moderation? (cancel to skip — counts will show 0)');
+  if (!wantSignIn) return;
+  const email = prompt('Firebase admin email:', ADMIN_EMAIL);
+  if (!email) return;
+  const password = prompt('Firebase password:');
+  if (!password) return;
+  try {
+    await fbSignInAdmin(email, password);
+    toast('Firebase signed in');
+  } catch (err) {
+    alert('Firebase sign-in failed: ' + (err.message || err.code) + '\nYou can retry from any tab that uses Firebase.');
+  }
 }
 
 // Boot
