@@ -542,6 +542,10 @@
     color: var(--copper); font-weight: 400;
   }
 </style>
+<!-- Firebase SDK (compat mode) for gallery moderation -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -936,6 +940,48 @@ const K = {
 const CLOUD_DATA_URL = 'https://drive.google.com/uc?export=download&id=17V4bhj5UQMgSO6b8tMUeDA9nTDw8r2-l';
 
 const DEFAULT_PW = 'Papawolf1169!';
+
+// ============== FIREBASE (gallery moderation) ==============
+const FB_CONFIG = {
+  apiKey: "AIzaSyAGcEHgch3ofFWFDUlYphyaXAxqk06DAQ0",
+  authDomain: "wolfs-garage-directory.firebaseapp.com",
+  projectId: "wolfs-garage-directory",
+  storageBucket: "wolfs-garage-directory.firebasestorage.app",
+  messagingSenderId: "868695357399",
+  appId: "1:868695357399:web:022c9974691fd183d77d92"
+};
+const ADMIN_EMAIL = 'wolfsgaragenw@gmail.com';
+let fbReady = false;
+let fbUser = null;
+let fbDb = null;
+let fbAuth = null;
+try {
+  firebase.initializeApp(FB_CONFIG);
+  fbAuth = firebase.auth();
+  fbDb = firebase.firestore();
+  fbReady = true;
+  fbAuth.onAuthStateChanged(user => {
+    fbUser = user;
+    // Re-render the moderation view if it's currently visible
+    const panel = document.getElementById('panel-pack-photos');
+    if (panel && !panel.classList.contains('hidden')) {
+      renderPackPhotos();
+    }
+  });
+} catch (e) {
+  console.error('Firebase init failed:', e);
+}
+
+async function fbSignInAdmin(email, password) {
+  if (!fbReady) throw new Error('Firebase not loaded');
+  return fbAuth.signInWithEmailAndPassword(email, password);
+}
+function fbSignOut() {
+  if (fbReady) fbAuth.signOut();
+}
+function fbIsAdmin() {
+  return fbUser && fbUser.email === ADMIN_EMAIL;
+}
 
 // ============== AUTH ==============
 async function hashPw(pw) {
@@ -1657,59 +1703,114 @@ async function deleteListing(id) {
   await renderListings();
 }
 
-// ============== PACK PHOTOS ==============
+// ============== PACK PHOTOS (Firestore-backed) ==============
 async function renderPackPhotos() {
-  const all = await Store.get(K.PACK) || [];
-  const pending = all.filter(p => p.status === 'pending');
-  const approved = all.filter(p => p.status === 'approved');
-
-  document.getElementById('pack-pending-count').textContent = pending.length;
-  document.getElementById('pack-approved-count').textContent = approved.length;
-
   const pg = document.getElementById('pack-pending-grid');
-  pg.innerHTML = pending.length === 0
-    ? '<div class="empty" style="grid-column:1/-1">no pending photos</div>'
-    : pending.map(p => photoTile(p, true)).join('');
-
   const ag = document.getElementById('pack-approved-grid');
-  ag.innerHTML = approved.length === 0
-    ? '<div class="empty" style="grid-column:1/-1">no approved photos yet</div>'
-    : approved.map(p => photoTile(p, false)).join('');
+  const pCount = document.getElementById('pack-pending-count');
+  const aCount = document.getElementById('pack-approved-count');
 
-  await renderDashboard();
+  if (!fbReady) {
+    pg.innerHTML = '<div class="empty" style="grid-column:1/-1">Firebase not loaded. Refresh page.</div>';
+    ag.innerHTML = '';
+    pCount.textContent = '0';
+    aCount.textContent = '0';
+    return;
+  }
+
+  if (!fbIsAdmin()) {
+    pg.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:20px;">
+      <p style="margin-bottom:14px;">Sign in to Firebase as admin to moderate Pack photos.</p>
+      <button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>
+    </div>`;
+    ag.innerHTML = '';
+    pCount.textContent = '?';
+    aCount.textContent = '?';
+    return;
+  }
+
+  pg.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
+  ag.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
+
+  try {
+    const snap = await fbDb.collection('gallery').where('isWolf', '==', false).get();
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const pending = all.filter(p => p.status === 'pending');
+    const approved = all.filter(p => p.status === 'approved');
+
+    pCount.textContent = pending.length;
+    aCount.textContent = approved.length;
+
+    pg.innerHTML = pending.length === 0
+      ? '<div class="empty" style="grid-column:1/-1">no pending photos</div>'
+      : pending.map(p => photoTile(p, true)).join('');
+
+    ag.innerHTML = approved.length === 0
+      ? '<div class="empty" style="grid-column:1/-1">no approved photos yet</div>'
+      : approved.map(p => photoTile(p, false)).join('');
+
+    if (typeof renderDashboard === 'function') await renderDashboard();
+  } catch (err) {
+    console.error('renderPackPhotos error:', err);
+    pg.innerHTML = '<div class="empty" style="grid-column:1/-1">Load failed: ' + (err.message || err.code) + '</div>';
+    ag.innerHTML = '';
+  }
 }
 
 function photoTile(p, isPending) {
+  const cap = (p.caption || '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const email = (p.userEmail || 'unknown').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
   const actions = isPending
     ? `<button class="btn btn-approve" onclick="setPackStatus('${p.id}','approved')">APPROVE</button>
        <button class="btn btn-reject" onclick="setPackStatus('${p.id}','rejected')">REJECT</button>`
     : `<button class="btn btn-ghost" onclick="setPackStatus('${p.id}','pending')">QUEUE</button>
-       <button class="btn btn-reject" onclick="deletePack('${p.id}')">✕</button>`;
-
+       <button class="btn btn-reject" onclick="deletePack('${p.id}')">DELETE</button>`;
   return `
     <div class="photo-tile ${isPending ? 'pending' : ''}">
-      <img src="${p.dataUrl}" alt="" onclick="openLightbox('${p.dataUrl}')">
+      <img src="${p.imageUrl}" alt="" onclick="openLightbox('${p.imageUrl}')">
+      <div class="photo-tile-caption" style="padding:6px 8px;font-size:0.8rem;color:var(--bone);background:rgba(0,0,0,0.6);position:absolute;bottom:36px;left:0;right:0;">
+        <div><strong>${cap || '(no caption)'}</strong></div>
+        <div style="font-size:0.7rem;color:rgba(245,241,232,0.6);margin-top:2px;">${email}</div>
+      </div>
       <div class="photo-tile-actions">${actions}</div>
     </div>
   `;
 }
 
 async function setPackStatus(id, status) {
-  const all = await Store.get(K.PACK) || [];
-  const idx = all.findIndex(p => p.id === id);
-  if (idx === -1) return;
-  all[idx].status = status;
-  await Store.set(K.PACK, all);
-  toast(status === 'approved' ? 'APPROVED' : status === 'rejected' ? 'REJECTED' : 'QUEUED');
-  await renderPackPhotos();
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  try {
+    await fbDb.collection('gallery').doc(id).update({ status });
+    toast(status === 'approved' ? 'APPROVED' : status === 'rejected' ? 'REJECTED' : 'QUEUED');
+    await renderPackPhotos();
+  } catch (err) {
+    toast('Failed: ' + (err.message || err.code));
+  }
 }
 
 async function deletePack(id) {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   if (!confirm('Delete permanently?')) return;
-  const all = await Store.get(K.PACK) || [];
-  await Store.set(K.PACK, all.filter(p => p.id !== id));
-  toast('Deleted');
-  await renderPackPhotos();
+  try {
+    await fbDb.collection('gallery').doc(id).delete();
+    toast('Deleted');
+    await renderPackPhotos();
+  } catch (err) {
+    toast('Failed: ' + (err.message || err.code));
+  }
+}
+
+async function promptFbSignIn() {
+  const email = prompt('Firebase admin email:', ADMIN_EMAIL);
+  if (!email) return;
+  const password = prompt('Password:');
+  if (!password) return;
+  try {
+    await fbSignInAdmin(email, password);
+    toast('Signed in');
+  } catch (err) {
+    alert('Sign-in failed: ' + (err.message || err.code));
+  }
 }
 
 // ============== WOLF'S PHOTOS ==============
