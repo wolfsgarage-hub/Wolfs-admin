@@ -950,7 +950,8 @@ const FB_CONFIG = {
   messagingSenderId: "868695357399",
   appId: "1:868695357399:web:022c9974691fd183d77d92"
 };
-const ADMIN_EMAIL = 'wolfsgaragenw@gmail.com';
+const ADMIN_EMAILS = ['wolfsgaragenw@gmail.com', 'illsupernova.ja@gmail.com'];
+const ADMIN_EMAIL = ADMIN_EMAILS[0]; // default suggestion in prompts
 let fbReady = false;
 let fbUser = null;
 let fbDb = null;
@@ -984,7 +985,7 @@ function fbSignOut() {
   if (fbReady) fbAuth.signOut();
 }
 function fbIsAdmin() {
-  return fbUser && fbUser.email === ADMIN_EMAIL;
+  return fbUser && ADMIN_EMAILS.includes(fbUser.email);
 }
 
 // ============== AUTH ==============
