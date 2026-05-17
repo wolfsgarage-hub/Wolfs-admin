@@ -334,15 +334,14 @@
 
   /* UPLOAD ZONE */
   .upload-zone {
-    border: 2px dashed var(--line-strong);
+    background: rgba(204, 0, 0, 0.04);
     padding: 32px 18px; text-align: center;
     margin-bottom: 16px;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition: background 0.15s;
   }
   .upload-zone:hover, .upload-zone:active {
-    border-color: var(--red);
-    background: rgba(204,0,0,0.05);
+    background: rgba(204, 0, 0, 0.10);
   }
   .upload-zone-icon {
     font-family: 'Bebas Neue', sans-serif;
@@ -583,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v14</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v15</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
