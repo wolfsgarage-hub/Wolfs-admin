@@ -541,19 +541,15 @@
   .foot strong {
     color: var(--copper); font-weight: 400;
   }
-  #wg-version-badge {
-    position: fixed;
-    bottom: 6px;
-    right: 8px;
-    z-index: 9999;
+  .topbar-ver {
+    display: inline-block;
+    margin-left: 8px;
     font-family: 'Special Elite', monospace;
-    font-size: 10px;
-    color: rgba(245, 241, 232, 0.35);
-    background: rgba(0, 0, 0, 0.5);
-    padding: 2px 6px;
-    border-radius: 3px;
-    pointer-events: none;
-    user-select: none;
+    font-size: 0.65rem;
+    color: rgba(245, 241, 232, 0.4);
+    letter-spacing: 0.05em;
+    border: none !important;
+    padding: 0 !important;
   }
 </style>
 <!-- Firebase SDK (compat mode) for gallery moderation -->
@@ -587,7 +583,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v14</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -596,9 +592,6 @@
   <path d="M0 7 Q 150 2, 300 7 T 600 7 T 900 7 T 1200 7" stroke="#CC0000" stroke-width="1" fill="none"/>
   <path d="M0 7 Q 150 12, 300 7 T 600 7 T 900 7 T 1200 7" stroke="#C8922A" stroke-width="0.7" fill="none"/>
 </svg>
-
-<!-- VERSION BADGE (always visible to verify cache freshness) -->
-<div id="wg-version-badge">v13</div>
 
 <!-- INSTALL BANNER -->
 <div class="install-banner" id="install-banner">
