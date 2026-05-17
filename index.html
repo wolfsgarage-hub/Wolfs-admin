@@ -541,6 +541,20 @@
   .foot strong {
     color: var(--copper); font-weight: 400;
   }
+  #wg-version-badge {
+    position: fixed;
+    bottom: 6px;
+    right: 8px;
+    z-index: 9999;
+    font-family: 'Special Elite', monospace;
+    font-size: 10px;
+    color: rgba(245, 241, 232, 0.35);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 6px;
+    border-radius: 3px;
+    pointer-events: none;
+    user-select: none;
+  }
 </style>
 <!-- Firebase SDK (compat mode) for gallery moderation -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -582,6 +596,9 @@
   <path d="M0 7 Q 150 2, 300 7 T 600 7 T 900 7 T 1200 7" stroke="#CC0000" stroke-width="1" fill="none"/>
   <path d="M0 7 Q 150 12, 300 7 T 600 7 T 900 7 T 1200 7" stroke="#C8922A" stroke-width="0.7" fill="none"/>
 </svg>
+
+<!-- VERSION BADGE (always visible to verify cache freshness) -->
+<div id="wg-version-badge">v13</div>
 
 <!-- INSTALL BANNER -->
 <div class="install-banner" id="install-banner">
