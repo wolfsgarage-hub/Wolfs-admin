@@ -973,6 +973,22 @@ try {
       renderPackPhotos();
     }
   });
+  // Catch redirect result if user just came back from Google sign-in
+  fbAuth.getRedirectResult().then(result => {
+    if (result && result.user) {
+      if (!ADMIN_EMAILS.includes(result.user.email)) {
+        fbAuth.signOut();
+        alert('That Google account is not authorized for admin. Allowed: ' + ADMIN_EMAILS.join(', '));
+      } else {
+        // Toast may not be ready yet on first boot; schedule it
+        setTimeout(() => toast('Signed in as ' + result.user.email), 500);
+      }
+    }
+  }).catch(err => {
+    if (err && err.code && err.code !== 'auth/no-auth-event') {
+      console.warn('Redirect result error:', err.code, err.message);
+    }
+  });
 } catch (e) {
   console.error('Firebase init failed:', e);
 }
@@ -985,7 +1001,13 @@ async function fbSignInGoogle() {
   if (!fbReady) throw new Error('Firebase not loaded');
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  return fbAuth.signInWithPopup(provider);
+  // Use redirect on mobile (popups are blocked), popup on desktop
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  if (isMobile) {
+    return fbAuth.signInWithRedirect(provider);
+  } else {
+    return fbAuth.signInWithPopup(provider);
+  }
 }
 function fbSignOut() {
   if (fbReady) fbAuth.signOut();
@@ -1830,13 +1852,17 @@ async function deletePack(id) {
 
 async function promptFbSignIn() {
   try {
+    // On mobile this navigates away; result is caught by getRedirectResult on return.
+    // On desktop the popup result is awaitable here.
     const result = await fbSignInGoogle();
-    if (!ADMIN_EMAILS.includes(result.user.email)) {
-      await fbSignOut();
-      alert('That Google account is not authorized for admin. Allowed: ' + ADMIN_EMAILS.join(', '));
-      return;
+    if (result && result.user) {
+      if (!ADMIN_EMAILS.includes(result.user.email)) {
+        await fbSignOut();
+        alert('That Google account is not authorized for admin. Allowed: ' + ADMIN_EMAILS.join(', '));
+        return;
+      }
+      toast('Signed in as ' + result.user.email);
     }
-    toast('Signed in as ' + result.user.email);
   } catch (err) {
     alert('Sign-in failed: ' + (err.message || err.code));
   }
@@ -2106,20 +2132,16 @@ async function initApp() {
 async function ensureFirebaseAdmin() {
   if (!fbReady) return;
   if (fbIsAdmin()) return;
-  // Wait briefly for onAuthStateChanged to fire if user is already signed in
-  await new Promise(r => setTimeout(r, 300));
+  // Wait for onAuthStateChanged to fire if user is already signed in
+  await new Promise(r => setTimeout(r, 500));
   if (fbIsAdmin()) return;
   // Not signed in. Offer Google sign-in once at boot.
   const wantSignIn = confirm('Sign in with Google for live moderation? Cancel to skip and show 0 counts.');
   if (!wantSignIn) return;
   try {
-    const result = await fbSignInGoogle();
-    if (!ADMIN_EMAILS.includes(result.user.email)) {
-      await fbSignOut();
-      alert('That Google account is not authorized for admin. Allowed: ' + ADMIN_EMAILS.join(', '));
-      return;
-    }
-    toast('Signed in as ' + result.user.email);
+    // On mobile this navigates away. On desktop this opens a popup.
+    // Either way, onAuthStateChanged + getRedirectResult will catch the result.
+    await fbSignInGoogle();
   } catch (err) {
     alert('Google sign-in failed: ' + (err.message || err.code) + '\nYou can retry from any tab.');
   }
