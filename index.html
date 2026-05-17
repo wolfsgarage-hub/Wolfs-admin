@@ -803,7 +803,7 @@
   <label class="upload-zone" id="wolf-upload-zone">
     <div class="upload-zone-icon">+</div>
     <div class="upload-zone-label">TAP TO UPLOAD</div>
-    <div class="upload-zone-hint">pick one or many — goes live instantly</div>
+    <div class="upload-zone-hint">pick one or many. goes live instantly</div>
     <input type="file" id="wolf-upload-input" accept="image/*" multiple style="display:none" onchange="uploadWolfPhotos(event)">
   </label>
 
@@ -1083,7 +1083,8 @@ function logoTap() {
 }
 
 // ============== TABS ==============
-function switchTab(name) {
+function switchTab(name, pushHistory) {
+  if (pushHistory === undefined) pushHistory = true;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
   window.scrollTo(0, 0);
@@ -1094,7 +1095,17 @@ function switchTab(name) {
   if (name === 'social') renderSocial();
   if (name === 'morning') renderMorning();
   if (name === 'dashboard') renderDashboard();
+  // Track in browser history so phone back button moves through tabs
+  if (pushHistory && history.state?.tab !== name) {
+    history.pushState({ tab: name }, '', '#' + name);
+  }
 }
+
+// Phone back button: move through tab history instead of exiting
+window.addEventListener('popstate', function(e) {
+  const targetTab = (e.state && e.state.tab) || 'dashboard';
+  switchTab(targetTab, false); // false = don't push, we're coming back
+});
 
 // ============== TOAST ==============
 function toast(msg) {
@@ -1430,7 +1441,7 @@ async function testIntegrations() {
       results.push('✗ Mailchimp URL invalid');
     }
   } else {
-    results.push('— Mailchimp not set');
+    results.push('Mailchimp not set');
   }
   if (cal) {
     try {
@@ -1445,7 +1456,7 @@ async function testIntegrations() {
       }
     }
   } else {
-    results.push('— Calendar not set');
+    results.push('Calendar not set');
   }
   resultEl.textContent = results.join('\n');
   toast('TEST COMPLETE');
@@ -1616,7 +1627,7 @@ async function fetchCalendar(forceRefresh) {
   const el = document.getElementById('cal-events');
   if (!el) return;
   if (!url) {
-    el.innerHTML = '<div class="empty">no calendar set — add iCal URL on Dashboard</div>';
+    el.innerHTML = '<div class="empty">no calendar set. add iCal URL on Dashboard</div>';
     return;
   }
   el.innerHTML = '<div class="empty">loading...</div>';
@@ -1632,7 +1643,7 @@ async function fetchCalendar(forceRefresh) {
     }
     el.innerHTML = filtered.map(e => calendarCard(e)).join('');
   } catch (err) {
-    el.innerHTML = `<div class="empty">calendar fetch failed — ${escapeHtml(err.message || '')}</div>`;
+    el.innerHTML = `<div class="empty">calendar fetch failed: ${escapeHtml(err.message || '')}</div>`;
   }
 }
 
@@ -1910,7 +1921,7 @@ async function renderWolfPhotos() {
   document.getElementById('wolf-photos-count').textContent = all.length;
   const grid = document.getElementById('wolf-photos-grid');
   grid.innerHTML = all.length === 0
-    ? '<div class="empty" style="grid-column:1/-1">no photos yet — tap upload above</div>'
+    ? '<div class="empty" style="grid-column:1/-1">no photos yet. tap upload above</div>'
     : all.slice().reverse().map(p => `
       <div class="photo-tile">
         <img src="${p.dataUrl}" alt="" onclick="openLightbox('${p.dataUrl}')">
@@ -2116,6 +2127,10 @@ function setupPWA(logoDataUrl) {
 
 // ============== INIT ==============
 async function initApp() {
+  // Set initial history state for phone back button navigation
+  if (!history.state) {
+    history.replaceState({ tab: 'dashboard' }, '', '#dashboard');
+  }
   // Auto sign-in to Firebase as admin (one prompt, then good for the session)
   await ensureFirebaseAdmin();
 
