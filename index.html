@@ -981,6 +981,12 @@ async function fbSignInAdmin(email, password) {
   if (!fbReady) throw new Error('Firebase not loaded');
   return fbAuth.signInWithEmailAndPassword(email, password);
 }
+async function fbSignInGoogle() {
+  if (!fbReady) throw new Error('Firebase not loaded');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  return fbAuth.signInWithPopup(provider);
+}
 function fbSignOut() {
   if (fbReady) fbAuth.signOut();
 }
@@ -1823,13 +1829,14 @@ async function deletePack(id) {
 }
 
 async function promptFbSignIn() {
-  const email = prompt('Firebase admin email:', ADMIN_EMAIL);
-  if (!email) return;
-  const password = prompt('Password:');
-  if (!password) return;
   try {
-    await fbSignInAdmin(email, password);
-    toast('Signed in');
+    const result = await fbSignInGoogle();
+    if (!ADMIN_EMAILS.includes(result.user.email)) {
+      await fbSignOut();
+      alert('That Google account is not authorized for admin. Allowed: ' + ADMIN_EMAILS.join(', '));
+      return;
+    }
+    toast('Signed in as ' + result.user.email);
   } catch (err) {
     alert('Sign-in failed: ' + (err.message || err.code));
   }
@@ -1965,7 +1972,7 @@ async function copySocialText(id, type) {
     await navigator.clipboard.writeText(p.text);
     toast('Copied to clipboard');
   } catch (e) {
-    toast('Copy failed — long press to select');
+    toast('Copy failed. Long press to select.');
   }
 }
 
@@ -2102,18 +2109,19 @@ async function ensureFirebaseAdmin() {
   // Wait briefly for onAuthStateChanged to fire if user is already signed in
   await new Promise(r => setTimeout(r, 300));
   if (fbIsAdmin()) return;
-  // Not signed in — prompt once at boot
-  const wantSignIn = confirm('Sign in to Firebase for live moderation? (cancel to skip — counts will show 0)');
+  // Not signed in. Offer Google sign-in once at boot.
+  const wantSignIn = confirm('Sign in with Google for live moderation? Cancel to skip and show 0 counts.');
   if (!wantSignIn) return;
-  const email = prompt('Firebase admin email:', ADMIN_EMAIL);
-  if (!email) return;
-  const password = prompt('Firebase password:');
-  if (!password) return;
   try {
-    await fbSignInAdmin(email, password);
-    toast('Firebase signed in');
+    const result = await fbSignInGoogle();
+    if (!ADMIN_EMAILS.includes(result.user.email)) {
+      await fbSignOut();
+      alert('That Google account is not authorized for admin. Allowed: ' + ADMIN_EMAILS.join(', '));
+      return;
+    }
+    toast('Signed in as ' + result.user.email);
   } catch (err) {
-    alert('Firebase sign-in failed: ' + (err.message || err.code) + '\nYou can retry from any tab that uses Firebase.');
+    alert('Google sign-in failed: ' + (err.message || err.code) + '\nYou can retry from any tab.');
   }
 }
 
