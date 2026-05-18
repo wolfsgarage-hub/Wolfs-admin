@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v18</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v19</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -1828,21 +1828,43 @@ function listingCard(l, isPending) {
     : `<button class="btn btn-ghost" onclick="setStatus('${l.id}','pending')">RE-QUEUE</button>
        <button class="btn btn-reject" onclick="deleteListing('${l.id}')">DELETE</button>`;
 
+  // Email lives on the auth-bound userEmail field (directory writes currentUser.email there).
+  // Location is a single text field, not split city/state.
+  // Rides is a single text field combining current and past.
+  const email = l.userEmail || l.email || '';
+  const location = l.location || '';
+  const rides = l.rides || '';
+
+  // Optional Cloudinary photo strips
+  const bizPhotos = Array.isArray(l.bizPhotos) ? l.bizPhotos : [];
+  const vehPhotos = Array.isArray(l.vehPhotos) ? l.vehPhotos : [];
+  const photoStrip = (arr, label) => arr.length
+    ? `<strong>${label}</strong><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">` +
+      arr.slice(0, 6).map(u => `<img src="${escapeHtml(u)}" alt="" style="width:60px;height:60px;object-fit:cover;border:1px solid rgba(245,241,232,0.2);">`).join('') +
+      `</div>`
+    : '';
+
   return `
     <div class="card ${cls}">
       <div class="card-head">
         <div>
           <div class="card-title">${escapeHtml(l.bizName || 'Untitled')}</div>
-          <div class="card-meta">${escapeHtml(l.bizType || '')} · ${escapeHtml(l.city || '')}, ${escapeHtml(l.state || '')}</div>
+          <div class="card-meta">${escapeHtml(l.bizType || '')}${location ? ' &middot; ' + escapeHtml(location) : ''}</div>
         </div>
       </div>
       <div class="card-body">
         ${l.ownerName ? `<strong>OWNER</strong>${escapeHtml(l.ownerName)}` : ''}
-        ${l.email ? `<strong>EMAIL</strong>${escapeHtml(l.email)}` : ''}
+        ${email ? `<strong>EMAIL</strong>${escapeHtml(email)}` : ''}
+        ${l.contact ? `<strong>CONTACT</strong>${escapeHtml(l.contact)}` : ''}
         ${l.website ? `<strong>WEBSITE</strong>${escapeHtml(l.website)}` : ''}
+        ${l.address ? `<strong>ADDRESS</strong>${escapeHtml(l.address)}` : ''}
         ${l.bio ? `<strong>BIO</strong>${escapeHtml(l.bio)}` : ''}
-        ${l.currentRides ? `<strong>CURRENT RIDES</strong>${escapeHtml(l.currentRides)}` : ''}
-        ${l.pastRides ? `<strong>PAST RIDES</strong>${escapeHtml(l.pastRides)}` : ''}
+        ${l.specialties ? `<strong>SPECIALTIES</strong>${escapeHtml(l.specialties)}` : ''}
+        ${rides ? `<strong>RIDES</strong>${escapeHtml(rides)}` : ''}
+        ${l.sideWork ? `<strong>SIDE WORK</strong>${escapeHtml(l.sideWork)}` : ''}
+        ${l.communityOffer ? `<strong>COMMUNITY OFFER</strong>${escapeHtml(l.communityOffer)}` : ''}
+        ${photoStrip(bizPhotos, 'BIZ PHOTOS')}
+        ${photoStrip(vehPhotos, 'VEHICLE PHOTOS')}
       </div>
       <div class="card-actions">${actions}</div>
     </div>
@@ -1871,9 +1893,12 @@ async function setStatus(id, status) {
   all[idx].statusChangedAt = updates.statusChangedAt;
   await Store.set(K.LISTINGS, all);
 
-  if (status === 'approved' && listing.email) {
+  // Mailchimp subscribe uses the userEmail field that the directory's signup form actually writes.
+  // Fall back to listing.email in case any legacy listings use the old field name.
+  const subscribeEmail = listing.userEmail || listing.email;
+  if (status === 'approved' && subscribeEmail) {
     // Fire Mailchimp subscribe (don't block UI)
-    const result = await subscribeToMailchimp(listing.email, {
+    const result = await subscribeToMailchimp(subscribeEmail, {
       FNAME: (listing.ownerName || '').split(' ')[0] || '',
       LNAME: (listing.ownerName || '').split(' ').slice(1).join(' ') || '',
       MMERGE3: listing.bizName || ''
