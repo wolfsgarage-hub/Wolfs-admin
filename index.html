@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v17</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v18</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -1712,8 +1712,26 @@ function calendarCard(e) {
 }
 
 
+// Source of truth for listings. Firestore-first (matches what the dashboard
+// reads), falls back to local Store cache if Firestore is unreachable.
+// Also writes the fresh result back to local Store so Categories tab, offline
+// reloads, and other readers stay in sync.
+async function loadAllListings() {
+  if (fbReady && fbIsAdmin()) {
+    try {
+      const snap = await fbDb.collection('listings').get();
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      await Store.set(K.LISTINGS, list);
+      return list;
+    } catch (err) {
+      console.warn('Firestore listings fetch failed, falling back to local:', err);
+    }
+  }
+  return (await Store.get(K.LISTINGS)) || [];
+}
+
 async function renderListings() {
-  const all = await Store.get(K.LISTINGS) || [];
+  const all = await loadAllListings();
   const pending = all.filter(l => l.status === 'pending');
   const live = all.filter(l => l.status === 'approved');
 
@@ -1743,7 +1761,7 @@ const CURATED_TYPES = [
 ];
 
 async function renderCategories() {
-  const all = await Store.get(K.LISTINGS) || [];
+  const all = await loadAllListings();
   // Count occurrences of each bizType across approved + pending
   const counts = {};
   all.forEach(l => {
@@ -1832,12 +1850,25 @@ function listingCard(l, isPending) {
 }
 
 async function setStatus(id, status) {
-  const all = await Store.get(K.LISTINGS) || [];
+  // Locate the listing - prefer Firestore truth, fall back to local Store
+  const all = await loadAllListings();
   const idx = all.findIndex(l => l.id === id);
-  if (idx === -1) return;
+  if (idx === -1) { toast('Listing not found'); return; }
   const listing = all[idx];
+
+  // Write to Firestore first (if available), then mirror to local Store
+  const updates = { status, statusChangedAt: Date.now() };
+  if (fbReady && fbIsAdmin()) {
+    try {
+      await fbDb.collection('listings').doc(id).update(updates);
+    } catch (err) {
+      console.error('Firestore status update failed:', err);
+      toast('Update failed - check connection');
+      return;
+    }
+  }
   all[idx].status = status;
-  all[idx].statusChangedAt = Date.now();
+  all[idx].statusChangedAt = updates.statusChangedAt;
   await Store.set(K.LISTINGS, all);
 
   if (status === 'approved' && listing.email) {
@@ -1848,13 +1879,13 @@ async function setStatus(id, status) {
       MMERGE3: listing.bizName || ''
     });
     if (result === null) {
-      toast('APPROVED · mailchimp not configured');
+      toast('APPROVED - mailchimp not configured');
     } else if (result?.result === 'success') {
       toast('APPROVED + ADDED TO LIST');
     } else if (result?.result === 'error') {
       const msg = (result.msg || '').toLowerCase();
-      if (msg.includes('already')) toast('APPROVED · already subscribed');
-      else toast('APPROVED · mailchimp error');
+      if (msg.includes('already')) toast('APPROVED - already subscribed');
+      else toast('APPROVED - mailchimp error');
     } else {
       toast('APPROVED');
     }
@@ -1866,6 +1897,16 @@ async function setStatus(id, status) {
 
 async function deleteListing(id) {
   if (!confirm('Delete this listing permanently?')) return;
+  // Delete from Firestore first, then local cache
+  if (fbReady && fbIsAdmin()) {
+    try {
+      await fbDb.collection('listings').doc(id).delete();
+    } catch (err) {
+      console.error('Firestore delete failed:', err);
+      toast('Delete failed - check connection');
+      return;
+    }
+  }
   const all = await Store.get(K.LISTINGS) || [];
   const filtered = all.filter(l => l.id !== id);
   await Store.set(K.LISTINGS, filtered);
