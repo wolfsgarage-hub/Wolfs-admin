@@ -215,7 +215,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 0.85rem;
   margin-bottom: 10px;
 }
-.type-row .divider::before, .type-row .divider::after { content: '— '; }
+.type-row .divider::before, .type-row .divider::after { content: '- '; }
 .type-row textarea {
   width: 100%;
   background: var(--panel-2);
@@ -313,7 +313,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 <p class="prompt" id="micPrompt">PRESS AND HOLD MIC TO TALK</p>
 
-<div class="heard empty" id="heardText" contenteditable="true" inputmode="text" data-placeholder="your words show up here — tap to edit or add time"></div>
+<div class="heard empty" id="heardText" contenteditable="true" inputmode="text" data-placeholder="your words show up here - tap to edit or add time"></div>
 
 <div class="parsed-box hide" id="parsedBox">
   <div class="label">Adding to</div>
@@ -442,7 +442,7 @@ let SRClass = null;
 function initSpeech() {
   SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SRClass) {
-    $('micPrompt').textContent = 'VOICE NOT SUPPORTED — TYPE BELOW';
+    $('micPrompt').textContent = 'VOICE NOT SUPPORTED - TYPE BELOW';
     $('micBtn').style.opacity = '0.4';
     return;
   }
@@ -455,7 +455,7 @@ function startMic() {
   micBtn.classList.add('recording');
   $('micPrompt').textContent = 'LISTENING...';
 
-  // Fresh instance every time — guaranteed clean state, no leftover results
+  // Fresh instance every time - guaranteed clean state, no leftover results
   if (recognition) {
     try { recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition.abort(); } catch(e) {}
   }
@@ -539,7 +539,7 @@ $('typeArea').addEventListener('input', (e) => {
   updatePreview();
 });
 
-// Make the heard text editable — tap to fix typos or add missing time
+// Make the heard text editable - tap to fix typos or add missing time
 $('heardText').addEventListener('input', (e) => {
   const txt = e.target.textContent.trim();
   currentText = txt;
@@ -735,7 +735,7 @@ function updatePreview() {
       addBtn.disabled = false;
     } else if (ev && ev.error === 'no-time') {
       preview.innerHTML = ev.title +
-        '<span class="meta" style="color:var(--red);">⚠ No time found — say a specific time like "3pm" or "2:30"</span>';
+        '<span class="meta" style="color:var(--red);">⚠ No time found - say a specific time like "3pm" or "2:30"</span>';
       addBtn.disabled = true;
     } else {
       preview.innerHTML = '<span style="color:rgba(245,241,232,0.5);">Speak something like: "Meet Sam tomorrow 3pm"</span>';
@@ -777,11 +777,11 @@ function addToList() {
 async function addToCalendar() {
   const ev = parseCalendarEvent(currentText);
   if (!ev || ev.error) {
-    showToast('Need a time — try "3pm" or "2:30"', 'err');
+    showToast('Need a time - try "3pm" or "2:30"', 'err');
     return;
   }
   if (!accessToken) {
-    showToast('Connect Google first — tap Connect at bottom', 'err');
+    showToast('Connect Google first - tap Connect at bottom', 'err');
     return;
   }
 
@@ -808,14 +808,14 @@ async function addToCalendar() {
     );
 
     if (resp.status === 401) {
-      // Token expired — re-auth
+      // Token expired - re-auth
       accessToken = null;
       try {
         localStorage.removeItem('wgAccessToken');
         localStorage.removeItem('wgTokenExpiry');
       } catch(e) {}
       updateAuthUI(false);
-      showToast('Session expired — reconnect Google', 'err');
+      showToast('Session expired - reconnect Google', 'err');
       return;
     }
 

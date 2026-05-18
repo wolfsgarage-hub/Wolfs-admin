@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v15</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v16</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -972,7 +972,7 @@ try {
   fbReady = true;
   fbAuth.onAuthStateChanged(user => {
     fbUser = user;
-    // Refresh dashboard counters (always — they depend on admin auth)
+    // Refresh dashboard counters (always - they depend on admin auth)
     if (document.getElementById('dash-stat-listings')) {
       renderDashboard().catch(()=>{});
     }
@@ -2147,7 +2147,7 @@ async function initApp() {
   await renderMorning();
   await renderListings();
   await renderPackPhotos();
-  // Auto-sync from cloud (silent — non-blocking, errors don't disturb UX)
+  // Auto-sync from cloud (silent - non-blocking, errors don't disturb UX)
   syncCloudData(true).then(r => {
     if (r && r.added > 0) toast(`+${r.added} from cloud`);
   }).catch(()=>{});
