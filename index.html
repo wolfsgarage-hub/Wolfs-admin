@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v16</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v17</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -604,6 +604,7 @@
   <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">DASHBOARD</button>
   <button class="tab" data-tab="morning" onclick="switchTab('morning')">MORNING</button>
   <button class="tab" data-tab="listings" onclick="switchTab('listings')">LISTINGS<span class="tab-badge zero" id="badge-listings">0</span></button>
+  <button class="tab" data-tab="categories" onclick="switchTab('categories')">CATEGORIES<span class="tab-badge zero" id="badge-categories">0</span></button>
   <button class="tab" data-tab="pack" onclick="switchTab('pack')">PACK PHOTOS<span class="tab-badge zero" id="badge-pack">0</span></button>
   <button class="tab" data-tab="wolf-photos" onclick="switchTab('wolf-photos')">WOLF'S PHOTOS</button>
   <button class="tab" data-tab="social" onclick="switchTab('social')">SOCIAL</button>
@@ -775,6 +776,36 @@
       <span class="section-count" id="listings-live-count">0</span>
     </div>
     <div id="listings-live"></div>
+  </div>
+</section>
+
+<!-- ============== CATEGORIES ============== -->
+<section class="panel" id="panel-categories">
+  <div class="panel-head">
+    <h2>DIRECTORY CATEGORIES</h2>
+    <p>// what business types are showing up. custom = not on the curated list</p>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>CUSTOM</h3>
+      <span class="section-count" id="cat-custom-count">0</span>
+    </div>
+    <p style="font-size:12px;color:rgba(245,241,232,0.6);margin:0 0 12px;font-family:'Special Elite',monospace;">
+      // types vendors typed in that aren't in the directory's curated list. promote one by adding it to CURATED_TYPES in the directory code.
+    </p>
+    <div id="cat-custom-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>CURATED</h3>
+      <span class="section-count" id="cat-curated-count">0</span>
+    </div>
+    <p style="font-size:12px;color:rgba(245,241,232,0.6);margin:0 0 12px;font-family:'Special Elite',monospace;">
+      // the 13 baked-in types. count is how many listings use each.
+    </p>
+    <div id="cat-curated-list"></div>
   </div>
 </section>
 
@@ -1099,6 +1130,7 @@ function switchTab(name, pushHistory) {
   window.scrollTo(0, 0);
   // Refresh content per tab
   if (name === 'listings') renderListings();
+  if (name === 'categories') renderCategories();
   if (name === 'pack') renderPackPhotos();
   if (name === 'wolf-photos') renderWolfPhotos();
   if (name === 'social') renderSocial();
@@ -1699,6 +1731,74 @@ async function renderListings() {
     : live.map(l => listingCard(l, false)).join('');
 
   await renderDashboard();
+}
+
+// ============== CATEGORIES ==============
+// Mirror of CURATED_TYPES in wolfs-garage-community/index.html. Update both
+// together if you promote a custom type to curated.
+const CURATED_TYPES = [
+  'Auto Shop', 'Fabricator', 'Painter / Pinstriper', 'Welder', 'Photographer',
+  'Upholstery', 'Parts / Salvage', 'Detailing', 'Machinist', 'Restoration',
+  'Towing / Hauling', 'Apparel', 'Other'
+];
+
+async function renderCategories() {
+  const all = await Store.get(K.LISTINGS) || [];
+  // Count occurrences of each bizType across approved + pending
+  const counts = {};
+  all.forEach(l => {
+    const t = (l.bizType || '').trim();
+    if (!t) return;
+    counts[t] = (counts[t] || 0) + 1;
+  });
+
+  // Case-insensitive curated lookup
+  const curatedLower = new Set(CURATED_TYPES.map(t => t.toLowerCase()));
+
+  const curatedRows = [];
+  const customRows = [];
+  Object.keys(counts).sort((a, b) => counts[b] - counts[a]).forEach(type => {
+    const row = { type, count: counts[type] };
+    if (curatedLower.has(type.toLowerCase())) curatedRows.push(row);
+    else customRows.push(row);
+  });
+  // Also list curated types that have 0 listings so John sees the full set
+  CURATED_TYPES.forEach(t => {
+    if (!counts[t] && !curatedRows.some(r => r.type.toLowerCase() === t.toLowerCase())) {
+      curatedRows.push({ type: t, count: 0 });
+    }
+  });
+
+  document.getElementById('cat-custom-count').textContent = customRows.length;
+  document.getElementById('cat-curated-count').textContent = curatedRows.length;
+  document.getElementById('badge-categories').textContent = customRows.length;
+  document.getElementById('badge-categories').classList.toggle('zero', customRows.length === 0);
+
+  const customEl = document.getElementById('cat-custom-list');
+  customEl.innerHTML = customRows.length === 0
+    ? '<div class="empty">no custom categories yet</div>'
+    : customRows.map(r => categoryCard(r, true)).join('');
+
+  const curatedEl = document.getElementById('cat-curated-list');
+  curatedEl.innerHTML = curatedRows.map(r => categoryCard(r, false)).join('');
+}
+
+function categoryCard(r, isCustom) {
+  const badge = isCustom
+    ? '<span style="background:var(--red);color:var(--bone);padding:2px 8px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;">CUSTOM</span>'
+    : '<span style="border:1px solid rgba(245,241,232,0.25);color:rgba(245,241,232,0.55);padding:2px 8px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;">CURATED</span>';
+  const empty = r.count === 0 ? 'opacity:0.4;' : '';
+  return `
+    <div class="card" style="${empty}">
+      <div class="card-head" style="align-items:center;">
+        <div>
+          <div class="card-title">${escapeHtml(r.type)}</div>
+          <div class="card-meta">${r.count} ${r.count === 1 ? 'listing' : 'listings'}</div>
+        </div>
+        <div style="margin-left:auto;">${badge}</div>
+      </div>
+    </div>
+  `;
 }
 
 function listingCard(l, isPending) {
