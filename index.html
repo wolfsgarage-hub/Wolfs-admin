@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v20</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v20.1</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -1174,20 +1174,26 @@ async function renderDashboard() {
   const openTodo = todo.filter(t => !t.done).length;
   document.getElementById('dash-stat-todo').textContent = openTodo;
 
-  // Firestore-backed counters (live data when admin is signed in)
+  // Firestore-backed counters (live data when admin is signed in, local fallback otherwise)
   let pendingL = 0, liveL = 0, pendingP = 0;
+  // Use loadAllListings() so dashboard counts match the LISTINGS tab even when
+  // not signed in to Firebase as admin (it falls back to local cache).
+  try {
+    const list = await loadAllListings();
+    list.forEach(l => {
+      if (l.status === 'pending') pendingL++;
+      else if (l.status === 'approved') liveL++;
+    });
+  } catch (err) {
+    console.warn('Dashboard listings count failed:', err);
+  }
+  // Gallery counter still requires Firebase (no local fallback exists for pack photos)
   if (fbReady && fbIsAdmin()) {
     try {
-      const lSnap = await fbDb.collection('listings').get();
-      lSnap.docs.forEach(d => {
-        const s = d.data().status;
-        if (s === 'pending') pendingL++;
-        else if (s === 'approved') liveL++;
-      });
       const pSnap = await fbDb.collection('gallery').where('isWolf', '==', false).where('status', '==', 'pending').get();
       pendingP = pSnap.size;
     } catch (err) {
-      console.warn('Dashboard Firestore read failed:', err);
+      console.warn('Dashboard gallery read failed:', err);
     }
   }
 
