@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v19</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v20</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -996,6 +996,9 @@ let fbReady = false;
 let fbUser = null;
 let fbDb = null;
 let fbAuth = null;
+let _resolveFirstAuthState;
+const firstAuthStateSettled = new Promise(r => { _resolveFirstAuthState = r; });
+let _firstAuthFired = false;
 try {
   firebase.initializeApp(FB_CONFIG);
   fbAuth = firebase.auth();
@@ -1003,6 +1006,7 @@ try {
   fbReady = true;
   fbAuth.onAuthStateChanged(user => {
     fbUser = user;
+    if (!_firstAuthFired) { _firstAuthFired = true; _resolveFirstAuthState(); }
     // Refresh dashboard counters (always - they depend on admin auth)
     if (document.getElementById('dash-stat-listings')) {
       renderDashboard().catch(()=>{});
@@ -1024,7 +1028,10 @@ try {
         setTimeout(() => toast('Signed in as ' + result.user.email), 500);
       }
     }
+    // Either way, redirect handling is complete - clear the pending flag
+    sessionStorage.removeItem('wg_google_redirecting');
   }).catch(err => {
+    sessionStorage.removeItem('wg_google_redirecting');
     if (err && err.code && err.code !== 'auth/no-auth-event') {
       console.warn('Redirect result error:', err.code, err.message);
     }
@@ -2038,6 +2045,8 @@ async function deletePack(id) {
 
 async function promptFbSignIn() {
   try {
+    // Mark redirect in flight so the next boot waits longer for auth state.
+    sessionStorage.setItem('wg_google_redirecting', '1');
     // On mobile this navigates away; result is caught by getRedirectResult on return.
     // On desktop the popup result is awaitable here.
     const result = await fbSignInGoogle();
@@ -2322,17 +2331,32 @@ async function initApp() {
 async function ensureFirebaseAdmin() {
   if (!fbReady) return;
   if (fbIsAdmin()) return;
-  // Wait for onAuthStateChanged to fire if user is already signed in
-  await new Promise(r => setTimeout(r, 500));
+  // Wait for the actual first onAuthStateChanged event instead of a fixed timer.
+  // If we just came back from a Google redirect, give it longer to settle.
+  const wasRedirecting = sessionStorage.getItem('wg_google_redirecting') === '1';
+  const timeoutMs = wasRedirecting ? 5000 : 1500;
+  await Promise.race([
+    firstAuthStateSettled,
+    new Promise(r => setTimeout(r, timeoutMs))
+  ]);
   if (fbIsAdmin()) return;
+  // One-shot prompt per session - prevents the redirect-bounce loop.
+  // The flag is cleared on error below so the user can retry after a failed sign-in.
+  if (sessionStorage.getItem('wg_google_prompt_shown') === '1') return;
+  sessionStorage.setItem('wg_google_prompt_shown', '1');
   // Not signed in. Offer Google sign-in once at boot.
   const wantSignIn = confirm('Sign in with Google for live moderation? Cancel to skip and show 0 counts.');
   if (!wantSignIn) return;
   try {
+    // Mark that a redirect is in flight so the next boot waits longer for auth state
+    sessionStorage.setItem('wg_google_redirecting', '1');
     // On mobile this navigates away. On desktop this opens a popup.
     // Either way, onAuthStateChanged + getRedirectResult will catch the result.
     await fbSignInGoogle();
   } catch (err) {
+    // Sign-in failed - clear flags so user can try again
+    sessionStorage.removeItem('wg_google_redirecting');
+    sessionStorage.removeItem('wg_google_prompt_shown');
     alert('Google sign-in failed: ' + (err.message || err.code) + '\nYou can retry from any tab.');
   }
 }
