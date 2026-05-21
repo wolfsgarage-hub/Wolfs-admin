@@ -223,7 +223,7 @@
   /* STAT CARDS */
   .stat-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px; margin-bottom: 22px;
   }
   .stat-card {
@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v20.1</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v21</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -606,6 +606,7 @@
   <button class="tab" data-tab="listings" onclick="switchTab('listings')">LISTINGS<span class="tab-badge zero" id="badge-listings">0</span></button>
   <button class="tab" data-tab="categories" onclick="switchTab('categories')">CATEGORIES<span class="tab-badge zero" id="badge-categories">0</span></button>
   <button class="tab" data-tab="pack" onclick="switchTab('pack')">PACK PHOTOS<span class="tab-badge zero" id="badge-pack">0</span></button>
+  <button class="tab" data-tab="events" onclick="switchTab('events')">EVENTS<span class="tab-badge zero" id="badge-events">0</span></button>
   <button class="tab" data-tab="wolf-photos" onclick="switchTab('wolf-photos')">WOLF'S PHOTOS</button>
   <button class="tab" data-tab="social" onclick="switchTab('social')">SOCIAL</button>
 </nav>
@@ -625,6 +626,10 @@
     <div class="stat-card" id="dash-pack" onclick="switchTab('pack')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-pack">0</div>
       <div class="stat-lbl">PHOTOS PENDING</div>
+    </div>
+    <div class="stat-card" id="dash-events" onclick="switchTab('events')" style="cursor:pointer">
+      <div class="stat-num" id="dash-stat-events">0</div>
+      <div class="stat-lbl">EVENTS PENDING</div>
     </div>
     <div class="stat-card" onclick="switchTab('morning')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-todo">0</div>
@@ -830,6 +835,30 @@
       <span class="section-count" id="pack-approved-count">0</span>
     </div>
     <div class="photo-grid" id="pack-approved-grid"></div>
+  </div>
+</section>
+
+<!-- ============== EVENTS ============== -->
+<section class="panel" id="panel-events">
+  <div class="panel-head">
+    <h2>EVENT CALENDAR</h2>
+    <p>// approve, reject, re-queue, delete event submissions</p>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>PENDING</h3>
+      <span class="section-count" id="events-pending-count">0</span>
+    </div>
+    <div id="events-pending"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>APPROVED</h3>
+      <span class="section-count" id="events-approved-count">0</span>
+    </div>
+    <div id="events-approved"></div>
   </div>
 </section>
 
@@ -1139,6 +1168,7 @@ function switchTab(name, pushHistory) {
   if (name === 'listings') renderListings();
   if (name === 'categories') renderCategories();
   if (name === 'pack') renderPackPhotos();
+  if (name === 'events') renderEvents();
   if (name === 'wolf-photos') renderWolfPhotos();
   if (name === 'social') renderSocial();
   if (name === 'morning') renderMorning();
@@ -1175,7 +1205,7 @@ async function renderDashboard() {
   document.getElementById('dash-stat-todo').textContent = openTodo;
 
   // Firestore-backed counters (live data when admin is signed in, local fallback otherwise)
-  let pendingL = 0, liveL = 0, pendingP = 0;
+  let pendingL = 0, liveL = 0, pendingP = 0, pendingE = 0;
   // Use loadAllListings() so dashboard counts match the LISTINGS tab even when
   // not signed in to Firebase as admin (it falls back to local cache).
   try {
@@ -1187,7 +1217,7 @@ async function renderDashboard() {
   } catch (err) {
     console.warn('Dashboard listings count failed:', err);
   }
-  // Gallery counter still requires Firebase (no local fallback exists for pack photos)
+  // Gallery + events counters require Firebase (no local fallback exists for these)
   if (fbReady && fbIsAdmin()) {
     try {
       const pSnap = await fbDb.collection('gallery').where('isWolf', '==', false).where('status', '==', 'pending').get();
@@ -1195,20 +1225,32 @@ async function renderDashboard() {
     } catch (err) {
       console.warn('Dashboard gallery read failed:', err);
     }
+    try {
+      // Single-field where (no composite index needed). Wolf-submitted events
+      // auto-approve at write time, so pending == community-submitted by definition.
+      const eSnap = await fbDb.collection('events').where('status', '==', 'pending').get();
+      pendingE = eSnap.size;
+    } catch (err) {
+      console.warn('Dashboard events read failed:', err);
+    }
   }
 
   document.getElementById('dash-stat-listings').textContent = pendingL;
   document.getElementById('dash-stat-pack').textContent = pendingP;
+  document.getElementById('dash-stat-events').textContent = pendingE;
   document.getElementById('dash-stat-live').textContent = liveL;
 
   document.getElementById('dash-listings').classList.toggle('has-badge', pendingL > 0);
   document.getElementById('dash-pack').classList.toggle('has-badge', pendingP > 0);
+  document.getElementById('dash-events').classList.toggle('has-badge', pendingE > 0);
 
   // Tab badges
   const badgeL = document.getElementById('badge-listings');
   const badgeP = document.getElementById('badge-pack');
+  const badgeE = document.getElementById('badge-events');
   if (badgeL) { badgeL.textContent = pendingL; badgeL.classList.toggle('zero', pendingL === 0); }
   if (badgeP) { badgeP.textContent = pendingP; badgeP.classList.toggle('zero', pendingP === 0); }
+  if (badgeE) { badgeE.textContent = pendingE; badgeE.classList.toggle('zero', pendingE === 0); }
 
   // Notes
   const notes = await Store.get(K.NOTES_DASH) || '';
@@ -2044,6 +2086,152 @@ async function deletePack(id) {
     await fbDb.collection('gallery').doc(id).delete();
     toast('Deleted');
     await renderPackPhotos();
+  } catch (err) {
+    toast('Failed: ' + (err.message || err.code));
+  }
+}
+
+// ============== EVENTS ==============
+// Public site (wolfs-garage-site) writes to fbDb.collection('events') with the
+// shape: {userId,userEmail,title,date,time,location,description,flyerUrl,
+// cloudinaryPublicId,status,isWolf,createdAt}. Wolf-submitted events auto-
+// approve at write time. Community submissions land as status='pending' and
+// need this UI to flip to 'approved' before they render on the public site.
+// Mirrors the renderPackPhotos pattern (Firestore-only, no local cache).
+const EVENT_MONTHS_ADMIN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function formatEventDate(d) {
+  // yyyy-mm-dd → "Sat, Jun 13, 2026". Returns the raw string if parse fails.
+  if (!d || typeof d !== 'string') return '';
+  const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return d;
+  const year = parseInt(m[1], 10);
+  const monthIdx = parseInt(m[2], 10) - 1;
+  const day = parseInt(m[3], 10);
+  if (monthIdx < 0 || monthIdx > 11) return d;
+  // Build a local-date (avoid timezone shift that comes with new Date('yyyy-mm-dd'))
+  const dt = new Date(year, monthIdx, day);
+  const weekday = dt.toLocaleDateString('en-US', { weekday: 'short' });
+  return `${weekday}, ${EVENT_MONTHS_ADMIN[monthIdx]} ${day}, ${year}`;
+}
+
+async function renderEvents() {
+  const pEl = document.getElementById('events-pending');
+  const aEl = document.getElementById('events-approved');
+  const pCount = document.getElementById('events-pending-count');
+  const aCount = document.getElementById('events-approved-count');
+
+  if (!fbReady) {
+    pEl.innerHTML = '<div class="empty">Firebase not loaded. Refresh page.</div>';
+    aEl.innerHTML = '';
+    pCount.textContent = '0';
+    aCount.textContent = '0';
+    return;
+  }
+
+  if (!fbIsAdmin()) {
+    pEl.innerHTML = `<div class="empty" style="padding:20px;">
+      <p style="margin-bottom:14px;">Sign in to Firebase as admin to moderate event submissions.</p>
+      <button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>
+    </div>`;
+    aEl.innerHTML = '';
+    pCount.textContent = '?';
+    aCount.textContent = '?';
+    return;
+  }
+
+  pEl.innerHTML = '<div class="empty">Loading...</div>';
+  aEl.innerHTML = '<div class="empty">Loading...</div>';
+
+  try {
+    // Single .get() + client-side split (mirrors loadAllListings — no composite index needed).
+    const snap = await fbDb.collection('events').get();
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const pending = all.filter(e => e.status === 'pending');
+    const approved = all.filter(e => e.status === 'approved');
+    // Ascending by date string (yyyy-mm-dd sorts chronologically as a string).
+    const byDateAsc = (a, b) => (a.date || '').localeCompare(b.date || '');
+    pending.sort(byDateAsc);
+    approved.sort(byDateAsc);
+
+    pCount.textContent = pending.length;
+    aCount.textContent = approved.length;
+
+    pEl.innerHTML = pending.length === 0
+      ? '<div class="empty">no pending submissions</div>'
+      : pending.map(e => eventCard(e, true)).join('');
+
+    aEl.innerHTML = approved.length === 0
+      ? '<div class="empty">no approved events yet</div>'
+      : approved.map(e => eventCard(e, false)).join('');
+
+    if (typeof renderDashboard === 'function') await renderDashboard();
+  } catch (err) {
+    console.error('renderEvents error:', err);
+    pEl.innerHTML = '<div class="empty">Load failed: ' + (err.message || err.code) + '</div>';
+    aEl.innerHTML = '';
+  }
+}
+
+function eventCard(e, isPending) {
+  const cls = isPending ? 'pending' : 'approved';
+  const actions = isPending
+    ? `<button class="btn btn-approve" onclick="setEventStatus('${e.id}','approved')">APPROVE</button>
+       <button class="btn btn-reject" onclick="setEventStatus('${e.id}','rejected')">REJECT</button>
+       <button class="btn btn-ghost" onclick="deleteEvent('${e.id}')">DELETE</button>`
+    : `<button class="btn btn-ghost" onclick="setEventStatus('${e.id}','pending')">RE-QUEUE</button>
+       <button class="btn btn-reject" onclick="deleteEvent('${e.id}')">DELETE</button>`;
+
+  const wolfBadge = e.isWolf
+    ? '<span style="background:var(--copper);color:var(--black);padding:2px 8px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;margin-left:8px;">WOLF</span>'
+    : '';
+  const dateLabel = formatEventDate(e.date);
+  const metaParts = [dateLabel, e.time, e.location].filter(Boolean).map(escapeHtml);
+  const meta = metaParts.join(' &middot; ');
+
+  const flyer = e.flyerUrl
+    ? `<strong>FLYER</strong>
+       <img src="${escapeHtml(e.flyerUrl)}" alt="flyer"
+            style="display:block;max-width:200px;width:100%;height:auto;border:1px solid rgba(245,241,232,0.2);cursor:pointer;margin-top:4px;"
+            onclick="openLightbox('${escapeHtml(e.flyerUrl)}')">`
+    : '';
+
+  return `
+    <div class="card ${cls}">
+      <div class="card-head">
+        <div>
+          <div class="card-title">${escapeHtml(e.title || 'Untitled')}${wolfBadge}</div>
+          <div class="card-meta">${meta}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        ${e.userEmail ? `<strong>SUBMITTED BY</strong>${escapeHtml(e.userEmail)}` : ''}
+        ${e.description ? `<strong>DESCRIPTION</strong>${escapeHtml(e.description)}` : ''}
+        ${flyer}
+      </div>
+      <div class="card-actions">${actions}</div>
+    </div>
+  `;
+}
+
+async function setEventStatus(id, status) {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  try {
+    await fbDb.collection('events').doc(id).update({ status, statusChangedAt: Date.now() });
+    toast(status === 'approved' ? 'APPROVED' : status === 'rejected' ? 'REJECTED' : 'RE-QUEUED');
+    await renderEvents();
+  } catch (err) {
+    toast('Failed: ' + (err.message || err.code));
+  }
+}
+
+async function deleteEvent(id) {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  if (!confirm('Delete this event permanently? The Cloudinary flyer is NOT deleted automatically.')) return;
+  try {
+    await fbDb.collection('events').doc(id).delete();
+    toast('Deleted');
+    await renderEvents();
   } catch (err) {
     toast('Failed: ' + (err.message || err.code));
   }
