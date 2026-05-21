@@ -1031,6 +1031,11 @@ let _firstAuthFired = false;
 try {
   firebase.initializeApp(FB_CONFIG);
   fbAuth = firebase.auth();
+  // Persist the Firebase session across browser restarts so admins don't
+  // re-authenticate every visit. Set before any sign-in path runs.
+  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => {
+    console.warn('setPersistence(LOCAL) failed:', err && (err.code || err.message));
+  });
   fbDb = firebase.firestore();
   fbReady = true;
   fbAuth.onAuthStateChanged(user => {
@@ -2534,25 +2539,14 @@ async function ensureFirebaseAdmin() {
     new Promise(r => setTimeout(r, timeoutMs))
   ]);
   if (fbIsAdmin()) return;
-  // One-shot prompt per session - prevents the redirect-bounce loop.
-  // The flag is cleared on error below so the user can retry after a failed sign-in.
+  // One-shot per session - prevents the mobile redirect-bounce loop
+  // (signInWithRedirect navigates away and re-boots the app on return).
   if (sessionStorage.getItem('wg_google_prompt_shown') === '1') return;
   sessionStorage.setItem('wg_google_prompt_shown', '1');
-  // Not signed in. Offer Google sign-in once at boot.
-  const wantSignIn = confirm('Sign in with Google for live moderation? Cancel to skip and show 0 counts.');
-  if (!wantSignIn) return;
-  try {
-    // Mark that a redirect is in flight so the next boot waits longer for auth state
-    sessionStorage.setItem('wg_google_redirecting', '1');
-    // On mobile this navigates away. On desktop this opens a popup.
-    // Either way, onAuthStateChanged + getRedirectResult will catch the result.
-    await fbSignInGoogle();
-  } catch (err) {
-    // Sign-in failed - clear flags so user can try again
-    sessionStorage.removeItem('wg_google_redirecting');
-    sessionStorage.removeItem('wg_google_prompt_shown');
-    alert('Google sign-in failed: ' + (err.message || err.code) + '\nYou can retry from any tab.');
-  }
+  // No interstitial: launch Google sign-in directly. If the admin dismisses
+  // the popup that's their call - the SIGN IN buttons on the moderation tabs
+  // stay available, and promptFbSignIn handles its own errors.
+  await promptFbSignIn();
 }
 
 // Boot
