@@ -689,6 +689,15 @@
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">
     <div id="import-result" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:13px;color:var(--bone);white-space:pre-wrap"></div>
   </div>
+
+  <div class="section" id="email-export-section" style="display:none">
+    <div class="section-head"><h3>SUBMISSION EMAILS</h3></div>
+    <button class="btn btn-primary" id="email-export-btn" onclick="downloadSubmissionEmails()">DOWNLOAD SUBMISSION EMAILS</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
+      CSV of unique emails pulled from directory listings, pack photos, and event submissions.<br>
+      Mailchimp audience exports separately from mailchimp.com dashboard.
+    </div>
+  </div>
 </section>
 
 <!-- ============== MORNING ============== -->
@@ -1270,6 +1279,10 @@ async function renderDashboard() {
   if (calEl) calEl.value = calUrl;
 
   updateBadges(pendingL, pendingP);
+
+  // Submission-email export is admin-only
+  const emailExportSec = document.getElementById('email-export-section');
+  if (emailExportSec) emailExportSec.style.display = fbIsAdmin() ? '' : 'none';
 }
 
 function updateBadges(listings, pack) {
@@ -2239,6 +2252,89 @@ async function deleteEvent(id) {
     await renderEvents();
   } catch (err) {
     toast('Failed: ' + (err.message || err.code));
+  }
+}
+
+// ============== SUBMISSION EMAIL EXPORT ==============
+// Pulls userEmail from every submission collection, dedupes, and downloads a
+// CSV. Admin-only: the dashboard button is hidden for non-admins and this
+// function re-checks fbIsAdmin() before touching Firestore.
+const EMAIL_EXPORT_COLLECTIONS = ['listings', 'gallery', 'events'];
+
+function tsToMillis(v) {
+  // Normalize the createdAt shapes seen across collections: Firestore
+  // Timestamp, plain {seconds}, epoch number, or ISO string. Returns ms or null.
+  if (v == null) return null;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') { const t = Date.parse(v); return isNaN(t) ? null : t; }
+  if (typeof v.toMillis === 'function') return v.toMillis();
+  if (typeof v.seconds === 'number') return v.seconds * 1000;
+  return null;
+}
+
+function csvCell(v) {
+  // RFC-4180 quoting: wrap in quotes if the value contains a comma, quote, or newline.
+  const s = String(v == null ? '' : v);
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+async function downloadSubmissionEmails() {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  const btn = document.getElementById('email-export-btn');
+  const origLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'GATHERING...'; }
+  try {
+    // email -> { sources: Set<string>, firstSeen: number|null }
+    const map = new Map();
+    for (const coll of EMAIL_EXPORT_COLLECTIONS) {
+      const snap = await fbDb.collection(coll).get();
+      snap.docs.forEach(d => {
+        const data = d.data() || {};
+        const email = (data.userEmail || '').trim().toLowerCase();
+        if (!email) return;
+        if (!map.has(email)) map.set(email, { sources: new Set(), firstSeen: null });
+        const entry = map.get(email);
+        entry.sources.add(coll);
+        const ms = tsToMillis(data.createdAt);
+        if (ms != null && (entry.firstSeen == null || ms < entry.firstSeen)) {
+          entry.firstSeen = ms;
+        }
+      });
+    }
+
+    if (map.size === 0) { toast('No submission emails found'); return; }
+
+    // Stable output: rows sorted by email, sources in fixed collection order.
+    const rows = Array.from(map.keys()).sort().map(email => {
+      const entry = map.get(email);
+      const sources = EMAIL_EXPORT_COLLECTIONS.filter(c => entry.sources.has(c)).join(',');
+      const firstSeen = entry.firstSeen != null ? new Date(entry.firstSeen).toISOString() : '';
+      return [email, sources, firstSeen];
+    });
+    // Leading BOM so Excel reads it as UTF-8; CRLF line endings per RFC 4180.
+    const csv = '﻿' + [['email', 'sources', 'first_seen'], ...rows]
+      .map(cols => cols.map(csvCell).join(','))
+      .join('\r\n');
+
+    const now = new Date();
+    const dateStr = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wolfs-garage-submission-emails-' + dateStr + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Exported ' + map.size + (map.size === 1 ? ' email' : ' emails'));
+  } catch (err) {
+    console.error('Email export failed:', err);
+    toast('Export failed: ' + (err.message || err.code));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origLabel || 'DOWNLOAD SUBMISSION EMAILS'; }
   }
 }
 
