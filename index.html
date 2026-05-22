@@ -656,6 +656,10 @@
         Mailchimp → Audience → Signup forms → Embedded forms. Copy the form action URL.<br>
         Approved listings auto-add the owner's email here.
       </div>
+      <div style="margin-top:6px;font-size:11px">
+        <a href="https://admin.mailchimp.com/audience/" target="_blank" rel="noopener">Export subscribers from Mailchimp</a>
+        <span style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5)"> (Audience → Manage Contacts → Export Audience)</span>
+      </div>
     </div>
 
     <div style="margin-bottom:14px">
@@ -667,8 +671,11 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" onclick="saveIntegrations()">SAVE INTEGRATIONS</button>
-    <button class="btn btn-ghost" onclick="testIntegrations()" style="margin-left:6px">TEST</button>
+    <button class="btn btn-primary" onclick="saveIntegrations()">Save Integration Settings</button>
+    <button class="btn btn-ghost" onclick="testIntegrations()" style="margin-left:6px">Test Connections</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:6px;line-height:1.5">
+      Checks your Mailchimp &amp; Calendar links work.
+    </div>
     <div id="integration-result" style="margin-top:12px;font-family:'Special Elite',monospace;font-size:12px;line-height:1.7;color:var(--bone);white-space:pre-line"></div>
   </div>
 
@@ -677,15 +684,21 @@
     <div style="font-family:'Special Elite',monospace;font-size:11px;color:rgba(245,241,232,0.6);line-height:1.6;margin-bottom:10px">
       Pulls new list items from your Drive JSON. Claude updates the file via your voice prompts; this app reads it on every login. Items already ingested won't re-add (so deleting locally sticks).
     </div>
-    <button class="btn btn-primary" id="cloud-pull-btn" onclick="pullFromCloud()">PULL FROM CLOUD</button>
+    <button class="btn btn-primary" id="cloud-pull-btn" onclick="pullFromCloud()">Sync Lists from Drive</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:6px;line-height:1.5">
+      Pulls new tasks Claude added to your Drive file.
+    </div>
     <div id="cloud-result" style="margin-top:12px;font-family:'Special Elite',monospace;font-size:12px;line-height:1.6;color:var(--bone);white-space:pre-wrap"></div>
   </div>
 
   <div class="section">
     <div class="section-head"><h3>ACCOUNT</h3></div>
-    <button class="btn btn-ghost" onclick="changePassword()" style="margin-right:8px">CHANGE PASSWORD</button>
-    <button class="btn btn-ghost" onclick="exportData()" style="margin-right:8px">EXPORT ALL DATA</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">IMPORT JSON</button>
+    <button class="btn btn-ghost" onclick="changePassword()" style="margin-right:8px">Change Admin Password</button>
+    <button class="btn btn-ghost" onclick="exportData()" style="margin-right:8px">Back Up App Data (JSON)</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">Restore App Data from Backup</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:6px;line-height:1.5">
+      Back Up App Data saves your lists, notes &amp; settings. Does NOT include directory listings, photos, or emails.
+    </div>
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">
     <div id="import-result" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:13px;color:var(--bone);white-space:pre-wrap"></div>
   </div>
@@ -694,8 +707,8 @@
     <div class="section-head"><h3>SUBMISSION EMAILS</h3></div>
     <button class="btn btn-primary" id="email-export-btn" onclick="downloadSubmissionEmails()">DOWNLOAD SUBMISSION EMAILS</button>
     <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
-      CSV of unique emails pulled from directory listings, pack photos, and event submissions.<br>
-      Mailchimp audience exports separately from mailchimp.com dashboard.
+      CSV of unique emails pulled from directory listings and event submissions.<br>
+      Pack photos are anonymous (no email captured). Mailchimp audience exports separately from mailchimp.com dashboard.
     </div>
   </div>
 
@@ -2277,7 +2290,7 @@ async function deleteEvent(id) {
 // Pulls userEmail from every submission collection, dedupes, and downloads a
 // CSV. Admin-only: the dashboard button is hidden for non-admins and this
 // function re-checks fbIsAdmin() before touching Firestore.
-const EMAIL_EXPORT_COLLECTIONS = ['listings', 'gallery', 'events'];
+const EMAIL_EXPORT_COLLECTIONS = ['listings', 'events'];
 
 function tsToMillis(v) {
   // Normalize the createdAt shapes seen across collections: Firestore
