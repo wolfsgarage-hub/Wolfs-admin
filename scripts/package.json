@@ -1,0 +1,13 @@
+{
+  "name": "wolfs-admin-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One-off maintenance scripts for the Wolf's Garage admin / Firestore data.",
+  "scripts": {
+    "migrate": "node migrate-pack-to-wolf.js",
+    "migrate:apply": "node migrate-pack-to-wolf.js --apply"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
