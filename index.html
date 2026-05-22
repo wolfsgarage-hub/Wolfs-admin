@@ -884,6 +884,9 @@
     <div class="upload-zone-hint">pick one or many. goes live instantly</div>
     <input type="file" id="wolf-upload-input" accept="image/*" multiple style="display:none" onchange="uploadWolfPhotos(event)">
   </label>
+  <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
+    Tip: On Samsung phones, select photos from the initial gallery view. Sub-folder selection is unreliable on Android.
+  </div>
 
   <div class="section">
     <div class="section-head">
@@ -2367,58 +2370,113 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Bug 2 fix. Wolf's photos now live in the Firestore wolf_photos
+// collection (the public gallery reads from there) instead of
+// localStorage, which silently dropped oversized base64 writes and never
+// reached the community site. Schema matches wolfs-garage-community:
+// { imageData, addedAt }. Uses the compat SDK (.collection().add()) to
+// match every other Firestore call in this file.
 async function uploadWolfPhotos(event) {
   const files = Array.from(event.target.files || []);
-  if (files.length === 0) return;
-  const all = await Store.get(K.WOLF_PHOTOS) || [];
-  let added = 0;
-  for (const f of files) {
-    if (!f.type.startsWith('image/')) continue;
-    const dataUrl = await fileToDataUrl(f);
-    all.push({
-      id: 'wp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-      dataUrl,
-      ts: Date.now()
-    });
-    added++;
-  }
-  await Store.set(K.WOLF_PHOTOS, all);
   event.target.value = '';
-  toast(`${added} photo${added===1?'':'s'} added`);
+  if (files.length === 0) return;
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  let added = 0;
+  try {
+    for (const f of files) {
+      if (!f.type.startsWith('image/')) continue;
+      const imageData = await compressImage(f);
+      await fbDb.collection('wolf_photos').add({
+        imageData,
+        addedAt: new Date().toISOString()
+      });
+      added++;
+    }
+    toast(`${added} photo${added === 1 ? '' : 's'} published`);
+  } catch (err) {
+    toast('Upload failed: ' + (err.message || err.code));
+  }
   await renderWolfPhotos();
 }
 
-function fileToDataUrl(file) {
+// Downscale + JPEG-encode to a data URL so docs stay small. Mirrors the
+// compressImage helper in wolfs-garage-community/admin.html.
+function compressImage(file, maxPx = 1400, quality = 0.78) {
   return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   });
 }
 
 async function renderWolfPhotos() {
-  const all = await Store.get(K.WOLF_PHOTOS) || [];
-  document.getElementById('wolf-photos-count').textContent = all.length;
   const grid = document.getElementById('wolf-photos-grid');
-  grid.innerHTML = all.length === 0
-    ? '<div class="empty" style="grid-column:1/-1">no photos yet. tap upload above</div>'
-    : all.slice().reverse().map(p => `
+  const countEl = document.getElementById('wolf-photos-count');
+
+  if (!fbReady) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Firebase not loaded. Refresh page.</div>';
+    countEl.textContent = '0';
+    return;
+  }
+
+  if (!fbIsAdmin()) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:20px;">
+      <p style="margin-bottom:14px;">Sign in to Firebase as admin to manage Wolf's photos.</p>
+      <button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>
+    </div>`;
+    countEl.textContent = '?';
+    return;
+  }
+
+  grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
+
+  try {
+    const snap = await fbDb.collection('wolf_photos').orderBy('addedAt', 'desc').get();
+    const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    countEl.textContent = photos.length;
+    grid.innerHTML = photos.length === 0
+      ? '<div class="empty" style="grid-column:1/-1">no photos yet. tap upload above</div>'
+      : photos.map(p => `
       <div class="photo-tile">
-        <img src="${p.dataUrl}" alt="" onclick="openLightbox('${p.dataUrl}')">
+        <img src="${p.imageData}" alt="" onclick="openLightbox('${p.imageData}')">
         <div class="photo-tile-actions">
-          <button class="btn btn-reject" onclick="deleteWolfPhoto('${p.id}')">✕</button>
+          <button class="btn btn-reject" onclick="deleteWolfPhoto('${p.id}')">DELETE</button>
         </div>
       </div>
     `).join('');
+  } catch (err) {
+    console.error('renderWolfPhotos error:', err);
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Load failed: ' + (err.message || err.code) + '</div>';
+    countEl.textContent = '0';
+  }
 }
 
 async function deleteWolfPhoto(id) {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   if (!confirm('Delete this photo?')) return;
-  const all = await Store.get(K.WOLF_PHOTOS) || [];
-  await Store.set(K.WOLF_PHOTOS, all.filter(p => p.id !== id));
-  toast('Deleted');
-  await renderWolfPhotos();
+  try {
+    await fbDb.collection('wolf_photos').doc(id).delete();
+    toast('Deleted');
+    await renderWolfPhotos();
+  } catch (err) {
+    toast('Failed: ' + (err.message || err.code));
+  }
 }
 
 // ============== SOCIAL ==============
