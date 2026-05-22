@@ -656,6 +656,10 @@
         Mailchimp → Audience → Signup forms → Embedded forms. Copy the form action URL.<br>
         Approved listings auto-add the owner's email here.
       </div>
+      <div style="margin-top:6px;font-size:11px">
+        <a href="https://admin.mailchimp.com/audience/" target="_blank" rel="noopener">Export subscribers from Mailchimp</a>
+        <span style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5)"> (Audience → Manage Contacts → Export Audience)</span>
+      </div>
     </div>
 
     <div style="margin-bottom:14px">
@@ -667,8 +671,11 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" onclick="saveIntegrations()">SAVE INTEGRATIONS</button>
-    <button class="btn btn-ghost" onclick="testIntegrations()" style="margin-left:6px">TEST</button>
+    <button class="btn btn-primary" onclick="saveIntegrations()">Save Integration Settings</button>
+    <button class="btn btn-ghost" onclick="testIntegrations()" style="margin-left:6px">Test Connections</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:6px;line-height:1.5">
+      Checks your Mailchimp &amp; Calendar links work.
+    </div>
     <div id="integration-result" style="margin-top:12px;font-family:'Special Elite',monospace;font-size:12px;line-height:1.7;color:var(--bone);white-space:pre-line"></div>
   </div>
 
@@ -677,15 +684,21 @@
     <div style="font-family:'Special Elite',monospace;font-size:11px;color:rgba(245,241,232,0.6);line-height:1.6;margin-bottom:10px">
       Pulls new list items from your Drive JSON. Claude updates the file via your voice prompts; this app reads it on every login. Items already ingested won't re-add (so deleting locally sticks).
     </div>
-    <button class="btn btn-primary" id="cloud-pull-btn" onclick="pullFromCloud()">PULL FROM CLOUD</button>
+    <button class="btn btn-primary" id="cloud-pull-btn" onclick="pullFromCloud()">Sync Lists from Drive</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:6px;line-height:1.5">
+      Pulls new tasks Claude added to your Drive file.
+    </div>
     <div id="cloud-result" style="margin-top:12px;font-family:'Special Elite',monospace;font-size:12px;line-height:1.6;color:var(--bone);white-space:pre-wrap"></div>
   </div>
 
   <div class="section">
     <div class="section-head"><h3>ACCOUNT</h3></div>
-    <button class="btn btn-ghost" onclick="changePassword()" style="margin-right:8px">CHANGE PASSWORD</button>
-    <button class="btn btn-ghost" onclick="exportData()" style="margin-right:8px">EXPORT ALL DATA</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">IMPORT JSON</button>
+    <button class="btn btn-ghost" onclick="changePassword()" style="margin-right:8px">Change Admin Password</button>
+    <button class="btn btn-ghost" onclick="exportData()" style="margin-right:8px">Back Up App Data (JSON)</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">Restore App Data from Backup</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:6px;line-height:1.5">
+      Back Up App Data saves your lists, notes &amp; settings. Does NOT include directory listings, photos, or emails.
+    </div>
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">
     <div id="import-result" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:13px;color:var(--bone);white-space:pre-wrap"></div>
   </div>
@@ -694,9 +707,18 @@
     <div class="section-head"><h3>SUBMISSION EMAILS</h3></div>
     <button class="btn btn-primary" id="email-export-btn" onclick="downloadSubmissionEmails()">DOWNLOAD SUBMISSION EMAILS</button>
     <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
-      CSV of unique emails pulled from directory listings, pack photos, and event submissions.<br>
-      Mailchimp audience exports separately from mailchimp.com dashboard.
+      CSV of unique emails pulled from directory listings and event submissions.<br>
+      Pack photos are anonymous (no email captured). Mailchimp audience exports separately from mailchimp.com dashboard.
     </div>
+  </div>
+
+  <div class="section" id="admin-tools-section" style="display:none">
+    <div class="section-head"><h3>ADMIN TOOLS</h3></div>
+    <button class="btn btn-ghost" id="migrate-gallery-btn" onclick="migrateGalleryToPackPhotos()">MIGRATE GALLERY TO PACK_PHOTOS</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
+      One-time copy of any legacy 'gallery' collection docs into 'pack_photos'. Safe to skip if the gallery collection is already empty. Originals are left in place as a backup; delete them from the Firebase Console once you have confirmed the copy.
+    </div>
+    <div id="migrate-result" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:12px;color:var(--bone);white-space:pre-wrap"></div>
   </div>
 </section>
 
@@ -884,6 +906,9 @@
     <div class="upload-zone-hint">pick one or many. goes live instantly</div>
     <input type="file" id="wolf-upload-input" accept="image/*" multiple style="display:none" onchange="uploadWolfPhotos(event)">
   </label>
+  <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
+    Tip: On Samsung phones, select photos from the initial gallery view. Sub-folder selection is unreliable on Android.
+  </div>
 
   <div class="section">
     <div class="section-head">
@@ -1055,7 +1080,7 @@ try {
       renderDashboard().catch(()=>{});
     }
     // Re-render the moderation view if it's currently visible
-    const panel = document.getElementById('panel-pack-photos');
+    const panel = document.getElementById('panel-pack');
     if (panel && !panel.classList.contains('hidden')) {
       renderPackPhotos();
     }
@@ -1234,10 +1259,10 @@ async function renderDashboard() {
   // Gallery + events counters require Firebase (no local fallback exists for these)
   if (fbReady && fbIsAdmin()) {
     try {
-      const pSnap = await fbDb.collection('gallery').where('isWolf', '==', false).where('status', '==', 'pending').get();
+      const pSnap = await fbDb.collection('pack_photos').where('status', '==', 'pending').get();
       pendingP = pSnap.size;
     } catch (err) {
-      console.warn('Dashboard gallery read failed:', err);
+      console.warn('Dashboard pack_photos read failed:', err);
     }
     try {
       // Single-field where (no composite index needed). Wolf-submitted events
@@ -1283,6 +1308,10 @@ async function renderDashboard() {
   // Submission-email export is admin-only
   const emailExportSec = document.getElementById('email-export-section');
   if (emailExportSec) emailExportSec.style.display = fbIsAdmin() ? '' : 'none';
+
+  // One-time gallery migration tool is admin-only
+  const adminToolsSec = document.getElementById('admin-tools-section');
+  if (adminToolsSec) adminToolsSec.style.display = fbIsAdmin() ? '' : 'none';
 }
 
 function updateBadges(listings, pack) {
@@ -2042,7 +2071,7 @@ async function renderPackPhotos() {
   ag.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
 
   try {
-    const snap = await fbDb.collection('gallery').where('isWolf', '==', false).get();
+    const snap = await fbDb.collection('pack_photos').get();
     const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const pending = all.filter(p => p.status === 'pending');
     const approved = all.filter(p => p.status === 'approved');
@@ -2074,9 +2103,11 @@ function photoTile(p, isPending) {
        <button class="btn btn-reject" onclick="setPackStatus('${p.id}','rejected')">REJECT</button>`
     : `<button class="btn btn-ghost" onclick="setPackStatus('${p.id}','pending')">QUEUE</button>
        <button class="btn btn-reject" onclick="deletePack('${p.id}')">DELETE</button>`;
+  // Defensive: new pack_photos docs carry base64 imageData; legacy gallery docs used imageUrl.
+  const src = p.imageData || p.imageUrl || '';
   return `
     <div class="photo-tile ${isPending ? 'pending' : ''}">
-      <img src="${p.imageUrl}" alt="" onclick="openLightbox('${p.imageUrl}')">
+      <img src="${src}" alt="" onclick="openLightbox('${src}')">
       <div class="photo-tile-caption" style="padding:6px 8px;font-size:0.8rem;color:var(--bone);background:rgba(0,0,0,0.6);position:absolute;bottom:36px;left:0;right:0;">
         <div><strong>${cap || '(no caption)'}</strong></div>
         <div style="font-size:0.7rem;color:rgba(245,241,232,0.6);margin-top:2px;">${email}</div>
@@ -2089,7 +2120,7 @@ function photoTile(p, isPending) {
 async function setPackStatus(id, status) {
   if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   try {
-    await fbDb.collection('gallery').doc(id).update({ status });
+    await fbDb.collection('pack_photos').doc(id).update({ status });
     toast(status === 'approved' ? 'APPROVED' : status === 'rejected' ? 'REJECTED' : 'QUEUED');
     await renderPackPhotos();
   } catch (err) {
@@ -2101,7 +2132,7 @@ async function deletePack(id) {
   if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   if (!confirm('Delete permanently?')) return;
   try {
-    await fbDb.collection('gallery').doc(id).delete();
+    await fbDb.collection('pack_photos').doc(id).delete();
     toast('Deleted');
     await renderPackPhotos();
   } catch (err) {
@@ -2201,7 +2232,7 @@ function eventCard(e, isPending) {
        <button class="btn btn-reject" onclick="deleteEvent('${e.id}')">DELETE</button>`;
 
   const wolfBadge = e.isWolf
-    ? '<span style="background:var(--copper);color:var(--black);padding:2px 8px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;margin-left:8px;">WOLF</span>'
+    ? '<span style="color:var(--copper);font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;margin-left:8px;">WOLF</span>'
     : '';
   const dateLabel = formatEventDate(e.date);
   const metaParts = [dateLabel, e.time, e.location].filter(Boolean).map(escapeHtml);
@@ -2259,7 +2290,7 @@ async function deleteEvent(id) {
 // Pulls userEmail from every submission collection, dedupes, and downloads a
 // CSV. Admin-only: the dashboard button is hidden for non-admins and this
 // function re-checks fbIsAdmin() before touching Firestore.
-const EMAIL_EXPORT_COLLECTIONS = ['listings', 'gallery', 'events'];
+const EMAIL_EXPORT_COLLECTIONS = ['listings', 'events'];
 
 function tsToMillis(v) {
   // Normalize the createdAt shapes seen across collections: Firestore
@@ -2338,6 +2369,52 @@ async function downloadSubmissionEmails() {
   }
 }
 
+// ============== GALLERY MIGRATION (one-time) ==============
+// Copies legacy 'gallery' collection docs into 'pack_photos'. Wolf clicks
+// this once from the dashboard; it is never run automatically. Originals
+// are left untouched so the gallery collection stays as a backup.
+async function migrateGalleryToPackPhotos() {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  if (!confirm('This will copy gallery docs into pack_photos. Continue?')) return;
+  const btn = document.getElementById('migrate-gallery-btn');
+  const resultEl = document.getElementById('migrate-result');
+  const origLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'MIGRATING...'; }
+  if (resultEl) resultEl.textContent = '';
+  let migrated = 0, failed = 0;
+  try {
+    const snap = await fbDb.collection('gallery').get();
+    for (const d of snap.docs) {
+      const g = d.data() || {};
+      try {
+        await fbDb.collection('pack_photos').add({
+          title: g.title || g.caption || '',
+          caption: g.caption || '',
+          userEmail: g.userEmail || '',
+          imageData: g.imageData || g.imageUrl || '',
+          status: g.status || 'pending',
+          submittedAt: g.submittedAt || g.createdAt || new Date().toISOString()
+        });
+        migrated++;
+      } catch (err) {
+        failed++;
+        console.error('Migration failed for gallery doc ' + d.id + ':', err);
+      }
+    }
+    const msg = 'Migrated ' + migrated + ' of ' + snap.size + ' gallery doc(s) into pack_photos.'
+      + (failed ? ' ' + failed + ' failed (see console).' : '')
+      + '\nOriginals left in the gallery collection as a backup. Delete them from the Firebase Console once you have confirmed the copy.';
+    if (resultEl) resultEl.textContent = msg;
+    toast('Migrated ' + migrated + ' doc(s)');
+  } catch (err) {
+    console.error('Migration read failed:', err);
+    if (resultEl) resultEl.textContent = 'Migration failed: ' + (err.message || err.code);
+    toast('Migration failed');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origLabel || 'MIGRATE GALLERY TO PACK_PHOTOS'; }
+  }
+}
+
 async function promptFbSignIn() {
   try {
     // Mark redirect in flight so the next boot waits longer for auth state.
@@ -2365,58 +2442,129 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Bug 2 fix. Wolf's photos now live in the Firestore wolf_photos
+// collection (the public gallery reads from there) instead of
+// localStorage, which silently dropped oversized base64 writes and never
+// reached the community site. Schema matches wolfs-garage-community:
+// { imageData, addedAt }. Uses the compat SDK (.collection().add()) to
+// match every other Firestore call in this file.
 async function uploadWolfPhotos(event) {
   const files = Array.from(event.target.files || []);
-  if (files.length === 0) return;
-  const all = await Store.get(K.WOLF_PHOTOS) || [];
-  let added = 0;
-  for (const f of files) {
-    if (!f.type.startsWith('image/')) continue;
-    const dataUrl = await fileToDataUrl(f);
-    all.push({
-      id: 'wp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-      dataUrl,
-      ts: Date.now()
-    });
-    added++;
-  }
-  await Store.set(K.WOLF_PHOTOS, all);
+  // DIAGNOSTIC LOGGING - overnight May 21-22 multi-upload reliability probe.
+  // Step traces only, no behaviour change. Remove once the bug is understood.
+  console.log('[uploadWolfPhotos] files selected:', files.length,
+    files.map(f => f.name + ' (' + f.type + ', ' + f.size + ' bytes)'));
   event.target.value = '';
-  toast(`${added} photo${added===1?'':'s'} added`);
+  if (files.length === 0) return;
+  if (!fbReady || !fbIsAdmin()) {
+    toast('Sign in required');
+    console.warn('[uploadWolfPhotos] aborted: fbReady=' + fbReady + ' fbIsAdmin=' + fbIsAdmin());
+    return;
+  }
+  let added = 0;
+  try {
+    for (const f of files) {
+      if (!f.type.startsWith('image/')) {
+        console.warn('[uploadWolfPhotos] skipped non-image:', f.name, f.type);
+        continue;
+      }
+      console.log('[uploadWolfPhotos] compressing:', f.name);
+      const imageData = await compressImage(f);
+      console.log('[uploadWolfPhotos] compressed:', f.name, '-> data URL length', imageData.length);
+      const ref = await fbDb.collection('wolf_photos').add({
+        imageData,
+        addedAt: new Date().toISOString()
+      });
+      console.log('[uploadWolfPhotos] addDoc resolved:', f.name, '-> doc id', ref.id);
+      added++;
+    }
+    toast(`${added} photo${added === 1 ? '' : 's'} published`);
+    console.log('[uploadWolfPhotos] complete: added ' + added + ' of ' + files.length);
+  } catch (err) {
+    toast('Upload failed: ' + (err.message || err.code));
+    console.error('[uploadWolfPhotos] FAILED after ' + added + ' of ' + files.length + ' files:', err);
+  }
   await renderWolfPhotos();
 }
 
-function fileToDataUrl(file) {
+// Downscale + JPEG-encode to a data URL so docs stay small. Mirrors the
+// compressImage helper in wolfs-garage-community/admin.html.
+function compressImage(file, maxPx = 1400, quality = 0.78) {
   return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   });
 }
 
 async function renderWolfPhotos() {
-  const all = await Store.get(K.WOLF_PHOTOS) || [];
-  document.getElementById('wolf-photos-count').textContent = all.length;
   const grid = document.getElementById('wolf-photos-grid');
-  grid.innerHTML = all.length === 0
-    ? '<div class="empty" style="grid-column:1/-1">no photos yet. tap upload above</div>'
-    : all.slice().reverse().map(p => `
+  const countEl = document.getElementById('wolf-photos-count');
+
+  if (!fbReady) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Firebase not loaded. Refresh page.</div>';
+    countEl.textContent = '0';
+    return;
+  }
+
+  if (!fbIsAdmin()) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:20px;">
+      <p style="margin-bottom:14px;">Sign in to Firebase as admin to manage Wolf's photos.</p>
+      <button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>
+    </div>`;
+    countEl.textContent = '?';
+    return;
+  }
+
+  grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
+
+  try {
+    const snap = await fbDb.collection('wolf_photos').orderBy('addedAt', 'desc').get();
+    const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    countEl.textContent = photos.length;
+    grid.innerHTML = photos.length === 0
+      ? '<div class="empty" style="grid-column:1/-1">no photos yet. tap upload above</div>'
+      : photos.map(p => `
       <div class="photo-tile">
-        <img src="${p.dataUrl}" alt="" onclick="openLightbox('${p.dataUrl}')">
+        <img src="${p.imageData}" alt="" onclick="openLightbox('${p.imageData}')">
         <div class="photo-tile-actions">
-          <button class="btn btn-reject" onclick="deleteWolfPhoto('${p.id}')">✕</button>
+          <button class="btn btn-reject" onclick="deleteWolfPhoto('${p.id}')">DELETE</button>
         </div>
       </div>
     `).join('');
+  } catch (err) {
+    console.error('renderWolfPhotos error:', err);
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Load failed: ' + (err.message || err.code) + '</div>';
+    countEl.textContent = '0';
+  }
 }
 
 async function deleteWolfPhoto(id) {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   if (!confirm('Delete this photo?')) return;
-  const all = await Store.get(K.WOLF_PHOTOS) || [];
-  await Store.set(K.WOLF_PHOTOS, all.filter(p => p.id !== id));
-  toast('Deleted');
-  await renderWolfPhotos();
+  try {
+    await fbDb.collection('wolf_photos').doc(id).delete();
+    toast('Deleted');
+    await renderWolfPhotos();
+  } catch (err) {
+    toast('Failed: ' + (err.message || err.code));
+  }
 }
 
 // ============== SOCIAL ==============
