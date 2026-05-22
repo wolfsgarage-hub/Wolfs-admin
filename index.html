@@ -698,6 +698,15 @@
       Mailchimp audience exports separately from mailchimp.com dashboard.
     </div>
   </div>
+
+  <div class="section" id="admin-tools-section" style="display:none">
+    <div class="section-head"><h3>ADMIN TOOLS</h3></div>
+    <button class="btn btn-ghost" id="migrate-gallery-btn" onclick="migrateGalleryToPackPhotos()">MIGRATE GALLERY TO PACK_PHOTOS</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
+      One-time copy of any legacy 'gallery' collection docs into 'pack_photos'. Safe to skip if the gallery collection is already empty. Originals are left in place as a backup; delete them from the Firebase Console once you have confirmed the copy.
+    </div>
+    <div id="migrate-result" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:12px;color:var(--bone);white-space:pre-wrap"></div>
+  </div>
 </section>
 
 <!-- ============== MORNING ============== -->
@@ -1286,6 +1295,10 @@ async function renderDashboard() {
   // Submission-email export is admin-only
   const emailExportSec = document.getElementById('email-export-section');
   if (emailExportSec) emailExportSec.style.display = fbIsAdmin() ? '' : 'none';
+
+  // One-time gallery migration tool is admin-only
+  const adminToolsSec = document.getElementById('admin-tools-section');
+  if (adminToolsSec) adminToolsSec.style.display = fbIsAdmin() ? '' : 'none';
 }
 
 function updateBadges(listings, pack) {
@@ -2340,6 +2353,52 @@ async function downloadSubmissionEmails() {
     toast('Export failed: ' + (err.message || err.code));
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = origLabel || 'DOWNLOAD SUBMISSION EMAILS'; }
+  }
+}
+
+// ============== GALLERY MIGRATION (one-time) ==============
+// Copies legacy 'gallery' collection docs into 'pack_photos'. Wolf clicks
+// this once from the dashboard; it is never run automatically. Originals
+// are left untouched so the gallery collection stays as a backup.
+async function migrateGalleryToPackPhotos() {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  if (!confirm('This will copy gallery docs into pack_photos. Continue?')) return;
+  const btn = document.getElementById('migrate-gallery-btn');
+  const resultEl = document.getElementById('migrate-result');
+  const origLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'MIGRATING...'; }
+  if (resultEl) resultEl.textContent = '';
+  let migrated = 0, failed = 0;
+  try {
+    const snap = await fbDb.collection('gallery').get();
+    for (const d of snap.docs) {
+      const g = d.data() || {};
+      try {
+        await fbDb.collection('pack_photos').add({
+          title: g.title || g.caption || '',
+          caption: g.caption || '',
+          userEmail: g.userEmail || '',
+          imageData: g.imageData || g.imageUrl || '',
+          status: g.status || 'pending',
+          submittedAt: g.submittedAt || g.createdAt || new Date().toISOString()
+        });
+        migrated++;
+      } catch (err) {
+        failed++;
+        console.error('Migration failed for gallery doc ' + d.id + ':', err);
+      }
+    }
+    const msg = 'Migrated ' + migrated + ' of ' + snap.size + ' gallery doc(s) into pack_photos.'
+      + (failed ? ' ' + failed + ' failed (see console).' : '')
+      + '\nOriginals left in the gallery collection as a backup. Delete them from the Firebase Console once you have confirmed the copy.';
+    if (resultEl) resultEl.textContent = msg;
+    toast('Migrated ' + migrated + ' doc(s)');
+  } catch (err) {
+    console.error('Migration read failed:', err);
+    if (resultEl) resultEl.textContent = 'Migration failed: ' + (err.message || err.code);
+    toast('Migration failed');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origLabel || 'MIGRATE GALLERY TO PACK_PHOTOS'; }
   }
 }
 
