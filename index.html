@@ -2450,23 +2450,39 @@ document.addEventListener('click', (e) => {
 // match every other Firestore call in this file.
 async function uploadWolfPhotos(event) {
   const files = Array.from(event.target.files || []);
+  // DIAGNOSTIC LOGGING - overnight May 21-22 multi-upload reliability probe.
+  // Step traces only, no behaviour change. Remove once the bug is understood.
+  console.log('[uploadWolfPhotos] files selected:', files.length,
+    files.map(f => f.name + ' (' + f.type + ', ' + f.size + ' bytes)'));
   event.target.value = '';
   if (files.length === 0) return;
-  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
+  if (!fbReady || !fbIsAdmin()) {
+    toast('Sign in required');
+    console.warn('[uploadWolfPhotos] aborted: fbReady=' + fbReady + ' fbIsAdmin=' + fbIsAdmin());
+    return;
+  }
   let added = 0;
   try {
     for (const f of files) {
-      if (!f.type.startsWith('image/')) continue;
+      if (!f.type.startsWith('image/')) {
+        console.warn('[uploadWolfPhotos] skipped non-image:', f.name, f.type);
+        continue;
+      }
+      console.log('[uploadWolfPhotos] compressing:', f.name);
       const imageData = await compressImage(f);
-      await fbDb.collection('wolf_photos').add({
+      console.log('[uploadWolfPhotos] compressed:', f.name, '-> data URL length', imageData.length);
+      const ref = await fbDb.collection('wolf_photos').add({
         imageData,
         addedAt: new Date().toISOString()
       });
+      console.log('[uploadWolfPhotos] addDoc resolved:', f.name, '-> doc id', ref.id);
       added++;
     }
     toast(`${added} photo${added === 1 ? '' : 's'} published`);
+    console.log('[uploadWolfPhotos] complete: added ' + added + ' of ' + files.length);
   } catch (err) {
     toast('Upload failed: ' + (err.message || err.code));
+    console.error('[uploadWolfPhotos] FAILED after ' + added + ' of ' + files.length + ' files:', err);
   }
   await renderWolfPhotos();
 }
