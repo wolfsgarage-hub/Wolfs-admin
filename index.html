@@ -1080,7 +1080,7 @@ try {
       renderDashboard().catch(()=>{});
     }
     // Re-render the moderation view if it's currently visible
-    const panel = document.getElementById('panel-pack-photos');
+    const panel = document.getElementById('panel-pack');
     if (panel && !panel.classList.contains('hidden')) {
       renderPackPhotos();
     }
