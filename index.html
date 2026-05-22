@@ -1234,10 +1234,10 @@ async function renderDashboard() {
   // Gallery + events counters require Firebase (no local fallback exists for these)
   if (fbReady && fbIsAdmin()) {
     try {
-      const pSnap = await fbDb.collection('gallery').where('isWolf', '==', false).where('status', '==', 'pending').get();
+      const pSnap = await fbDb.collection('pack_photos').where('status', '==', 'pending').get();
       pendingP = pSnap.size;
     } catch (err) {
-      console.warn('Dashboard gallery read failed:', err);
+      console.warn('Dashboard pack_photos read failed:', err);
     }
     try {
       // Single-field where (no composite index needed). Wolf-submitted events
@@ -2042,7 +2042,7 @@ async function renderPackPhotos() {
   ag.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
 
   try {
-    const snap = await fbDb.collection('gallery').where('isWolf', '==', false).get();
+    const snap = await fbDb.collection('pack_photos').get();
     const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const pending = all.filter(p => p.status === 'pending');
     const approved = all.filter(p => p.status === 'approved');
@@ -2074,9 +2074,11 @@ function photoTile(p, isPending) {
        <button class="btn btn-reject" onclick="setPackStatus('${p.id}','rejected')">REJECT</button>`
     : `<button class="btn btn-ghost" onclick="setPackStatus('${p.id}','pending')">QUEUE</button>
        <button class="btn btn-reject" onclick="deletePack('${p.id}')">DELETE</button>`;
+  // Defensive: new pack_photos docs carry base64 imageData; legacy gallery docs used imageUrl.
+  const src = p.imageData || p.imageUrl || '';
   return `
     <div class="photo-tile ${isPending ? 'pending' : ''}">
-      <img src="${p.imageUrl}" alt="" onclick="openLightbox('${p.imageUrl}')">
+      <img src="${src}" alt="" onclick="openLightbox('${src}')">
       <div class="photo-tile-caption" style="padding:6px 8px;font-size:0.8rem;color:var(--bone);background:rgba(0,0,0,0.6);position:absolute;bottom:36px;left:0;right:0;">
         <div><strong>${cap || '(no caption)'}</strong></div>
         <div style="font-size:0.7rem;color:rgba(245,241,232,0.6);margin-top:2px;">${email}</div>
@@ -2089,7 +2091,7 @@ function photoTile(p, isPending) {
 async function setPackStatus(id, status) {
   if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   try {
-    await fbDb.collection('gallery').doc(id).update({ status });
+    await fbDb.collection('pack_photos').doc(id).update({ status });
     toast(status === 'approved' ? 'APPROVED' : status === 'rejected' ? 'REJECTED' : 'QUEUED');
     await renderPackPhotos();
   } catch (err) {
@@ -2101,7 +2103,7 @@ async function deletePack(id) {
   if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
   if (!confirm('Delete permanently?')) return;
   try {
-    await fbDb.collection('gallery').doc(id).delete();
+    await fbDb.collection('pack_photos').doc(id).delete();
     toast('Deleted');
     await renderPackPhotos();
   } catch (err) {
