@@ -2232,7 +2232,7 @@ function eventCard(e, isPending) {
        <button class="btn btn-reject" onclick="deleteEvent('${e.id}')">DELETE</button>`;
 
   const wolfBadge = e.isWolf
-    ? '<span style="background:var(--copper);color:var(--black);padding:2px 8px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;margin-left:8px;">WOLF</span>'
+    ? '<span style="background:transparent;color:var(--copper);border:1px solid var(--copper);padding:2px 8px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;margin-left:8px;">WOLF</span>'
     : '';
   const dateLabel = formatEventDate(e.date);
   const metaParts = [dateLabel, e.time, e.location].filter(Boolean).map(escapeHtml);
