@@ -2676,12 +2676,27 @@
     $('renderStatusSub').textContent = 'Firing GitHub Action';
 
     try {
-      // Build the full brief payload that the workflow expects
+      // Build a CLEAN payload — strip UI-only fields (thumb is a base64 data URL,
+      // too big for GitHub's 64KB client_payload limit)
+      const cleanClips = reelClips.map(c => ({
+        source_url: c.source_url,
+        kind: c.kind || 'photo',
+        duration: c.duration,
+        motion: c.motion,
+        text_overlays: c.text_overlays || []
+      }));
+      const cleanEndFrame = reelBrief.end_frame ? {
+        duration:     reelBrief.end_frame.duration,
+        primary_text: reelBrief.end_frame.primary_text,
+        subtitle:     reelBrief.end_frame.subtitle,
+        footer:       reelBrief.end_frame.footer,
+        logo_url:     reelBrief.end_frame.logo_url || WOLF_LOGO_URL
+      } : null;
       const payload = {
         output_id: reelOutputId,
         brief: {
-          clips: reelClips,
-          end_frame: reelBrief.end_frame
+          clips: cleanClips,
+          end_frame: cleanEndFrame
         }
       };
       const dispatch = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/dispatches', {
