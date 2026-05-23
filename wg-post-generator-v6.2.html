@@ -2307,14 +2307,15 @@
       '}',
       '',
       'RULES:',
-      '- The first clip uses the provided photo (you do not need to set source_url). Subsequent clips will be added by the user.',
-      '- For a single-photo reel, generate ONE clip plus the end frame.',
-      '- text_overlays: 1-2 per clip. Hooks first. ALL CAPS. Plain text only.',
+      '- ONE PHOTO PROVIDED = design a FOCAL TOUR of THAT single photo. Generate 2-3 clips, all reusing the same photo, each with DIFFERENT motion to focus a different region. Each overlay text should describe what THAT clip is showing: front grille, body lines, wheels/stance, badge/details, interior, wide reveal. The viewer should feel a camera walking around the subject. Example: clip 1 zoom_in (detail) "STORY IN EVERY SCRATCH" -> clip 2 pan_right (body walk) "BUILT IN A GARAGE" -> clip 3 zoom_out (wide reveal) "DRIVEN TO THE SHOW".',
+      '- You do NOT need to set source_url. The user will inject the photo URL. Just describe the clips.',
+      '- For a SINGLE-PHOTO reel, 2-3 clips total is the sweet spot. Two minimum, three max. Plus the end frame.',
+      '- text_overlays: 1 per clip (sometimes 2 if there is a clear stamp + tagline). Hooks first. ALL CAPS. Plain text only.',
       '- Use \\n inside "text" for line breaks (max 2 lines per overlay).',
       '- Size guide: "huge" for 1-2 word hooks, "large" for short phrases, "medium" for longer lines, "small" rare.',
       '- start = seconds into the clip when the text appears. hold = how long it stays. Both must fit within clip duration.',
-      '- Total reel length: 10-15 sec including end frame.',
-      '- Tone of text overlays: punchy, declarative, like a stencil. No questions unless the post is genuinely asking one.',
+      '- Total reel length 10-15 sec including end frame. Each photo clip ~3-5 sec.',
+      '- Tone of text overlays: punchy, declarative, like a stencil. Like Wolf would say it. Tie the overlay to the FOCAL POINT of that clip when possible.',
       '- NEVER use emojis, em dashes, or curly quotes.',
       '- Pull theme/tone from the caption. If caption mentions a specific build, color, event, or vibe, work that into the overlay text.',
       '- output_id_hint: 2-4 lowercase words joined with hyphens, descriptive of the reel.'
@@ -2382,11 +2383,16 @@
         throw new Error('Brief parse failed: ' + e.message);
       }
 
-      // Hydrate first clip with the uploaded asset
+      // Hydrate ALL clips with the uploaded asset (single-photo focal tour:
+      // every clip uses the same source, motion creates the variety)
       if (brief.clips && brief.clips.length > 0 && firstClipUrl) {
-        brief.clips[0].source_url = firstClipUrl;
-        brief.clips[0].kind = firstClipKind;
-        brief.clips[0].thumb = firstClipThumb;
+        brief.clips.forEach(c => {
+          if (!c.source_url) {
+            c.source_url = firstClipUrl;
+            c.kind = firstClipKind;
+            c.thumb = firstClipThumb;
+          }
+        });
       }
       // Add wolf logo to end frame
       if (brief.end_frame) {
