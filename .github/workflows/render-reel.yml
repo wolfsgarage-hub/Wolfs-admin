@@ -30,8 +30,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Verify FFmpeg
+      - name: Install FFmpeg
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
           ffmpeg -version | head -1
           which ffmpeg
 
