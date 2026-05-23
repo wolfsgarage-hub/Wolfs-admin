@@ -1315,10 +1315,11 @@
       reader.readAsDataURL(file);
     } else {
       const url = URL.createObjectURL(file);
+      r._lastVideoFile = file;   // stash for captureFrame to read
       r.video.src = url; r.video.style.display = 'block';
       r.img.style.display = 'none'; r.canvas.style.display = 'none';
       r.preview.classList.add('has-media');
-      r.meta.textContent = 'Video: ' + file.name + ' (capturing frame...)';
+      r.meta.textContent = 'Video: ' + file.name + ' (' + Math.round(file.size/1024/1024*10)/10 + 'MB, reading...)';
 
       r.video.addEventListener('loadeddata', () => {
         try {
@@ -1346,9 +1347,12 @@
       r.set({
         kind: 'video', base64: canvasToB64Jpeg(c, 0.85),
         mediaType: 'image/jpeg', name: fileName,
-        thumbDataUrl: c.toDataURL('image/jpeg', 0.6)
+        thumbDataUrl: c.toDataURL('image/jpeg', 0.6),
+        rawFile: r._lastVideoFile || null,           // FULL video File object (for BUILD REEL)
+        videoDuration: r.video.duration || 0,        // seconds
+        videoType: (r._lastVideoFile && r._lastVideoFile.type) || 'video/mp4'
       });
-      r.meta.textContent = 'Video frame: ' + fileName;
+      r.meta.textContent = 'Video frame: ' + fileName + ' (' + Math.round(r.video.duration) + 's)';
     } catch(e) {
       r.meta.textContent = 'Frame capture failed';
     }
@@ -2176,6 +2180,90 @@
   // ============== REEL BUILDER ======================================
   // ==================================================================
 
+  // ---------- Sample N frames from a video File at evenly spaced timestamps ----------
+  // Returns [{ timestamp, base64Jpeg, thumbDataUrl, width, height }, ...]
+  // Used to give Claude visual samples so it can pick the most engaging moments.
+  async function sampleVideoFrames(file, count, onProgress) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const v = document.createElement('video');
+      v.preload = 'auto';
+      v.muted = true;
+      v.playsInline = true;
+      v.crossOrigin = 'anonymous';
+      v.src = url;
+      const samples = [];
+      let idx = 0;
+      let timestamps = [];
+
+      const cleanup = () => { try { URL.revokeObjectURL(url); v.remove(); } catch(e) {} };
+
+      const captureCurrent = () => {
+        try {
+          const w = v.videoWidth || 720;
+          const h = v.videoHeight || 1280;
+          const scale = Math.min(1, 1024 / Math.max(w, h));
+          const cw = Math.round(w * scale);
+          const ch = Math.round(h * scale);
+          const c = document.createElement('canvas');
+          c.width = cw; c.height = ch;
+          c.getContext('2d').drawImage(v, 0, 0, cw, ch);
+          const b64 = canvasToB64Jpeg(c, 0.75);
+          const thumb = c.toDataURL('image/jpeg', 0.5);
+          samples.push({
+            timestamp: timestamps[idx],
+            base64Jpeg: b64,
+            thumbDataUrl: thumb,
+            width: cw, height: ch
+          });
+          if (onProgress) onProgress(samples.length, timestamps.length);
+          idx++;
+          if (idx < timestamps.length) {
+            v.currentTime = timestamps[idx];
+          } else {
+            cleanup();
+            resolve(samples);
+          }
+        } catch(e) {
+          cleanup();
+          reject(new Error('frame capture failed: ' + (e.message || 'unknown')));
+        }
+      };
+
+      v.addEventListener('loadedmetadata', () => {
+        const dur = v.duration;
+        if (!dur || !isFinite(dur)) {
+          cleanup();
+          reject(new Error('could not read video duration'));
+          return;
+        }
+        // Pick timestamps: skip first 5% and last 5%, evenly distribute the rest
+        const padded = dur * 0.05;
+        const usable = dur - padded * 2;
+        timestamps = [];
+        for (let i = 0; i < count; i++) {
+          timestamps.push(padded + (usable * (i + 0.5)) / count);
+        }
+        v.currentTime = timestamps[0];
+      }, { once: true });
+
+      v.addEventListener('seeked', captureCurrent);
+
+      v.addEventListener('error', () => {
+        cleanup();
+        reject(new Error('video load failed'));
+      }, { once: true });
+
+      // Safety timeout
+      setTimeout(() => {
+        if (samples.length < count) {
+          cleanup();
+          reject(new Error('sampling timed out at ' + samples.length + '/' + count + ' frames'));
+        }
+      }, 30000);
+    });
+  }
+
   // ---------- GitHub PAT handling ----------
   $('saveGhPat').addEventListener('click', () => {
     const pat = $('ghPatInput').value.trim();
@@ -2278,6 +2366,7 @@
   }
 
   // ---------- Brief generation prompts ----------
+  // PHOTO version: input is one still image, design a focal-tour of multiple clips using the same photo
   function systemPromptForBrief() {
     return [
       'You are the Reel Director for Wolf\'s Garage, a Portland Oregon hot rodder community brand.',
@@ -2322,6 +2411,53 @@
     ].join('\n');
   }
 
+  // VIDEO version: input is multiple frames sampled across a video at known timestamps.
+  // Claude must pick which 3 moments are most engaging and assign segment durations.
+  function systemPromptForVideoBrief() {
+    return [
+      'You are the Reel Director for Wolf\'s Garage, a Portland Oregon hot rodder community brand.',
+      'Voice: blue-collar, direct, no fluff, no corporate speak, no emojis, no em dashes.',
+      'Audience: hot rodders, kustom kulture, C10/C-Series trucks, swap meet crowd.',
+      '',
+      'Your job: you are shown SAMPLE FRAMES from a video at specific timestamps. Pick the 3 MOST ENGAGING MOMENTS and design a 12-15 second 9:16 Instagram Reel that uses ACTUAL VIDEO SEGMENTS (not stills) from around those timestamps.',
+      '',
+      'The brief MUST be valid JSON only, no prose, no code fences. Schema:',
+      '{',
+      '  "output_id_hint": "short-kebab-slug-for-this-reel",',
+      '  "clips": [',
+      '    {',
+      '      "kind": "video_segment",',
+      '      "start_time": 4.2,            // seconds from video start where this segment begins',
+      '      "segment_duration": 3.5,      // seconds of video to play (clip plays at 1.0x speed)',
+      '      "motion": "static",           // for video segments, "static" is correct - the video itself has motion',
+      '      "text_overlays": [',
+      '        { "text": "PUNCH LINE HERE", "position": "upper" | "lower", "start": 0.3, "hold": 3.0, "size": "large" }',
+      '      ]',
+      '    }',
+      '  ],',
+      '  "end_frame": {',
+      '    "duration": 3,',
+      '    "primary_text": "WOLF\'S GARAGE",',
+      '    "subtitle": "REAL HOT ROD CULTURE COMING AT YOU",',
+      '    "footer": "THE PACIFIC NORTHWEST AND BEYOND · GET BACK IN THE GARAGE."',
+      '  }',
+      '}',
+      '',
+      'RULES:',
+      '- Generate exactly 3 clips. Each clip is a SEGMENT of the source video. start_time points into the original video, segment_duration is how long that segment plays in the reel.',
+      '- The frames you see are EVENLY SPACED across the video duration. You will be told what timestamp each frame is at. Use those timestamps to choose your start_time.',
+      '- Pick moments that show DIFFERENT things. Avoid 3 segments that look the same. Examples of good picks: opening establishing shot, mid-action moment, satisfying reveal/finish.',
+      '- Each segment should be 3-5 seconds long. Total video portion: 9-15 sec. Plus the 3-sec end frame.',
+      '- Always set "kind": "video_segment" and "motion": "static" for video clips.',
+      '- text_overlays: 1 per clip is best. Ties to what is happening in THAT segment. ALL CAPS. Plain text only.',
+      '- Size guide: "huge" for 1-2 word hooks, "large" for short phrases, "medium" for longer lines.',
+      '- start = seconds into the segment when text appears. hold = how long it stays. Both must fit within segment_duration.',
+      '- NEVER use emojis, em dashes, or curly quotes.',
+      '- Pull theme/tone from the caption. If caption mentions a specific build, color, event, or vibe, work that into the overlay text.',
+      '- output_id_hint: 2-4 lowercase words joined with hyphens, descriptive of the reel.'
+    ].join('\n');
+  }
+
   function userPromptForBrief(caption, hashtags, editPlan) {
     const parts = [];
     parts.push('CAPTION:');
@@ -2345,10 +2481,129 @@
       return;
     }
 
-    // Open modal in "generating" state
+    // Decide: video path or photo path?
+    const isVideoInput = mediaData && mediaData.kind === 'video' && mediaData.rawFile;
     openReelModal();
     showReelStage('generating');
 
+    if (isVideoInput) {
+      await buildReelFromVideo();
+    } else {
+      await buildReelFromPhoto();
+    }
+  });
+
+  // ---------- VIDEO path ----------
+  async function buildReelFromVideo() {
+    try {
+      const file = mediaData.rawFile;
+      const sizeMB = file.size / 1024 / 1024;
+
+      // Size ceiling - GitHub Contents API limits at 100MB, base64 adds 33%, plus JSON overhead
+      if (sizeMB > 50) {
+        showReelStage('builder');
+        toast('Video is ' + sizeMB.toFixed(1) + 'MB. Reels need to be under 50MB. Trim it down first.', 'err');
+        return;
+      }
+
+      // Step 1: sample 6 frames evenly distributed across the video
+      $('reelGenSubText').textContent = 'Sampling frames from video...';
+      let frames;
+      try {
+        frames = await sampleVideoFrames(file, 6, (done, total) => {
+          $('reelGenSubText').textContent = 'Sampling frames... ' + done + '/' + total;
+        });
+      } catch (e) {
+        throw new Error('Frame sampling failed: ' + e.message);
+      }
+
+      // Step 2: upload full video file to repo
+      $('reelGenSubText').textContent = 'Uploading video (' + sizeMB.toFixed(1) + 'MB)... this may take a minute on cellular';
+      const fname = 'video-' + Date.now() + '.mp4';
+      const videoDataUrl = await fileToDataUrl(file);
+      const videoUrl = await commitAssetToRepo(fname, videoDataUrl, 'reel source video: ' + fname);
+
+      // Step 3: ask Claude to pick best moments
+      $('reelGenSubText').textContent = 'Claude is picking the best moments...';
+      // Build a user message that pairs each frame with its timestamp
+      const tsLines = frames.map((f, i) => 'Frame ' + (i+1) + ': timestamp ' + f.timestamp.toFixed(2) + ' seconds');
+      const briefImages = frames.map(f => ({ base64: f.base64Jpeg, mediaType: 'image/jpeg' }));
+      const userText = [
+        'CAPTION:',
+        $('captionField').value || '(none)',
+        '',
+        'HASHTAGS:',
+        $('hashtagField').value || '(none)',
+        '',
+        'EDIT PLAN HINTS:',
+        $('editPlanField').value || '(none)',
+        '',
+        'VIDEO DURATION: ' + (mediaData.videoDuration || 0).toFixed(2) + ' seconds',
+        '',
+        'You are shown 6 sample frames from the video, each at the timestamps below.',
+        'Pick the 3 most engaging moments. Pull a SEGMENT around each chosen timestamp.',
+        tsLines.join('\n'),
+        '',
+        'Output the JSON brief now. JSON only.'
+      ].join('\n');
+
+      const text = await callClaude({
+        system: systemPromptForVideoBrief(),
+        userText: userText,
+        images: briefImages,
+        maxTokens: 1500
+      });
+
+      let brief;
+      try {
+        brief = parseJsonFromText(text);
+      } catch (e) {
+        throw new Error('Brief parse failed: ' + e.message);
+      }
+
+      // Hydrate every clip to point at our uploaded video; carry the nearest-frame thumb for UI
+      if (brief.clips && brief.clips.length > 0) {
+        brief.clips.forEach(c => {
+          c.source_url = videoUrl;
+          c.kind = 'video_segment';
+          c.motion = c.motion || 'static';
+          // Pick the closest sampled frame as the thumb so user sees roughly the right moment
+          const t = c.start_time != null ? c.start_time : 0;
+          let nearest = frames[0];
+          let best = Math.abs(frames[0].timestamp - t);
+          frames.forEach(f => {
+            const d = Math.abs(f.timestamp - t);
+            if (d < best) { best = d; nearest = f; }
+          });
+          c.thumb = nearest.thumbDataUrl;
+          // Renderer uses "duration" for total clip length; alias from segment_duration
+          if (c.segment_duration != null && c.duration == null) {
+            c.duration = c.segment_duration;
+          }
+        });
+      }
+      if (brief.end_frame) {
+        brief.end_frame.logo_url = WOLF_LOGO_URL;
+      }
+
+      reelBrief = brief;
+      reelClips = brief.clips.slice();
+      reelOutputId = (brief.output_id_hint || 'video-reel') + '-' + Math.floor(Date.now()/1000);
+      renderBuilderForm();
+      showReelStage('builder');
+    } catch (err) {
+      showReelStage('builder');
+      toast('Video brief failed: ' + (err.message || 'unknown'), 'err');
+      // Fall back to manual empty brief
+      reelBrief = makeEmptyBrief();
+      reelClips = reelBrief.clips.slice();
+      reelOutputId = 'manual-' + Math.floor(Date.now()/1000);
+      renderBuilderForm();
+    }
+  }
+
+  // ---------- PHOTO path (original behavior) ----------
+  async function buildReelFromPhoto() {
     try {
       // First: ensure the source photo is in the repo (commit it)
       let firstClipUrl = null;
@@ -2357,11 +2612,9 @@
       if (mediaData && mediaData.base64) {
         $('reelGenSubText').textContent = 'Uploading photo to repo...';
         const mtype = mediaData.mediaType || 'image/jpeg';
-        // For videos: Generate tab already captured a single JPEG frame, treat as photo
         firstClipKind = 'photo';
         const ext = mtype.indexOf('png') >= 0 ? 'png' : 'jpg';
         const fname = 'clip-' + Date.now() + '.' + ext;
-        // Build a data URL since commitAssetToRepo expects one
         const dataUrl = 'data:' + mtype + ';base64,' + mediaData.base64;
         firstClipUrl = await commitAssetToRepo(fname, dataUrl, 'reel source: ' + fname);
         firstClipThumb = mediaData.thumbDataUrl || dataUrl;
@@ -2383,8 +2636,7 @@
         throw new Error('Brief parse failed: ' + e.message);
       }
 
-      // Hydrate ALL clips with the uploaded asset (single-photo focal tour:
-      // every clip uses the same source, motion creates the variety)
+      // Hydrate ALL clips with the uploaded asset
       if (brief.clips && brief.clips.length > 0 && firstClipUrl) {
         brief.clips.forEach(c => {
           if (!c.source_url) {
@@ -2394,7 +2646,6 @@
           }
         });
       }
-      // Add wolf logo to end frame
       if (brief.end_frame) {
         brief.end_frame.logo_url = WOLF_LOGO_URL;
       }
@@ -2407,26 +2658,29 @@
     } catch (err) {
       showReelStage('builder');
       toast('Brief failed: ' + (err.message || 'unknown'), 'err');
-      // Fall back to manual: empty single-clip brief
-      reelBrief = {
-        output_id_hint: 'manual',
-        clips: [{
-          duration: 4.5, motion: 'zoom_in', source_url: null, kind: 'photo',
-          text_overlays: [{ text: '', position: 'upper', start: 0.3, hold: 3.5, size: 'large' }]
-        }],
-        end_frame: {
-          duration: 3,
-          primary_text: 'WOLF\'S GARAGE',
-          subtitle: 'REAL HOT ROD CULTURE COMING AT YOU',
-          footer: 'THE PACIFIC NORTHWEST AND BEYOND · GET BACK IN THE GARAGE.',
-          logo_url: WOLF_LOGO_URL
-        }
-      };
+      reelBrief = makeEmptyBrief();
       reelClips = reelBrief.clips.slice();
       reelOutputId = 'manual-' + Math.floor(Date.now()/1000);
       renderBuilderForm();
     }
-  });
+  }
+
+  function makeEmptyBrief() {
+    return {
+      output_id_hint: 'manual',
+      clips: [{
+        duration: 4.5, motion: 'zoom_in', source_url: null, kind: 'photo',
+        text_overlays: [{ text: '', position: 'upper', start: 0.3, hold: 3.5, size: 'large' }]
+      }],
+      end_frame: {
+        duration: 3,
+        primary_text: 'WOLF\'S GARAGE',
+        subtitle: 'REAL HOT ROD CULTURE COMING AT YOU',
+        footer: 'THE PACIFIC NORTHWEST AND BEYOND · GET BACK IN THE GARAGE.',
+        logo_url: WOLF_LOGO_URL
+      }
+    };
+  }
 
   // Helper: switch to settings tab
   function switchToSettings() {
@@ -2678,13 +2932,25 @@
     try {
       // Build a CLEAN payload — strip UI-only fields (thumb is a base64 data URL,
       // too big for GitHub's 64KB client_payload limit)
-      const cleanClips = reelClips.map(c => ({
-        source_url: c.source_url,
-        kind: c.kind || 'photo',
-        duration: c.duration,
-        motion: c.motion,
-        text_overlays: c.text_overlays || []
-      }));
+      const cleanClips = reelClips.map(c => {
+        const out = {
+          source_url: c.source_url,
+          kind: c.kind || 'photo',
+          duration: c.duration,
+          motion: c.motion,
+          text_overlays: c.text_overlays || []
+        };
+        // Pass through video segment fields when present
+        if (c.kind === 'video_segment') {
+          if (c.start_time != null) out.start_time = c.start_time;
+          if (c.segment_duration != null) out.segment_duration = c.segment_duration;
+          // duration should mirror segment_duration for the renderer
+          if (out.duration == null && c.segment_duration != null) {
+            out.duration = c.segment_duration;
+          }
+        }
+        return out;
+      });
       const cleanEndFrame = reelBrief.end_frame ? {
         duration:     reelBrief.end_frame.duration,
         primary_text: reelBrief.end_frame.primary_text,
