@@ -1,0 +1,95 @@
+name: Render Reel
+
+on:
+  workflow_dispatch:
+    inputs:
+      brief:
+        description: "Brief JSON (as string)"
+        required: true
+      output_id:
+        description: "Output ID (used for filename)"
+        required: true
+  repository_dispatch:
+    types: [render-reel]
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify FFmpeg
+        run: |
+          ffmpeg -version | head -1
+          which ffmpeg
+
+      - name: Determine output ID
+        id: prep
+        run: |
+          OUTPUT_ID="${{ github.event.inputs.output_id || github.event.client_payload.output_id }}"
+          if [ -z "$OUTPUT_ID" ]; then
+            OUTPUT_ID="reel-$(date +%s)"
+          fi
+          # Sanitize: only allow alphanumeric, dash, underscore (max 64 chars)
+          OUTPUT_ID=$(echo "$OUTPUT_ID" | tr -cd 'a-zA-Z0-9_-' | head -c 64)
+          echo "output_id=$OUTPUT_ID" >> "$GITHUB_OUTPUT"
+          echo "Using output ID: $OUTPUT_ID"
+
+      - name: Write brief
+        env:
+          BRIEF_INPUT: ${{ github.event.inputs.brief }}
+          BRIEF_PAYLOAD: ${{ toJSON(github.event.client_payload.brief) }}
+        run: |
+          mkdir -p /tmp/wgreel renders
+          if [ -n "$BRIEF_INPUT" ]; then
+            echo "$BRIEF_INPUT" > /tmp/wgreel/brief.json
+          else
+            echo "$BRIEF_PAYLOAD" > /tmp/wgreel/brief.json
+          fi
+          echo "--- brief.json (first 60 lines) ---"
+          head -60 /tmp/wgreel/brief.json
+          echo "---"
+          python3 -c "import json; json.load(open('/tmp/wgreel/brief.json'))"
+          echo "Brief is valid JSON"
+
+      - name: Render reel
+        run: |
+          python3 scripts/render_reel.py \
+            --brief /tmp/wgreel/brief.json \
+            --output renders/${{ steps.prep.outputs.output_id }}.mp4
+          ls -lh renders/
+
+      - name: Commit and push result
+        run: |
+          git config user.name "Wolf's Garage Render Bot"
+          git config user.email "noreply@wolfsgarage.com"
+          git add renders/${{ steps.prep.outputs.output_id }}.mp4
+          git commit -m "render: ${{ steps.prep.outputs.output_id }}"
+          # Retry push to handle concurrent updates
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --autostash && git push; then
+              echo "Pushed on attempt $attempt"
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          echo "Failed to push after 5 attempts"
+          exit 1
+
+      - name: Output URL
+        run: |
+          URL="https://raw.githubusercontent.com/${{ github.repository }}/main/renders/${{ steps.prep.outputs.output_id }}.mp4"
+          echo "Render URL: $URL"
+          echo "::notice::Render complete: $URL"
