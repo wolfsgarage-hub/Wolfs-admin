@@ -2353,13 +2353,17 @@
       let firstClipUrl = null;
       let firstClipThumb = null;
       let firstClipKind = 'photo';
-      if (mediaData && mediaData.dataUrl) {
+      if (mediaData && mediaData.base64) {
         $('reelGenSubText').textContent = 'Uploading photo to repo...';
-        const ext = (mediaData.mime && mediaData.mime.indexOf('video') === 0) ? 'mp4' : 'jpg';
-        firstClipKind = (ext === 'mp4') ? 'video' : 'photo';
+        const mtype = mediaData.mediaType || 'image/jpeg';
+        // For videos: Generate tab already captured a single JPEG frame, treat as photo
+        firstClipKind = 'photo';
+        const ext = mtype.indexOf('png') >= 0 ? 'png' : 'jpg';
         const fname = 'clip-' + Date.now() + '.' + ext;
-        firstClipUrl = await commitAssetToRepo(fname, mediaData.dataUrl, 'reel source: ' + fname);
-        firstClipThumb = mediaData.thumbDataUrl || mediaData.dataUrl;
+        // Build a data URL since commitAssetToRepo expects one
+        const dataUrl = 'data:' + mtype + ';base64,' + mediaData.base64;
+        firstClipUrl = await commitAssetToRepo(fname, dataUrl, 'reel source: ' + fname);
+        firstClipThumb = mediaData.thumbDataUrl || dataUrl;
       }
 
       // Then: generate brief from caption
