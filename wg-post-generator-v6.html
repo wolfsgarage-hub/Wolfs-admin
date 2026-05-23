@@ -304,6 +304,47 @@
   }
   .media-clear:hover { border-color: var(--red); color: var(--red); }
 
+  /* ---------- MEDIA BUTTONS (Photo / Video) ---------- */
+  .media-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .media-btn {
+    background: var(--bg-2);
+    border: 2px solid var(--line);
+    border-radius: var(--r);
+    padding: 18px 12px;
+    min-height: 84px;
+    color: var(--bone);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+    font-family: inherit;
+  }
+  .media-btn:hover, .media-btn:focus-visible {
+    border-color: var(--red);
+    outline: none;
+  }
+  .media-btn:active {
+    background: var(--bg-3);
+  }
+  .media-btn-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: var(--bone);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .media-btn-sub {
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    color: var(--bone-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
   /* ---------- TEXT INPUTS ---------- */
   textarea, input[type="text"], input[type="password"] {
     width: 100%;
@@ -662,11 +703,17 @@
     </div>
 
     <div class="label">Media (Optional)</div>
-    <div class="media-zone" id="mediaZone" tabindex="0" role="button" aria-label="Upload photo or video">
-      <div class="media-zone-icon">+</div>
-      <div class="media-zone-text">Tap to Upload</div>
-      <div class="media-zone-sub">Photo or video clip. AI looks at the frame.</div>
-      <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;" />
+    <div class="media-buttons">
+      <button class="media-btn" id="mediaBtnPhoto" type="button">
+        <div class="media-btn-label">PHOTO</div>
+        <div class="media-btn-sub">From gallery</div>
+      </button>
+      <button class="media-btn" id="mediaBtnVideo" type="button">
+        <div class="media-btn-label">VIDEO</div>
+        <div class="media-btn-sub">AI grabs a frame</div>
+      </button>
+      <input type="file" id="mediaInputPhoto" accept="image/*" style="display:none;" />
+      <input type="file" id="mediaInputVideo" accept="video/*" style="display:none;" />
     </div>
     <div class="media-preview" id="mediaPreview">
       <img id="previewImg" alt="" style="display:none;">
@@ -786,8 +833,10 @@
   // ---------------- DOM ----------------
   const $ = (id) => document.getElementById(id);
   const typeGrid = $('typeGrid');
-  const mediaZone = $('mediaZone');
-  const mediaInput = $('mediaInput');
+  const mediaBtnPhoto = $('mediaBtnPhoto');
+  const mediaBtnVideo = $('mediaBtnVideo');
+  const mediaInputPhoto = $('mediaInputPhoto');
+  const mediaInputVideo = $('mediaInputVideo');
   const previewImg = $('previewImg');
   const previewCanvas = $('previewCanvas');
   const previewVideo = $('previewVideo');
@@ -873,26 +922,18 @@
   });
 
   // ---------------- MEDIA INPUT ----------------
-  mediaZone.addEventListener('click', () => mediaInput.click());
-  mediaZone.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mediaInput.click(); }
-  });
+  mediaBtnPhoto.addEventListener('click', () => mediaInputPhoto.click());
+  mediaBtnVideo.addEventListener('click', () => mediaInputVideo.click());
 
-  ['dragenter', 'dragover'].forEach(ev => {
-    mediaZone.addEventListener(ev, (e) => { e.preventDefault(); mediaZone.classList.add('drag'); });
-  });
-  ['dragleave', 'drop'].forEach(ev => {
-    mediaZone.addEventListener(ev, (e) => { e.preventDefault(); mediaZone.classList.remove('drag'); });
-  });
-  mediaZone.addEventListener('drop', (e) => {
-    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) handleMediaFile(f);
-  });
-
-  mediaInput.addEventListener('change', (e) => {
+  mediaInputPhoto.addEventListener('change', (e) => {
     const f = e.target.files && e.target.files[0];
     if (f) handleMediaFile(f);
-    mediaInput.value = '';
+    mediaInputPhoto.value = '';
+  });
+  mediaInputVideo.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) handleMediaFile(f);
+    mediaInputVideo.value = '';
   });
 
   mediaClear.addEventListener('click', clearMedia);
