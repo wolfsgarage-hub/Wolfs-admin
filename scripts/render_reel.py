@@ -149,6 +149,35 @@ def make_video_clip(src, duration, motion, out_path):
     ], label="video_clip")
     return out_path
 
+def make_video_segment_clip(src, start_time, duration, out_path):
+    """Extract a SEGMENT from a source video (start_time to start_time+duration),
+    crop/scale to 9:16, strip audio. Used when clip kind == 'video_segment'.
+
+    Note: -ss BEFORE -i = fast seek (keyframe-snapped, less accurate).
+          -ss AFTER  -i = accurate seek (slower, frame-perfect).
+    We use accurate seek because Reels usually need clean cuts on action moments.
+    """
+    vf_parts = [
+        f"scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase",
+        f"crop={OUT_W}:{OUT_H}",
+        f"setsar=1",
+        f"fps={FPS}",
+    ]
+    run_ffmpeg([
+        "-i", str(src),
+        "-ss", str(start_time),
+        "-t", str(duration),
+        "-vf", ",".join(vf_parts),
+        "-r", str(FPS),
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-preset", "fast",
+        "-crf", "20",
+        "-an",
+        str(out_path)
+    ], label=f"video_segment[{start_time:.2f}+{duration:.2f}]")
+    return out_path
+
 SIZE_MAP = {
     "small": 60,
     "medium": 88,
@@ -524,16 +553,31 @@ def main():
 
     # Render each clip
     rendered_clips = []
+    # Cache source downloads keyed by URL — multiple clips can share one video file
+    src_cache = {}
     for i, clip in enumerate(brief["clips"]):
-        ext = Path(clip["source_url"]).suffix.split("?")[0] or ".bin"
-        src_path = clips_dir / f"src_{i}{ext}"
-        download(clip["source_url"], src_path)
+        src_url = clip["source_url"]
+        if src_url in src_cache:
+            src_path = src_cache[src_url]
+            print(f"[clip {i}] reusing cached source: {src_path.name}", flush=True)
+        else:
+            ext = Path(src_url).suffix.split("?")[0] or ".bin"
+            src_path = clips_dir / f"src_{i}{ext}"
+            download(src_url, src_path)
+            src_cache[src_url] = src_path
 
         base_path = clips_dir / f"clip_{i}_base.mp4"
         if clip["kind"] == "photo":
             make_photo_clip(src_path, clip["duration"], clip.get("motion", "zoom_in"), base_path)
         elif clip["kind"] == "video":
             make_video_clip(src_path, clip["duration"], clip.get("motion", "static"), base_path)
+        elif clip["kind"] == "video_segment":
+            # Pull start_time + segment_duration; fall back to duration if either is missing
+            start_time = float(clip.get("start_time", 0))
+            seg_dur    = float(clip.get("segment_duration", clip.get("duration", 4.0)))
+            make_video_segment_clip(src_path, start_time, seg_dur, base_path)
+            # Ensure clip["duration"] is set for downstream timing/concat math
+            clip["duration"] = seg_dur
         else:
             raise SystemExit(f"Unknown clip kind: {clip['kind']}")
 
