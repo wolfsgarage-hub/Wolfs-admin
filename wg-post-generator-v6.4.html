@@ -1000,7 +1000,7 @@
 
     <div class="label">About</div>
     <div style="font-size:14px;color:var(--bone-dim);line-height:1.6;">
-      v6.4 — credentials moved to Supabase Edge Function (github-proxy on awarewolf project). App is credential-free. Generates Instagram captions, 5 hashtags, Descript-ready Edit Plans, AND renders 9:16 Reels via GitHub Actions FFmpeg pipeline routed through the proxy. Pulls photos from Drive. Analyzes competitor reels, past posts, and rates your photo library.
+      v6.4. Credentials moved to Supabase Edge Function (github-proxy on awarewolf project). App is credential-free. Generates Instagram captions, 5 hashtags, Descript-ready Edit Plans, AND renders 9:16 Reels via GitHub Actions FFmpeg pipeline routed through the proxy. Pulls photos from Drive. Analyzes competitor reels, past posts, and rates your photo library. Renders are tab-resilient. Close the app or switch away, your reel keeps cooking on GitHub and resumes when you come back.
     </div>
 
     <div class="label">Reset</div>
@@ -1092,7 +1092,8 @@
     DRIVE_TOKEN: 'wgpost:drive_token',
     DRIVE_TOKEN_EXP: 'wgpost:drive_token_exp',
     DRIVE_FOLDER: 'wgpost:drive_folder',
-    GH_PAT: 'wgpost:gh_pat'
+    GH_PAT: 'wgpost:gh_pat',
+    PENDING_RENDER: 'wgpost:pending_render'
   };
 
   const MODEL = 'claude-sonnet-4-6';
@@ -2983,6 +2984,19 @@
         const msg = e.message || 'unknown';
         throw new Error('Render trigger failed: ' + msg);
       }
+      // Persist pending render so the app can resume after tab eviction / app switch
+      try {
+        const pending = {
+          outputId: reelOutputId,
+          startedAt: Date.now(),
+          type: lastGen ? lastGen.type : selectedType,
+          caption: ($('captionField') && $('captionField').value) || '',
+          hashtags: ($('hashtagField') && $('hashtagField').value) || '',
+          editPlan: ($('editPlanField') && $('editPlanField').value) || '',
+          thumb: (reelClips[0] && reelClips[0].thumb) || (lastGen && lastGen.thumbDataUrl) || null
+        };
+        setLS(LS.PENDING_RENDER, JSON.stringify(pending));
+      } catch (e) { /* non-fatal */ }
       // Poll for output
       $('renderStatusTitle').textContent = 'Rendering on GitHub Actions...';
       $('renderStatusSub').textContent = 'Should take 1-2 min. Watching renders/ folder.';
@@ -3005,6 +3019,8 @@
       $('renderStatusSub').textContent = 'Waiting... ' + Math.round(elapsed/1000) + 's elapsed';
       if (elapsed > MAX_WAIT_MS) {
         clearInterval(reelPollTimer); reelPollTimer = null;
+        // Clear pending. Render timed out, do not auto-resume next session
+        try { localStorage.removeItem(LS.PENDING_RENDER); } catch (e) { /* non-fatal */ }
         showReelStage('builder');
         toast('Render timeout after 6 min. Check the Actions tab on GitHub.', 'err');
         return;
@@ -3023,6 +3039,8 @@
 
   function onRenderComplete(mp4Url) {
     showReelStage('done');
+    // Clear the pending-render flag. This render is finished
+    try { localStorage.removeItem(LS.PENDING_RENDER); } catch (e) { /* non-fatal */ }
     const v = $('reelPreview');
     v.src = mp4Url;
     v.load();
@@ -3076,6 +3094,62 @@
       clearInterval(initTick);
     }
   }, 250);
+
+  // ---------------- RESUME PENDING RENDER ON LOAD ----------------
+  // If a render was kicked off in a prior session and the tab got evicted before
+  // the output arrived, pick it back up. GitHub Actions runs server-side so the
+  // render itself never died, just need to find it again.
+  function checkPendingRender() {
+    let pending = null;
+    try { pending = JSON.parse(getLS(LS.PENDING_RENDER) || 'null'); } catch (e) { return; }
+    if (!pending || !pending.outputId) return;
+
+    const ageMs = Date.now() - (pending.startedAt || 0);
+    const MAX_AGE_MS = 30 * 60 * 1000; // 30 min ceiling, well past normal render time
+
+    if (ageMs > MAX_AGE_MS) {
+      try { localStorage.removeItem(LS.PENDING_RENDER); } catch (e) { /* non-fatal */ }
+      return;
+    }
+
+    // Restore the minimum state onRenderComplete needs to save the draft properly
+    reelOutputId = pending.outputId;
+    if (!lastGen) {
+      lastGen = { type: pending.type || selectedType, thumbDataUrl: pending.thumb || null };
+    }
+    if ($('captionField')  && pending.caption)  $('captionField').value  = pending.caption;
+    if ($('hashtagField')  && pending.hashtags) $('hashtagField').value  = pending.hashtags;
+    if ($('editPlanField') && pending.editPlan) $('editPlanField').value = pending.editPlan;
+
+    const ageMin = Math.max(1, Math.round(ageMs / 60000));
+    const url = RENDERS_BASE + pending.outputId + '.mp4';
+
+    openReelModal();
+    showReelStage('rendering');
+    $('renderStatusTitle').textContent = 'Welcome back. Checking your render...';
+    $('renderStatusSub').textContent   = 'Started ' + ageMin + ' min ago';
+
+    // Probe the output URL once. If the file is there, jump straight to done.
+    // Otherwise resume the poll loop from the original start time.
+    fetch(url, { method: 'HEAD', cache: 'no-cache' }).then(function(r) {
+      if (r.ok) {
+        onRenderComplete(url);
+      } else {
+        $('renderStatusTitle').textContent = 'Still rendering on GitHub Actions...';
+        $('renderStatusSub').textContent   = 'Started ' + ageMin + ' min ago. Watching renders/ folder.';
+        reelPollStartedAt = pending.startedAt;
+        pollForRender();
+      }
+    }).catch(function() {
+      $('renderStatusTitle').textContent = 'Still rendering on GitHub Actions...';
+      $('renderStatusSub').textContent   = 'Started ' + ageMin + ' min ago. Watching renders/ folder.';
+      reelPollStartedAt = pending.startedAt;
+      pollForRender();
+    });
+  }
+
+  // Defer briefly so the rest of the IIFE finishes wiring up handlers
+  setTimeout(checkPendingRender, 100);
 
 })();
 
