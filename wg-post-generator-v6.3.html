@@ -2360,6 +2360,9 @@
     });
     if (!r.ok) {
       const t = await r.text();
+      if (r.status === 401) {
+        throw new Error('GitHub PAT expired or revoked. Open SETUP, paste a fresh PAT, Save, then retry.');
+      }
       throw new Error('Upload failed (HTTP ' + r.status + '): ' + t.slice(0, 200));
     }
     return 'https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/' + GH_BRANCH + '/' + path;
@@ -2980,6 +2983,9 @@
       });
       if (!dispatch.ok) {
         const t = await dispatch.text();
+        if (dispatch.status === 401) {
+          throw new Error('GitHub PAT expired. Open SETUP, paste a fresh PAT, Save, then retry.');
+        }
         throw new Error('Dispatch HTTP ' + dispatch.status + ': ' + t.slice(0, 200));
       }
       // Poll for output
