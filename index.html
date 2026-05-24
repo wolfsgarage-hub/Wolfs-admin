@@ -634,6 +634,10 @@
       <div class="stat-num" id="dash-stat-events">0</div>
       <div class="stat-lbl">EVENTS PENDING</div>
     </div>
+    <div class="stat-card" id="dash-bulletin" onclick="switchTab('bulletin')" style="cursor:pointer">
+      <div class="stat-num" id="dash-stat-bulletin">0</div>
+      <div class="stat-lbl">BULLETIN PENDING</div>
+    </div>
     <div class="stat-card" onclick="switchTab('morning')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-todo">0</div>
       <div class="stat-lbl">TO-DO OPEN</div>
@@ -1280,7 +1284,7 @@ async function renderDashboard() {
   document.getElementById('dash-stat-todo').textContent = openTodo;
 
   // Firestore-backed counters (live data when admin is signed in, local fallback otherwise)
-  let pendingL = 0, liveL = 0, pendingP = 0, pendingE = 0;
+  let pendingL = 0, liveL = 0, pendingP = 0, pendingE = 0, pendingB = 0;
   // Use loadAllListings() so dashboard counts match the LISTINGS tab even when
   // not signed in to Firebase as admin (it falls back to local cache).
   try {
@@ -1308,24 +1312,34 @@ async function renderDashboard() {
     } catch (err) {
       console.warn('Dashboard events read failed:', err);
     }
+    try {
+      const bSnap = await fbDb.collection('bulletins').where('status', '==', 'pending').get();
+      pendingB = bSnap.size;
+    } catch (err) {
+      console.warn('Dashboard bulletins read failed:', err);
+    }
   }
 
   document.getElementById('dash-stat-listings').textContent = pendingL;
   document.getElementById('dash-stat-pack').textContent = pendingP;
   document.getElementById('dash-stat-events').textContent = pendingE;
+  document.getElementById('dash-stat-bulletin').textContent = pendingB;
   document.getElementById('dash-stat-live').textContent = liveL;
 
   document.getElementById('dash-listings').classList.toggle('has-badge', pendingL > 0);
   document.getElementById('dash-pack').classList.toggle('has-badge', pendingP > 0);
   document.getElementById('dash-events').classList.toggle('has-badge', pendingE > 0);
+  document.getElementById('dash-bulletin').classList.toggle('has-badge', pendingB > 0);
 
   // Tab badges
   const badgeL = document.getElementById('badge-listings');
   const badgeP = document.getElementById('badge-pack');
   const badgeE = document.getElementById('badge-events');
+  const badgeB = document.getElementById('badge-bulletin');
   if (badgeL) { badgeL.textContent = pendingL; badgeL.classList.toggle('zero', pendingL === 0); }
   if (badgeP) { badgeP.textContent = pendingP; badgeP.classList.toggle('zero', pendingP === 0); }
   if (badgeE) { badgeE.textContent = pendingE; badgeE.classList.toggle('zero', pendingE === 0); }
+  if (badgeB) { badgeB.textContent = pendingB; badgeB.classList.toggle('zero', pendingB === 0); }
 
   // Notes
   const notes = await Store.get(K.NOTES_DASH) || '';
