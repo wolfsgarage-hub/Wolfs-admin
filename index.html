@@ -582,7 +582,7 @@
 <header class="topbar">
   <div class="topbar-brand">
     <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v21</span></div>
+    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v22</span></div>
   </div>
   <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
@@ -1116,12 +1116,17 @@ async function fbSignInGoogle() {
   if (!fbReady) throw new Error('Firebase not loaded');
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  // Use redirect on mobile (popups are blocked), popup on desktop
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  if (isMobile) {
-    return fbAuth.signInWithRedirect(provider);
-  } else {
-    return fbAuth.signInWithPopup(provider);
+  // v22: popup-everywhere. signInWithRedirect fails on mobile Chrome with
+  // 'missing initial state' due to storage-partitioned browser changes.
+  // Popup works on Android Chrome (primary device) and desktop.
+  try {
+    return await fbAuth.signInWithPopup(provider);
+  } catch (err) {
+    if (err && err.code === 'auth/popup-blocked') {
+      // Rare on Android Chrome but possible. Fall back to redirect.
+      return fbAuth.signInWithRedirect(provider);
+    }
+    throw err;
   }
 }
 function fbSignOut() {
@@ -2417,10 +2422,10 @@ async function migrateGalleryToPackPhotos() {
 
 async function promptFbSignIn() {
   try {
-    // Mark redirect in flight so the next boot waits longer for auth state.
+    // wg_google_redirecting flag is kept harmless: signInWithPopup resolves here
+    // directly. The flag only matters if popup is blocked and we fall back to redirect.
     sessionStorage.setItem('wg_google_redirecting', '1');
-    // On mobile this navigates away; result is caught by getRedirectResult on return.
-    // On desktop the popup result is awaitable here.
+    // Popup result is awaitable here. Mobile and desktop both use popup since v22.
     const result = await fbSignInGoogle();
     if (result && result.user) {
       if (!ADMIN_EMAILS.includes(result.user.email)) {
@@ -2783,8 +2788,8 @@ async function ensureFirebaseAdmin() {
     new Promise(r => setTimeout(r, timeoutMs))
   ]);
   if (fbIsAdmin()) return;
-  // One-shot per session - prevents the mobile redirect-bounce loop
-  // (signInWithRedirect navigates away and re-boots the app on return).
+  // One-shot per session - prevents repeated prompts if the admin dismisses.
+  // (Historic note: also prevented mobile redirect-bounce loop pre-v22.)
   if (sessionStorage.getItem('wg_google_prompt_shown') === '1') return;
   sessionStorage.setItem('wg_google_prompt_shown', '1');
   // No interstitial: launch Google sign-in directly. If the admin dismisses
