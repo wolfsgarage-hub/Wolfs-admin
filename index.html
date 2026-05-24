@@ -580,11 +580,13 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-brand">
-    <img src="" id="topbar-logo" class="topbar-logo" alt="">
-    <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v22</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v23</span></div>
+  <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
+    <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
+    <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
+      <img src="" id="topbar-logo" class="topbar-logo" alt="">
+    </a>
   </div>
-  <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
 </header>
 
 <svg class="pinstripe" viewBox="0 0 1200 14" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -606,6 +608,7 @@
   <button class="tab" data-tab="listings" onclick="switchTab('listings')">LISTINGS<span class="tab-badge zero" id="badge-listings">0</span></button>
   <button class="tab" data-tab="categories" onclick="switchTab('categories')">CATEGORIES<span class="tab-badge zero" id="badge-categories">0</span></button>
   <button class="tab" data-tab="pack" onclick="switchTab('pack')">PACK PHOTOS<span class="tab-badge zero" id="badge-pack">0</span></button>
+  <button class="tab" data-tab="bulletin" onclick="switchTab('bulletin')">BULLETIN<span class="tab-badge zero" id="badge-bulletin">0</span></button>
   <button class="tab" data-tab="events" onclick="switchTab('events')">EVENTS<span class="tab-badge zero" id="badge-events">0</span></button>
   <button class="tab" data-tab="wolf-photos" onclick="switchTab('wolf-photos')">WOLF'S PHOTOS</button>
   <button class="tab" data-tab="social" onclick="switchTab('social')">SOCIAL</button>
@@ -869,6 +872,30 @@
       <span class="section-count" id="pack-approved-count">0</span>
     </div>
     <div class="photo-grid" id="pack-approved-grid"></div>
+  </div>
+</section>
+
+<!-- ============== BULLETIN ============== -->
+<section class="panel" id="panel-bulletin">
+  <div class="panel-head">
+    <h2>COMMUNITY BULLETIN</h2>
+    <p>// parts wanted, parts for sale, build updates, public notices</p>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>PENDING</h3>
+      <span class="section-count" id="bulletin-pending-count">0</span>
+    </div>
+    <div id="bulletin-pending"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>APPROVED</h3>
+      <span class="section-count" id="bulletin-approved-count">0</span>
+    </div>
+    <div id="bulletin-approved"></div>
   </div>
 </section>
 
@@ -1215,6 +1242,7 @@ function switchTab(name, pushHistory) {
   if (name === 'listings') renderListings();
   if (name === 'categories') renderCategories();
   if (name === 'pack') renderPackPhotos();
+  if (name === 'bulletin') loadBulletin();
   if (name === 'events') renderEvents();
   if (name === 'wolf-photos') renderWolfPhotos();
   if (name === 'social') renderSocial();
@@ -2147,6 +2175,65 @@ async function deletePack(id) {
     toast('Failed: ' + (err.message || err.code));
   }
 }
+
+// ============== BULLETIN (Firestore-backed) ==============
+const BULLETIN_TYPES = { 'build': 'Build Update', 'sale': 'For Sale', 'wanted': 'Wanted', 'notice': 'Public Notice' };
+
+async function loadBulletin() {
+  if (!fbDb) return;
+  const pendingEl = document.getElementById('bulletin-pending');
+  const approvedEl = document.getElementById('bulletin-approved');
+  if (!pendingEl || !approvedEl) return;
+  try {
+    const snap = await fbDb.collection('bulletins').get();
+    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const pending = all.filter(b => b.status === 'pending').sort((a,b) => (b.submittedAt?.toMillis?.()||0) - (a.submittedAt?.toMillis?.()||0));
+    const approved = all.filter(b => b.status === 'approved').sort((a,b) => (b.submittedAt?.toMillis?.()||0) - (a.submittedAt?.toMillis?.()||0));
+    document.getElementById('bulletin-pending-count').textContent = pending.length;
+    document.getElementById('bulletin-approved-count').textContent = approved.length;
+    const badge = document.getElementById('badge-bulletin');
+    if (badge) { badge.textContent = pending.length; badge.classList.toggle('zero', pending.length === 0); }
+    pendingEl.innerHTML = pending.length ? pending.map(b => renderBulletinCard(b, true)).join('') : '<p style="color:rgba(245,241,232,0.5);font-family:\'Special Elite\',monospace;padding:14px 0;">no pending bulletins</p>';
+    approvedEl.innerHTML = approved.length ? approved.map(b => renderBulletinCard(b, false)).join('') : '<p style="color:rgba(245,241,232,0.5);font-family:\'Special Elite\',monospace;padding:14px 0;">no approved bulletins</p>';
+  } catch (err) {
+    console.warn('Bulletin load failed:', err);
+    pendingEl.innerHTML = '<p style="color:var(--red);font-family:\'Special Elite\',monospace;padding:14px 0;">Could not load bulletins.</p>';
+  }
+}
+
+function renderBulletinCard(b, isPending) {
+  const esc = s => (s || '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const typeLabel = BULLETIN_TYPES[b.type] || 'Notice';
+  const priceLine = b.price ? '<div style="color:var(--copper);font-family:\'Oswald\',sans-serif;font-size:13px;letter-spacing:2px;">PRICE: ' + esc(b.price) + '</div>' : '';
+  const contactLine = '<div style="color:rgba(245,241,232,0.7);font-size:13px;font-family:\'Work Sans\',sans-serif;">' + esc(b.contact || '') + '</div>';
+  const zipLine = b.zip ? '<div style="color:rgba(245,241,232,0.5);font-size:12px;font-family:\'Special Elite\',monospace;">ZIP ' + esc(b.zip) + '</div>' : '';
+  const photo = b.imageUrl || b.imageData;
+  const photoHtml = photo ? '<img src="' + esc(photo) + '" style="max-width:200px;max-height:200px;display:block;margin:8px 0;border:1px solid rgba(245,241,232,0.2);">' : '';
+  const buttons = isPending
+    ? '<button class="btn btn-approve" onclick="setBulletinStatus(\'' + b.id + '\',\'approved\')">✓ Approve</button> <button class="btn btn-reject" onclick="setBulletinStatus(\'' + b.id + '\',\'rejected\')">✕ Reject</button> <button class="btn btn-delete" onclick="deleteBulletin(\'' + b.id + '\')">DELETE</button>'
+    : '<button class="btn btn-requeue" onclick="setBulletinStatus(\'' + b.id + '\',\'pending\')">↺ Re-queue</button> <button class="btn btn-delete" onclick="deleteBulletin(\'' + b.id + '\')">DELETE</button>';
+  return '<div class="listing-card" style="margin-bottom:14px;padding:14px;border:1px solid rgba(245,241,232,0.2);">'
+    + '<div style="color:var(--copper);font-family:\'Oswald\',sans-serif;font-size:12px;letter-spacing:2px;margin-bottom:4px;">' + esc(typeLabel) + '</div>'
+    + '<h4 style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:1.5px;margin:0 0 8px 0;">' + esc(b.headline || '(no headline)') + '</h4>'
+    + priceLine + zipLine
+    + '<p style="color:rgba(245,241,232,0.8);font-family:\'Work Sans\',sans-serif;font-size:14px;margin:6px 0;">' + esc(b.details || '') + '</p>'
+    + photoHtml + contactLine
+    + '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">' + buttons + '</div>'
+    + '</div>';
+}
+
+window.setBulletinStatus = async function(id, status) {
+  if (!fbDb) return;
+  try { await fbDb.collection('bulletins').doc(id).update({ status: status, moderatedAt: firebase.firestore.FieldValue.serverTimestamp() }); loadBulletin(); }
+  catch (err) { alert('Update failed: ' + err.message); }
+};
+
+window.deleteBulletin = async function(id) {
+  if (!fbDb) return;
+  if (!confirm('Delete this bulletin permanently?')) return;
+  try { await fbDb.collection('bulletins').doc(id).delete(); loadBulletin(); }
+  catch (err) { alert('Delete failed: ' + err.message); }
+};
 
 // ============== EVENTS ==============
 // Public site (wolfs-garage-site) writes to fbDb.collection('events') with the
