@@ -2861,7 +2861,12 @@
         thumb: existing.thumb,
         duration: duration,
         motion: motion,
-        text_overlays: overlays
+        text_overlays: overlays,
+        // CRITICAL for video_segment clips: preserve where in the source video to slice from.
+        // Without these, render_reel.py defaults start_time=0 and all 3 clips show the
+        // same opening segment of the video.
+        start_time: existing.start_time,
+        segment_duration: existing.segment_duration
       });
     });
     reelClips = newClips;
