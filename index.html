@@ -704,11 +704,14 @@
   </div>
 
   <div class="section" id="email-export-section" style="display:none">
-    <div class="section-head"><h3>SUBMISSION EMAILS</h3></div>
+    <div class="section-head"><h3>EMAIL EXPORTS</h3></div>
     <button class="btn btn-primary" id="email-export-btn" onclick="downloadSubmissionEmails()">DOWNLOAD SUBMISSION EMAILS</button>
+    <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin:6px 0 14px;line-height:1.5">
+      CSV of unique emails from directory listings + event submissions. Pack photos are anonymous (no email captured).
+    </div>
+    <a class="btn btn-primary" id="mc-export-btn" href="https://wolfsgarage.com/api/mailchimp-subscribers" download style="display:block;text-align:center;text-decoration:none">DOWNLOAD MAILCHIMP SUBSCRIBERS</a>
     <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
-      CSV of unique emails pulled from directory listings and event submissions.<br>
-      Pack photos are anonymous (no email captured). Mailchimp audience exports separately from mailchimp.com dashboard.
+      Full Mailchimp audience CSV (email, status, subscribed date, name). Pulled live from the API.
     </div>
   </div>
 
