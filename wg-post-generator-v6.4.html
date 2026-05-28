@@ -740,6 +740,7 @@
 
 <nav class="tabs" role="tablist">
   <button class="active" data-tab="generate" role="tab">GENERATE</button>
+  <button data-tab="script" role="tab">SCRIPT</button>
   <button data-tab="library" role="tab">LIBRARY</button>
   <button data-tab="analyzer" role="tab">ANALYZER</button>
   <button data-tab="drafts" role="tab">DRAFTS<span class="badge" id="draftBadge" style="display:none;">0</span></button>
@@ -836,6 +837,36 @@
       </div>
     </div>
 
+  </section>
+
+  <!-- ============== SCRIPT PANEL ============== -->
+  <section class="panel" id="panel-script">
+    <div class="hint" style="margin-bottom:12px;">Give a prompt. Get a scene-by-scene script. Pick how many scenes the story needs.</div>
+
+    <div class="label">What's the script about?</div>
+    <textarea id="scriptPrompt" placeholder="e.g. A 1968 C10 build coming together in a home garage. Gritty, real, no corporate polish. Wolf talking to the camera while he works." style="min-height:120px;"></textarea>
+
+    <div class="label" style="margin-top:14px;">Number of scenes</div>
+    <select id="scriptSceneCount" style="width:100%;padding:14px 16px;background:var(--panel-2,#1a1a1a);border:1px solid var(--border-strong,#333);color:var(--bone,#f5f1e8);font-family:'Work Sans',sans-serif;font-size:1rem;">
+      <option value="1">1 scene</option>
+      <option value="2">2 scenes</option>
+      <option value="3">3 scenes</option>
+      <option value="4">4 scenes</option>
+      <option value="5" selected>5 scenes</option>
+      <option value="6">6 scenes</option>
+      <option value="7">7 scenes</option>
+      <option value="8">8 scenes</option>
+      <option value="9">9 scenes</option>
+      <option value="10">10 scenes</option>
+    </select>
+
+    <div class="label" style="margin-top:14px;">Tone <span class="label-sub">optional</span></div>
+    <input type="text" id="scriptTone" placeholder="e.g. gritty, hype, nostalgic, funny" style="width:100%;padding:14px 16px;background:var(--panel-2,#1a1a1a);border:1px solid var(--border-strong,#333);color:var(--bone,#f5f1e8);font-family:'Work Sans',sans-serif;font-size:1rem;">
+
+    <button class="btn full" id="scriptRun" style="margin-top:18px;">WRITE SCRIPT</button>
+    <div class="status-line" id="scriptStatus"></div>
+    <div class="analyzer-result" id="scriptResult" style="display:none;"></div>
+    <button class="btn full" id="scriptCopy" style="margin-top:10px;display:none;">COPY SCRIPT</button>
   </section>
 
   <!-- ============== LIBRARY PANEL ============== -->
@@ -1489,6 +1520,50 @@
     }
     const data = await resp.json();
     return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  }
+
+  // ---------------- SCRIPT WRITER ----------------
+  const scriptRunBtn = $('scriptRun');
+  if (scriptRunBtn) {
+    scriptRunBtn.addEventListener('click', async () => {
+      const prompt = ($('scriptPrompt').value || '').trim();
+      if (!prompt) { toast('Type what the script is about', 'err'); return; }
+      const sceneCount = parseInt($('scriptSceneCount').value, 10) || 5;
+      const tone = ($('scriptTone').value || '').trim();
+      const statusEl = $('scriptStatus');
+      const resultEl = $('scriptResult');
+      const copyBtn = $('scriptCopy');
+      scriptRunBtn.disabled = true;
+      statusEl.textContent = 'Writing ' + sceneCount + '-scene script...';
+      resultEl.style.display = 'none';
+      copyBtn.style.display = 'none';
+      const system = [
+        "You are a short-form video script writer for Wolf's Garage, a blue-collar hot rod and custom truck brand out of Portland, Oregon.",
+        "Voice: real, gritty, no corporate polish, no hype-bro cringe. Talks like a builder, not a marketer. Never uses emojis. Never uses em dashes.",
+        "Write a scene-by-scene script for a short-form vertical video (Instagram Reel / TikTok).",
+        "Output EXACTLY " + sceneCount + " scene" + (sceneCount === 1 ? "" : "s") + ", no more, no less.",
+        "For each scene give: a SCENE heading (SCENE 1, SCENE 2, ...), a VISUAL line (what's on screen, camera move), a VOICEOVER/DIALOGUE line (what's said, or NONE), and an ON-SCREEN TEXT line (overlay text in ALL CAPS, or NONE).",
+        "Keep total runtime feeling like 15-40 seconds. Tight. Every scene earns its place.",
+        "End with a one-line HOOK suggestion for the caption and 3 suggested ON-SCREEN TEXT hooks for the opener.",
+        "Plain text only. No markdown bold, no asterisks."
+      ].join(' ');
+      let userText = "Script topic: " + prompt + "\n\nNumber of scenes: " + sceneCount;
+      if (tone) userText += "\nTone: " + tone;
+      try {
+        const out = await callClaude({ system: system, userText: userText, maxTokens: 2000 });
+        if (!out) { scriptRunBtn.disabled = false; statusEl.textContent = ''; return; }
+        resultEl.textContent = out;
+        resultEl.style.display = 'block';
+        copyBtn.style.display = 'block';
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(out).then(() => toast('Script copied')).catch(() => toast('Copy failed', 'err'));
+        };
+        statusEl.textContent = '';
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + err.message;
+      }
+      scriptRunBtn.disabled = false;
+    });
   }
 
   function parseOutput(text) {
