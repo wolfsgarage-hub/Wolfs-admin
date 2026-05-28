@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Wolf's Garage Content Studio v7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --panel: #141414;
+    --panel2: #1b1b1b;
+    --line: #2a2a2a;
+    --red: #CC0000;
+    --bone: #F5F1E8;
+    --copper: #C8922A;
+    --muted: #8a8a8a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--bone); }
+  body {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    padding-bottom: 90px;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at 12% 8%, rgba(204,0,0,0.06), transparent 40%);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 14px; }
+
+  /* Header */
+  header {
+    padding: 20px 14px 14px;
+    border-bottom: 2px solid var(--red);
+    background: linear-gradient(180deg, #0e0e0e, var(--bg));
+    position: sticky; top: 0; z-index: 20;
+  }
+  header .wrap { padding: 0; }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 34px; letter-spacing: 2px; margin: 0; line-height: 1;
+  }
+  h1 .acc { color: var(--red); }
+  .tag { font-family: 'Oswald', sans-serif; color: var(--copper); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+  /* Tabs */
+  nav.tabs {
+    display: flex; gap: 0; position: fixed; bottom: 0; left: 0; right: 0;
+    background: #0e0e0e; border-top: 1px solid var(--line); z-index: 30;
+  }
+  nav.tabs button {
+    flex: 1; background: none; border: none; color: var(--muted);
+    font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 14px 4px 16px; cursor: pointer; border-top: 3px solid transparent;
+  }
+  nav.tabs button.active { color: var(--bone); border-top-color: var(--red); }
+
+  .panel { display: none; padding-top: 18px; }
+  .panel.active { display: block; }
+
+  h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1.2px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+
+  label { display: block; font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--copper); margin: 16px 0 7px; }
+  textarea, input[type=text], input[type=password] {
+    width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 7px;
+    color: var(--bone); font-family: 'Work Sans', sans-serif; font-size: 16px; padding: 13px; resize: vertical;
+  }
+  textarea { min-height: 92px; }
+  textarea:focus, input:focus { outline: none; border-color: var(--copper); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 20px;
+    color: var(--bone); font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: 0.5px;
+    padding: 9px 15px; cursor: pointer;
+  }
+  .chip.on { background: var(--red); border-color: var(--red); color: #fff; }
+
+  button.act {
+    width: 100%; background: var(--red); color: #fff; border: none; border-radius: 7px;
+    font-family: 'Bebas Neue', sans-serif; font-size: 23px; letter-spacing: 2px;
+    padding: 16px; cursor: pointer; margin-top: 22px;
+  }
+  button.act:disabled { background: #444; opacity: .6; cursor: not-allowed; }
+  button.ghost {
+    background: var(--panel); color: var(--bone); border: 1px solid var(--line); border-radius: 6px;
+    font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 9px 13px; cursor: pointer;
+  }
+
+  /* Output package cards */
+  .pkg { margin-top: 22px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--red);
+    border-radius: 7px; padding: 14px 15px; margin-bottom: 12px;
+  }
+  .card .k { font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--copper); margin-bottom: 7px; display: flex; justify-content: space-between; align-items: center; }
+  .card .hook { font-family: 'Bebas Neue', sans-serif; font-size: 26px; line-height: 1.05; letter-spacing: 0.5px; }
+  .beat { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px dashed var(--line); }
+  .beat:last-child { border-bottom: none; }
+  .beat .n { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--red); min-width: 26px; }
+  .beat .body { flex: 1; }
+  .beat .time { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--muted); }
+  .beat .dir { font-size: 15px; margin: 2px 0; }
+  .beat .ost { font-size: 13px; color: var(--copper); }
+  .beat .ost b { color: var(--bone); font-weight: 600; }
+  .mono { font-family: 'Work Sans', sans-serif; white-space: pre-wrap; word-break: break-word; }
+  .tags { color: var(--copper); font-weight: 600; }
+  .copy { background: var(--panel2); border: 1px solid var(--line); color: var(--copper); font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 11px; border-radius: 5px; cursor: pointer; }
+
+  /* Trend library */
+  .trend {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 15px; margin-bottom: 13px;
+  }
+  .trend h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; margin: 0 0 2px; }
+  .trend .type { display: inline-block; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; background: var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; margin-bottom: 9px; }
+  .trend .type.carousel { background: var(--copper); color: #111; }
+  .trend p { font-size: 14px; margin: 7px 0; }
+  .trend .why { color: var(--muted); font-size: 13px; }
+  .trend .use { color: var(--copper); font-size: 13px; }
+
+  .note { background: rgba(200,146,42,0.08); border: 1px solid rgba(200,146,42,0.3); border-radius: 7px; padding: 12px 14px; font-size: 13px; color: var(--copper); margin: 14px 0; }
+  .note b { color: var(--bone); }
+
+  .draft { background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 13px; margin-bottom: 11px; }
+  .draft .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .draft .ttl { font-family: 'Oswald', sans-serif; font-size: 15px; }
+  .draft .when { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--muted); }
+  .draft .cap { font-size: 13px; color: var(--muted); margin-top: 7px; max-height: 60px; overflow: hidden; }
+
+  .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
+
+  .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .thumb { position: relative; width: 74px; height: 74px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .x { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.75); color: #fff; border: none; border-radius: 4px; width: 22px; height: 22px; font-size: 14px; line-height: 1; cursor: pointer; }
+  .thumb .vlabel { position: absolute; bottom: 2px; left: 2px; background: var(--red); color: #fff; font-family: 'Oswald', sans-serif; font-size: 8px; letter-spacing: 1px; padding: 1px 5px; border-radius: 3px; }
+
+  footer { text-align: center; font-family: 'Special Elite', monospace; font-size: 10px; color: #555; letter-spacing: 1px; padding: 26px 14px 10px; }
+
+  /* Toast */
+  #toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); background: #1a1a1a; border: 1px solid var(--line); color: var(--bone); padding: 11px 18px; border-radius: 8px; font-size: 14px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90%; text-align: center; }
+  #toast.show { opacity: 1; }
+  #toast.ok { border-color: #1f6e3e; }
+  #toast.err { border-color: var(--red); }
+
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(245,241,232,0.3); border-top-color: var(--bone); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>WOLF'S <span class="acc">GARAGE</span></h1>
+    <div class="tag">Content Studio v7 // Trend Intel May 2026</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ CREATE ============ -->
+  <section class="panel active" id="p-create">
+    <h2>BUILD A POST</h2>
+    <p class="sub">Drop your shots in and tell it what you have. It builds the whole package around what is working right now.</p>
+
+    <label>Your photos or video</label>
+    <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display:none">
+    <button class="ghost" id="addMediaBtn" style="width:100%;padding:14px;">+ Add photos or video</button>
+    <div class="thumbs" id="thumbs"></div>
+
+    <label>What are you posting about?</label>
+    <textarea id="topic" placeholder="e.g. the Get Off Your Phone tee on a buddy at the shop. Or: progress on the C10 build. Or: the booth coming up June 13."></textarea>
+
+    <label>What is this post for?</label>
+    <div class="chips" id="goalChips"></div>
+
+    <label>Format</label>
+    <div class="chips" id="formatChips"></div>
+
+    <button class="act" id="genBtn">GENERATE PACKAGE</button>
+
+    <div class="pkg" id="pkgOut"></div>
+  </section>
+
+  <!-- ============ TRENDS ============ -->
+  <section class="panel" id="p-trends">
+    <h2>WHAT IS WORKING NOW</h2>
+    <p class="sub">Formats pulling the hot rod and kustom crowd in, May 2026. Adapt them, never copy them.</p>
+    <div class="note" id="trendPrinciples"></div>
+    <div id="trendList"></div>
+  </section>
+
+  <!-- ============ DRAFTS ============ -->
+  <section class="panel" id="p-drafts">
+    <h2>SAVED PACKAGES</h2>
+    <p class="sub">Work through these. Tap to reopen.</p>
+    <div id="draftList"></div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section class="panel" id="p-setup">
+    <h2>SETUP</h2>
+    <p class="sub">Your Anthropic key stays on this phone only. Never leaves the browser.</p>
+    <label>Anthropic API Key</label>
+    <input type="password" id="keyField" placeholder="sk-ant-..." autocomplete="off">
+    <button class="ghost" id="saveKey" style="margin-top:10px;">Save Key</button>
+    <button class="ghost" id="testKey" style="margin-top:10px;margin-left:6px;">Test Key</button>
+    <div id="keyStatus" style="margin-top:12px;font-size:13px;color:var(--muted);"></div>
+
+    <div class="note" style="margin-top:24px;">
+      <b>What changed from the old Post Generator.</b><br>
+      No more machine grabbing random video frames. You control the footage with a shot list. Every package is built on real trend intel, not guesses. The reel render pipeline is gone on purpose. You film and assemble natively, which is also the only place you can add trending audio, and trending audio is a 42 percent engagement swing.
+    </div>
+  </section>
+
+  <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
+</div>
+
+<nav class="tabs">
+  <button class="active" data-tab="create">Create</button>
+  <button data-tab="trends">Trends</button>
+  <button data-tab="drafts">Drafts</button>
+  <button data-tab="setup">Setup</button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------- CONFIG ----------------
+  var MODEL = "claude-sonnet-4-6";
+  var MAX_HASHTAGS = 5;
+  var LS = {
+    KEY: "wgpost:key",        // shared with old app so the saved key carries over
+    DRAFTS: "wgcs:drafts"     // new namespace for studio drafts
+  };
+
+  // ---------------- TREND INTEL (May 2026, from live research) ----------------
+  var PRINCIPLES = "Hooks land in the first 2.5 seconds or the scroll wins. Reels: cut every 3 to 5 seconds (about 32 percent more engagement than one long shot). Always burn on-screen captions in (80 percent more people finish). Add a trending sound inside Instagram when you post (about 42 percent more engagement, and you can only do it in the app). Real hands on real metal beats polished brand video every time. Write the caption like a search bar, Instagram is a search engine now. Chase saves and shares, not likes. Under 5K followers is the sweet spot for organic reach, so post consistently and adapt trends with your own spin (Instagram penalizes copied clips).";
+
+  var TRENDS = [
+    {
+      name: "Hands On Metal",
+      type: "reel",
+      why: "Authentic, operator-front-and-center content out-performs polished brand film. The automotive crowd stops for real work, not ads.",
+      use: "Film your hands doing the actual work: laying a pinstripe, wrenching, pulling a part. Face or voice in it. 3 to 5 quick cuts. End on the finished detail.",
+      goal: "show"
+    },
+    {
+      name: "Stomp Reveal Drop",
+      type: "reel",
+      why: "A bold frame-shift reveal is addictive to watch and signals a new drop without feeling like an ad.",
+      use: "Start on you or a plain shot, stomp or jump, frame drops to reveal the shirt or product with big on-screen text. One product, one moment.",
+      goal: "sell"
+    },
+    {
+      name: "Rank It Top List",
+      type: "reel",
+      why: "The list format feels intentional but is low effort, and it is a natural fit for showing off products and picks.",
+      use: "Rank something your crowd argues about: best swap meet finds, top C10 years, your own designs. On-screen numbered text, fast cuts.",
+      goal: "follow"
+    },
+    {
+      name: "Do I Need This Debate",
+      type: "reel",
+      why: "Dramatizing the internal 'should I buy it' argument is relatable, funny, and built for shares.",
+      use: "You play both sides talking to camera about buying the shirt. Keep it under 15 seconds. Add the trending debate audio in-app.",
+      goal: "sell"
+    },
+    {
+      name: "Booth Day Spotlight",
+      type: "reel",
+      why: "New-car-day style spotlights are aspirational and relatable. People picture themselves there. Perfect for live events.",
+      use: "At the June 13 booth: a customer holding up a shirt, a truck rolling in, the table. Real people, real reactions. Capture it live.",
+      goal: "booth"
+    },
+    {
+      name: "Build Recap Carousel",
+      type: "carousel",
+      why: "Carousels beat reels for engagement and intent. Swiping is counted as real interaction, and they hold a story.",
+      use: "5 to 8 photos telling a story: before, the work, the after. Or a booth recap. First slide is the hook, last slide is the call to action.",
+      goal: "show"
+    },
+    {
+      name: "Photo Dump",
+      type: "carousel",
+      why: "Casual photo dumps feel native to the feed and lean into the authentic, less-polished style winning in 2026.",
+      use: "8 to 10 raw shots from a day at the shop or a meet. No heavy editing. Caption ties it together and points to the shop.",
+      goal: "follow"
+    }
+  ];
+
+  var GOALS = [
+    { id: "sell",   label: "Sell a shirt" },
+    { id: "booth",  label: "Promote June 13 booth" },
+    { id: "follow", label: "Grow the following" },
+    { id: "show",   label: "Show the work" }
+  ];
+
+  // ---------------- STATE ----------------
+  var selGoal = "sell";
+  var selFormat = "auto"; // "auto" or a TRENDS name
+  var lastPkg = null;
+  var mediaItems = []; // { id, base64, mediaType, kind: "image"|"video", thumbUrl }
+
+  // ---------------- HELPERS ----------------
+  function $(id) { return document.getElementById(id); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function setLS(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function getLS(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function getKey() { return getLS(LS.KEY) || ""; }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  var toastTimer = null;
+  function toast(msg, kind) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.className = "show " + (kind || "");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = ""; }, 2600);
+  }
+  function copyText(s) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(s).then(function () { toast("Copied", "ok"); },
+        function () { toast("Copy failed", "err"); });
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = s; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); toast("Copied", "ok"); } catch (e) { toast("Copy failed", "err"); }
+      ta.remove();
+    }
+  }
+
+  // ---------------- MEDIA INPUT ----------------
+  function loadImageEl(src) {
+    return new Promise(function (res, rej) {
+      var im = new Image();
+      im.onload = function () { res(im); };
+      im.onerror = function () { rej(new Error("image decode failed")); };
+      im.src = src;
+    });
+  }
+  function drawToJpeg(el, w, h, maxDim) {
+    var scale = Math.min(1, maxDim / Math.max(w, h));
+    var cw = Math.max(1, Math.round(w * scale));
+    var ch = Math.max(1, Math.round(h * scale));
+    var c = document.createElement("canvas");
+    c.width = cw; c.height = ch;
+    c.getContext("2d").drawImage(el, 0, 0, cw, ch);
+    return c.toDataURL("image/jpeg", 0.85);
+  }
+  function readFileAsDataURL(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader();
+      r.onload = function () { res(r.result); };
+      r.onerror = function () { rej(new Error("read failed")); };
+      r.readAsDataURL(file);
+    });
+  }
+  function imageFileToItem(file) {
+    return readFileAsDataURL(file).then(loadImageEl).then(function (im) {
+      var jpeg = drawToJpeg(im, im.naturalWidth, im.naturalHeight, 1200);
+      return { id: uid(), base64: jpeg.split(",")[1], mediaType: "image/jpeg", kind: "image", thumbUrl: jpeg };
+    });
+  }
+  function videoFileToItem(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file);
+      var v = document.createElement("video");
+      v.muted = true; v.playsInline = true; v.preload = "metadata"; v.src = url;
+      var done = false;
+      function fail(e) { if (done) return; done = true; URL.revokeObjectURL(url); rej(e || new Error("video frame failed")); }
+      v.onloadeddata = function () {
+        try {
+          var target = Math.min(1, (v.duration && isFinite(v.duration)) ? v.duration / 2 : 0);
+          var grab = function () {
+            try {
+              var jpeg = drawToJpeg(v, v.videoWidth, v.videoHeight, 1200);
+              done = true; URL.revokeObjectURL(url);
+              res({ id: uid(), base64: jpeg.split(",")[1], mediaType: "image/jpeg", kind: "video", thumbUrl: jpeg });
+            } catch (e) { fail(e); }
+          };
+          v.onseeked = grab;
+          v.currentTime = target;
+          // Fallback if seeked never fires
+          setTimeout(function () { if (!done) grab(); }, 1200);
+        } catch (e) { fail(e); }
+      };
+      v.onerror = function () { fail(new Error("could not read that video")); };
+    });
+  }
+  function addFiles(fileList) {
+    var files = Array.prototype.slice.call(fileList || []);
+    if (!files.length) return;
+    var jobs = files.map(function (f) {
+      if (f.type.indexOf("video") === 0) return videoFileToItem(f).catch(function () { toast("Skipped a video it could not read", "err"); return null; });
+      if (f.type.indexOf("image") === 0) return imageFileToItem(f).catch(function () { toast("Skipped a photo it could not read", "err"); return null; });
+      return Promise.resolve(null);
+    });
+    Promise.all(jobs).then(function (items) {
+      items.forEach(function (it) { if (it) mediaItems.push(it); });
+      renderThumbs();
+      var added = items.filter(function (x) { return x; }).length;
+      if (added) toast("Added " + added + (added === 1 ? " shot" : " shots"), "ok");
+    });
+  }
+  function renderThumbs() {
+    var host = $("thumbs"); host.innerHTML = "";
+    mediaItems.forEach(function (m) {
+      var d = document.createElement("div");
+      d.className = "thumb";
+      d.innerHTML = '<img src="' + m.thumbUrl + '" alt="">' +
+        (m.kind === "video" ? '<span class="vlabel">VIDEO</span>' : '') +
+        '<button class="x" data-id="' + m.id + '">&times;</button>';
+      d.querySelector(".x").addEventListener("click", function () {
+        var id = this.getAttribute("data-id");
+        mediaItems = mediaItems.filter(function (x) { return x.id !== id; });
+        renderThumbs();
+      });
+      host.appendChild(d);
+    });
+  }
+  $("addMediaBtn").addEventListener("click", function () { $("mediaInput").click(); });
+  $("mediaInput").addEventListener("change", function () { addFiles(this.files); this.value = ""; });
+
+  // ---------------- TABS ----------------
+  function switchTab(name) {
+    var btns = document.querySelectorAll("nav.tabs button");
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle("active", btns[i].getAttribute("data-tab") === name);
+    var panels = document.querySelectorAll(".panel");
+    for (var j = 0; j < panels.length; j++) panels[j].classList.remove("active");
+    $("p-" + name).classList.add("active");
+    window.scrollTo(0, 0);
+  }
+  (function wireTabs() {
+    var btns = document.querySelectorAll("nav.tabs button");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener("click", function () { switchTab(this.getAttribute("data-tab")); });
+    }
+  })();
+
+  // ---------------- RENDER CHIPS ----------------
+  function renderGoalChips() {
+    var host = $("goalChips"); host.innerHTML = "";
+    GOALS.forEach(function (g) {
+      var b = document.createElement("button");
+      b.className = "chip" + (g.id === selGoal ? " on" : "");
+      b.textContent = g.label;
+      b.addEventListener("click", function () { selGoal = g.id; renderGoalChips(); });
+      host.appendChild(b);
+    });
+  }
+  function renderFormatChips() {
+    var host = $("formatChips"); host.innerHTML = "";
+    var auto = document.createElement("button");
+    auto.className = "chip" + (selFormat === "auto" ? " on" : "");
+    auto.textContent = "Let Wolf pick best";
+    auto.addEventListener("click", function () { selFormat = "auto"; renderFormatChips(); });
+    host.appendChild(auto);
+    TRENDS.forEach(function (t) {
+      var b = document.createElement("button");
+      b.className = "chip" + (selFormat === t.name ? " on" : "");
+      b.textContent = t.name;
+      b.addEventListener("click", function () { selFormat = t.name; renderFormatChips(); });
+      host.appendChild(b);
+    });
+  }
+
+  // ---------------- RENDER TRENDS ----------------
+  function renderTrends() {
+    $("trendPrinciples").innerHTML = "<b>The rules of the game right now:</b><br>" + esc(PRINCIPLES);
+    var host = $("trendList"); host.innerHTML = "";
+    TRENDS.forEach(function (t) {
+      var d = document.createElement("div");
+      d.className = "trend";
+      d.innerHTML =
+        '<span class="type ' + (t.type === "carousel" ? "carousel" : "") + '">' + esc(t.type) + '</span>' +
+        '<h3>' + esc(t.name) + '</h3>' +
+        '<p class="why">' + esc(t.why) + '</p>' +
+        '<p class="use"><b>Run it:</b> ' + esc(t.use) + '</p>';
+      host.appendChild(d);
+    });
+  }
+
+  // ---------------- CLAUDE CALL ----------------
+  function callClaude(system, userText, images, maxTokens) {
+    var apiKey = getKey();
+    if (!apiKey) { toast("Add your API key in Setup", "err"); switchTab("setup"); return Promise.resolve(null); }
+    var userContent = [];
+    (images || []).forEach(function (img) {
+      userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType || "image/jpeg", data: img.base64 } });
+    });
+    userContent.push({ type: "text", text: userText });
+    var body = {
+      model: MODEL,
+      max_tokens: maxTokens || 1600,
+      system: system,
+      messages: [{ role: "user", content: userContent }]
+    };
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(body)
+    }).then(function (resp) {
+      if (!resp.ok) {
+        return resp.text().then(function (errText) {
+          var msg = "API " + resp.status;
+          try { var j = JSON.parse(errText); if (j && j.error && j.error.message) msg = j.error.message; } catch (e) {}
+          throw new Error(msg);
+        });
+      }
+      return resp.json();
+    }).then(function (data) {
+      return (data.content || []).filter(function (b) { return b.type === "text"; })
+        .map(function (b) { return b.text; }).join("\n");
+    });
+  }
+
+  function parseJSON(text) {
+    if (!text) return null;
+    var t = text.trim().replace(/```json/gi, "").replace(/```/g, "").trim();
+    var a = t.indexOf("{"); var b = t.lastIndexOf("}");
+    if (a >= 0 && b > a) t = t.slice(a, b + 1);
+    try { return JSON.parse(t); } catch (e) { return null; }
+  }
+
+  // ---------------- BUILD SYSTEM PROMPT ----------------
+  function buildSystem() {
+    var fmtInstruction;
+    if (selFormat === "auto") {
+      fmtInstruction = "Pick the single best format for this from the trend list below, based on the goal.";
+    } else {
+      var chosen = null;
+      TRENDS.forEach(function (t) { if (t.name === selFormat) chosen = t; });
+      fmtInstruction = "Use this format: " + selFormat + ". " + (chosen ? "(" + chosen.use + ")" : "");
+    }
+    var goalLabel = "";
+    GOALS.forEach(function (g) { if (g.id === selGoal) goalLabel = g.label; });
+
+    var trendText = TRENDS.map(function (t) {
+      return "- " + t.name + " [" + t.type + "]: " + t.why + " HOW: " + t.use;
+    }).join("\n");
+
+    var mediaNote = "";
+    if (mediaItems.length) {
+      var photos = mediaItems.filter(function (m) { return m.kind === "image"; }).length;
+      var vids = mediaItems.filter(function (m) { return m.kind === "video"; }).length;
+      mediaNote = "\n\nATTACHED SHOTS: " + mediaItems.length + " total (" + photos + " photo, " + vids + " video frame). " +
+        "Look at every shot. Build the package around what is actually in them: the real subject, the truck or shirt or setting, the colors, the mood. Reference specifics you can see. " +
+        "Video frames are stills pulled from footage Wolf already has, so treat them as moments from a clip he can cut.";
+    }
+
+    return [
+      "You are the content director for Wolf's Garage, a Portland Oregon hot rodder and kustom kulture apparel brand and community.",
+      "Audience: blue-collar hot rodders, C10 and C-Series truck owners, swap meet regulars, kustom kulture. Pacific Northwest.",
+      "Voice: blue-collar, direct, no fluff, no corporate speak.",
+      "",
+      "HARD WRITING RULES. Break none of these:",
+      "- No emojis anywhere.",
+      "- No em dashes. Use periods or commas.",
+      "- No curly quotes. Straight quotes only.",
+      "- Public name is always Wolf, never John.",
+      "- Exactly " + MAX_HASHTAGS + " hashtags, no more.",
+      "",
+      "GOAL OF THIS POST: " + goalLabel + ".",
+      "",
+      "WHAT IS WORKING RIGHT NOW (May 2026), build on this:",
+      "- Hook must hit in the first 2.5 seconds.",
+      "- Reels: a cut every 3 to 5 seconds.",
+      "- On-screen text on every beat.",
+      "- Caption written for search (Instagram is a search engine), front-load keywords a hot rodder would type.",
+      "- Drive saves and shares, and a clear call to action (shop link in bio, the June 13 booth, or follow).",
+      "- Adapt the format with an original spin, never a copy.",
+      "",
+      "TREND FORMATS AVAILABLE:",
+      trendText,
+      "",
+      "FORMAT DIRECTION: " + fmtInstruction,
+      "",
+      "Return ONLY valid JSON, no prose, no code fences. Schema:",
+      "{",
+      '  "hook": "the first line or first 2.5 seconds, punchy",',
+      '  "format_used": "name of the format you chose",',
+      '  "why_it_works": "one short sentence",',
+      '  "content_type": "reel" or "carousel",',
+      '  "beats": [ { "time": "0-3s or Slide 1", "direction": "what to film or show", "on_screen_text": "the words on screen" } ],',
+      '  "caption": "the full caption, search-friendly, no hashtags inside it",',
+      '  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],',
+      '  "audio": "what kind of trending sound to add in-app when posting",',
+      '  "cta": "the specific call to action"',
+      "}",
+      "Give 4 to 6 beats for a reel, 5 to 8 for a carousel." + mediaNote
+    ].join("\n");
+  }
+
+  // ---------------- RENDER PACKAGE ----------------
+  function renderPackage(pkg) {
+    var host = $("pkgOut");
+    if (!pkg) { host.innerHTML = '<div class="empty">Could not read the package. Tap Generate again.</div>'; return; }
+
+    var beatsHtml = (pkg.beats || []).map(function (bt, i) {
+      return '<div class="beat">' +
+        '<div class="n">' + (i + 1) + '</div>' +
+        '<div class="body">' +
+        '<div class="time">' + esc(bt.time || "") + '</div>' +
+        '<div class="dir">' + esc(bt.direction || "") + '</div>' +
+        (bt.on_screen_text ? '<div class="ost"><b>On screen:</b> ' + esc(bt.on_screen_text) + '</div>' : '') +
+        '</div></div>';
+    }).join("");
+
+    var tags = (pkg.hashtags || []).slice(0, MAX_HASHTAGS).join(" ");
+    var ctype = (pkg.content_type || "reel").toUpperCase();
+
+    host.innerHTML =
+      '<div class="card"><div class="k">Hook &middot; ' + esc(ctype) + '</div><div class="hook">' + esc(pkg.hook || "") + '</div></div>' +
+
+      '<div class="card"><div class="k">Format</div><div><b>' + esc(pkg.format_used || "") + '</b><br><span style="color:var(--muted);font-size:13px;">' + esc(pkg.why_it_works || "") + '</span></div></div>' +
+
+      '<div class="card"><div class="k">' + (ctype === "CAROUSEL" ? "Slide Plan" : "Shot List") + '</div>' + beatsHtml + '</div>' +
+
+      '<div class="card"><div class="k">Caption <button class="copy" data-copy="caption">Copy</button></div><div class="mono" id="capText">' + esc(pkg.caption || "") + '</div></div>' +
+
+      '<div class="card"><div class="k">Hashtags <button class="copy" data-copy="tags">Copy</button></div><div class="mono tags" id="tagText">' + esc(tags) + '</div></div>' +
+
+      '<div class="card"><div class="k">Audio</div><div>' + esc(pkg.audio || "") + '</div></div>' +
+
+      '<div class="card"><div class="k">Call To Action</div><div>' + esc(pkg.cta || "") + '</div></div>' +
+
+      '<button class="ghost" id="saveDraft" style="width:100%;padding:13px;margin-top:4px;">Save To Drafts</button>';
+
+    var caps = host.querySelectorAll(".copy");
+    for (var i = 0; i < caps.length; i++) {
+      caps[i].addEventListener("click", function () {
+        var which = this.getAttribute("data-copy");
+        copyText(which === "caption" ? (pkg.caption || "") : tags);
+      });
+    }
+    $("saveDraft").addEventListener("click", function () { saveDraft(pkg); });
+  }
+
+  // ---------------- GENERATE ----------------
+  $("genBtn").addEventListener("click", function () {
+    var topic = $("topic").value.trim();
+    if (!topic && !mediaItems.length) { toast("Add a shot or tell it what you are posting about", "err"); return; }
+    var btn = $("genBtn");
+    btn.disabled = true;
+    var orig = btn.textContent;
+    btn.innerHTML = '<span class="spinner"></span> BUILDING';
+    $("pkgOut").innerHTML = "";
+
+    var system = buildSystem();
+    var userText = topic ? ("Topic: " + topic) : "Build the post from the attached shots. No extra topic notes given, work from what you see.";
+    var images = mediaItems.map(function (m) { return { base64: m.base64, mediaType: m.mediaType }; });
+
+    callClaude(system, userText, images, 1800).then(function (text) {
+      btn.disabled = false; btn.textContent = orig;
+      if (text == null) return; // no key, already toasted
+      var pkg = parseJSON(text);
+      if (!pkg) { renderPackage(null); toast("Got a reply but could not parse it", "err"); return; }
+      lastPkg = pkg;
+      renderPackage(pkg);
+      toast("Package ready", "ok");
+    }).catch(function (err) {
+      btn.disabled = false; btn.textContent = orig;
+      toast("Failed: " + (err.message || "unknown"), "err");
+    });
+  });
+
+  // ---------------- DRAFTS ----------------
+  function getDrafts() {
+    try { return JSON.parse(getLS(LS.DRAFTS) || "[]"); } catch (e) { return []; }
+  }
+  function saveDrafts(arr) { setLS(LS.DRAFTS, JSON.stringify(arr)); }
+  function saveDraft(pkg) {
+    var arr = getDrafts();
+    arr.unshift({
+      id: uid(),
+      ts: Date.now(),
+      title: (pkg.format_used || "Post") + " for " + selGoal,
+      pkg: pkg
+    });
+    saveDrafts(arr);
+    renderDrafts();
+    toast("Saved to Drafts", "ok");
+  }
+  function renderDrafts() {
+    var host = $("draftList");
+    var arr = getDrafts();
+    if (!arr.length) { host.innerHTML = '<div class="empty">No saved packages yet. Build one and tap Save.</div>'; return; }
+    host.innerHTML = "";
+    arr.forEach(function (d) {
+      var el = document.createElement("div");
+      el.className = "draft";
+      var when = new Date(d.ts);
+      var cap = (d.pkg && d.pkg.caption) ? d.pkg.caption : "";
+      el.innerHTML =
+        '<div class="top"><div class="ttl">' + esc(d.title) + '</div>' +
+        '<button class="copy" data-del="' + d.id + '">Delete</button></div>' +
+        '<div class="when">' + when.toLocaleString() + '</div>' +
+        '<div class="cap">' + esc(cap) + '</div>';
+      el.addEventListener("click", function (e) {
+        if (e.target && e.target.getAttribute("data-del")) return;
+        lastPkg = d.pkg;
+        renderPackage(d.pkg);
+        switchTab("create");
+        toast("Reopened in Create", "ok");
+      });
+      var del = el.querySelector("[data-del]");
+      del.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var id = this.getAttribute("data-del");
+        saveDrafts(getDrafts().filter(function (x) { return x.id !== id; }));
+        renderDrafts();
+        toast("Deleted", "ok");
+      });
+      host.appendChild(el);
+    });
+  }
+
+  // ---------------- SETUP / KEY ----------------
+  (function initKey() {
+    var k = getKey();
+    if (k) { $("keyField").value = k; $("keyStatus").textContent = "Key loaded from this device."; }
+  })();
+  $("saveKey").addEventListener("click", function () {
+    var v = $("keyField").value.trim();
+    setLS(LS.KEY, v);
+    toast(v ? "Key saved" : "Key cleared", "ok");
+    $("keyStatus").textContent = v ? "Key saved on this device." : "No key set.";
+  });
+  $("testKey").addEventListener("click", function () {
+    var v = $("keyField").value.trim();
+    if (!v) { toast("Enter a key first", "err"); return; }
+    setLS(LS.KEY, v);
+    $("keyStatus").textContent = "Testing...";
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", "x-api-key": v,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: MODEL, max_tokens: 10, messages: [{ role: "user", content: "ping" }] })
+    }).then(function (r) {
+      if (r.ok) { $("keyStatus").textContent = "Key works. You are good."; toast("Key works", "ok"); }
+      else { $("keyStatus").textContent = "Key rejected. HTTP " + r.status; toast("Key rejected", "err"); }
+    }).catch(function (e) {
+      $("keyStatus").textContent = "Network error: " + (e.message || "unknown");
+      toast("Network error", "err");
+    });
+  });
+
+  // ---------------- INIT ----------------
+  renderGoalChips();
+  renderFormatChips();
+  renderTrends();
+  renderDrafts();
+
+})();
+</script>
+</body>
+</html>
