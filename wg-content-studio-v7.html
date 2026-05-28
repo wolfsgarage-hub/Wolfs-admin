@@ -107,6 +107,9 @@
   .beat .dir { font-size: 15px; margin: 2px 0; }
   .beat .ost { font-size: 13px; color: var(--copper); }
   .beat .ost b { color: var(--bone); font-weight: 600; }
+  .beat-outro { background: rgba(204,0,0,0.08); border-radius: 6px; padding: 8px 10px; margin: 4px -4px; }
+  .beat-outro .n { color: var(--copper); }
+  .outroTag { display: inline-block; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1.5px; background: var(--red); color: #fff; padding: 2px 7px; border-radius: 3px; margin-bottom: 6px; }
   .mono { font-family: 'Work Sans', sans-serif; white-space: pre-wrap; word-break: break-word; }
   .tags { color: var(--copper); font-weight: 600; }
   .copy { background: var(--panel2); border: 1px solid var(--line); color: var(--copper); font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 11px; border-radius: 5px; cursor: pointer; }
@@ -585,6 +588,13 @@
       "- Drive saves and shares, and a clear call to action (shop link in bio, the June 13 booth, or follow).",
       "- Adapt the format with an original spin, never a copy.",
       "",
+      "BRAND HANDOFF RULE (non-negotiable):",
+      "The FINAL beat in every shot list or slide plan must be a Wolf's Garage brand moment that ties thematically to the rest of the post. It must feel like the natural ending of the story, not a tacked-on ad. Set is_brand_outro to true on that beat only. The on-screen text on the final beat must include 'wolfsgarage.com' (or '@wolfsgarage' for follow-focused posts, or the booth date 'JUNE 13' for booth-related posts). The visual direction must echo a key element from the earlier beats. Examples:",
+      "- Build recap reel: earlier beats show the wrench work and the finished detail. Final beat is a wide of the finished truck with the Wolf's Garage shirt or sticker visible. On-screen: 'BUILT IT. WORE IT. wolfsgarage.com'.",
+      "- Tee post: earlier beats show the shirt in use. Final beat is a tight shot of the back graphic or tag. On-screen: 'GET BACK IN THE GARAGE. wolfsgarage.com'.",
+      "- Booth promo: earlier beats hype the show. Final beat is the booth setup or a 'see you there' frame. On-screen: 'WOLF'S GARAGE BOOTH. KICKIN' IT OLD SCHOOL. JUNE 13'.",
+      "- Hands-on-metal reel: earlier beats are the work. Final beat is the maker's mark, decal, or shirt logo in the same frame as the finished piece. On-screen: 'WOLF'S GARAGE. wolfsgarage.com'.",
+      "",
       "TREND FORMATS AVAILABLE:",
       trendText,
       "",
@@ -596,13 +606,13 @@
       '  "format_used": "name of the format you chose",',
       '  "why_it_works": "one short sentence",',
       '  "content_type": "reel" or "carousel",',
-      '  "beats": [ { "time": "0-3s or Slide 1", "direction": "what to film or show", "on_screen_text": "the words on screen" } ],',
+      '  "beats": [ { "time": "0-3s or Slide 1", "direction": "what to film or show", "on_screen_text": "the words on screen", "is_brand_outro": false } ],',
       '  "caption": "the full caption, search-friendly, no hashtags inside it",',
       '  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],',
       '  "audio": "what kind of trending sound to add in-app when posting",',
-      '  "cta": "the specific call to action"',
+      '  "cta": "the specific call to action (this should reinforce the final brand-outro beat, not contradict it)"',
       "}",
-      "Give 4 to 6 beats for a reel, 5 to 8 for a carousel." + mediaNote
+      "Give 4 to 6 beats for a reel, 5 to 8 for a carousel. The LAST beat is always the brand outro (is_brand_outro: true). Every other beat has is_brand_outro: false." + mediaNote
     ].join("\n");
   }
 
@@ -612,9 +622,13 @@
     if (!pkg) { host.innerHTML = '<div class="empty">Could not read the package. Tap Generate again.</div>'; return; }
 
     var beatsHtml = (pkg.beats || []).map(function (bt, i) {
-      return '<div class="beat">' +
+      var outro = !!bt.is_brand_outro;
+      var beatCls = 'beat' + (outro ? ' beat-outro' : '');
+      var label = outro ? '<div class="outroTag">WOLF\'S GARAGE HANDOFF</div>' : '';
+      return '<div class="' + beatCls + '">' +
         '<div class="n">' + (i + 1) + '</div>' +
         '<div class="body">' +
+        label +
         '<div class="time">' + esc(bt.time || "") + '</div>' +
         '<div class="dir">' + esc(bt.direction || "") + '</div>' +
         (bt.on_screen_text ? '<div class="ost"><b>On screen:</b> ' + esc(bt.on_screen_text) + '</div>' : '') +
