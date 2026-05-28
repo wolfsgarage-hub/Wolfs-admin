@@ -64,12 +64,12 @@
   .sub { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
 
   label { display: block; font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--copper); margin: 16px 0 7px; }
-  textarea, input[type=text], input[type=password] {
+  textarea, input[type=text], input[type=password], select {
     width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 7px;
     color: var(--bone); font-family: 'Work Sans', sans-serif; font-size: 16px; padding: 13px; resize: vertical;
   }
   textarea { min-height: 92px; }
-  textarea:focus, input:focus { outline: none; border-color: var(--copper); }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--copper); }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
@@ -197,6 +197,37 @@
     <div id="trendList"></div>
   </section>
 
+  <!-- ============ SCRIPT ============ -->
+  <section class="panel" id="p-script">
+    <h2>WRITE A SCRIPT</h2>
+    <p class="sub">Give it a prompt. Get a scene by scene script in Wolf's voice. Pick how many scenes the story needs.</p>
+
+    <label>What is the script about?</label>
+    <textarea id="scriptPrompt" placeholder="e.g. A 1968 C10 build coming together in a home garage. Gritty, real, no corporate polish. Wolf talking to the camera while he works."></textarea>
+
+    <label>Number of scenes</label>
+    <select id="scriptSceneCount">
+      <option value="1">1 scene</option>
+      <option value="2">2 scenes</option>
+      <option value="3">3 scenes</option>
+      <option value="4">4 scenes</option>
+      <option value="5" selected>5 scenes</option>
+      <option value="6">6 scenes</option>
+      <option value="7">7 scenes</option>
+      <option value="8">8 scenes</option>
+      <option value="9">9 scenes</option>
+      <option value="10">10 scenes</option>
+    </select>
+
+    <label>Tone (optional)</label>
+    <input type="text" id="scriptTone" placeholder="e.g. gritty, hype, nostalgic, funny">
+
+    <button class="act" id="scriptRun">WRITE SCRIPT</button>
+
+    <div class="pkg" id="scriptOut" style="display:none;"></div>
+    <button class="ghost" id="scriptCopy" style="display:none;margin-top:10px;width:100%;">COPY SCRIPT</button>
+  </section>
+
   <!-- ============ DRAFTS ============ -->
   <section class="panel" id="p-drafts">
     <h2>SAVED PACKAGES</h2>
@@ -225,6 +256,7 @@
 
 <nav class="tabs">
   <button class="active" data-tab="create">Create</button>
+  <button data-tab="script">Script</button>
   <button data-tab="trends">Trends</button>
   <button data-tab="drafts">Drafts</button>
   <button data-tab="setup">Setup</button>
@@ -741,6 +773,67 @@
         toast("Deleted", "ok");
       });
       host.appendChild(el);
+    });
+  }
+
+  // ---------------- SCRIPT ----------------
+  var scriptRunBtn = $("scriptRun");
+  if (scriptRunBtn) {
+    scriptRunBtn.addEventListener("click", function () {
+      var prompt = ($("scriptPrompt").value || "").trim();
+      if (!prompt) { toast("Type what the script is about", "err"); return; }
+      var sceneCount = parseInt($("scriptSceneCount").value, 10) || 5;
+      var tone = ($("scriptTone").value || "").trim();
+      var out = $("scriptOut");
+      var copyBtn = $("scriptCopy");
+      scriptRunBtn.disabled = true;
+      var origLabel = scriptRunBtn.textContent;
+      scriptRunBtn.textContent = "WRITING " + sceneCount + "-SCENE SCRIPT...";
+      out.style.display = "none";
+      copyBtn.style.display = "none";
+      var system = [
+        "You are a short-form video script writer for Wolf's Garage, a blue-collar hot rod and custom truck brand out of Portland, Oregon.",
+        "Voice: real, gritty, no corporate polish, no hype-bro cringe. Talks like a builder, not a marketer. Never uses emojis. Never uses em dashes.",
+        "Write a scene by scene script for a short-form vertical video (Instagram Reel / TikTok).",
+        "Output EXACTLY " + sceneCount + " scene" + (sceneCount === 1 ? "" : "s") + ", no more, no less.",
+        "For each scene give: a SCENE heading (SCENE 1, SCENE 2, ...), a VISUAL line (what is on screen, camera move), a VOICEOVER/DIALOGUE line (what is said, or NONE), and an ON-SCREEN TEXT line (overlay text in ALL CAPS, or NONE).",
+        "Keep total runtime feeling like 15 to 40 seconds. Tight. Every scene earns its place.",
+        "End with a one-line HOOK suggestion for the caption and 3 suggested ON-SCREEN TEXT hooks for the opener.",
+        "Plain text only. No markdown bold, no asterisks."
+      ].join(" ");
+      var userText = "Script topic: " + prompt + "\n\nNumber of scenes: " + sceneCount;
+      if (tone) userText += "\nTone: " + tone;
+      callClaude(system, userText, [], 2000).then(function (text) {
+        scriptRunBtn.disabled = false;
+        scriptRunBtn.textContent = origLabel;
+        if (!text) return;
+        // Render inside a card with pre-wrap so line breaks render properly
+        var card = document.createElement("div");
+        card.className = "card";
+        card.style.whiteSpace = "pre-wrap";
+        card.style.fontFamily = "'Work Sans', sans-serif";
+        card.style.fontSize = "14px";
+        card.style.lineHeight = "1.6";
+        card.textContent = text;
+        out.innerHTML = "";
+        out.appendChild(card);
+        out.style.display = "block";
+        copyBtn.style.display = "block";
+        copyBtn.onclick = function () {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () { toast("Script copied", "ok"); }, function () { toast("Copy failed", "err"); });
+          } else {
+            var ta = document.createElement("textarea");
+            ta.value = text; document.body.appendChild(ta); ta.select();
+            try { document.execCommand("copy"); toast("Script copied", "ok"); } catch (e) { toast("Copy failed", "err"); }
+            document.body.removeChild(ta);
+          }
+        };
+      }).catch(function (err) {
+        scriptRunBtn.disabled = false;
+        scriptRunBtn.textContent = origLabel;
+        toast("Error: " + (err && err.message ? err.message : "unknown"), "err");
+      });
     });
   }
 
