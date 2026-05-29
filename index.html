@@ -553,8 +553,8 @@
 /* ============== STUDIO ============== */
 .studio-label { display: block; font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--copper, #C8922A); margin: 16px 0 7px; }
 .studio-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.studio-chip { background: var(--surface, #141414); border: 1px solid var(--line, #2a2a2a); border-radius: 20px; color: var(--ink, #F5F1E8); font-family: 'Oswald', sans-serif; font-size: 13px; padding: 8px 14px; cursor: pointer; }
-.studio-chip.on { background: var(--red, #CC0000); border-color: var(--red, #CC0000); color: #fff; }
+.studio-chip { background: #1f1f1f; border: 1px solid #3a3a3a; border-radius: 20px; color: #F5F1E8; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0.3px; padding: 8px 14px; cursor: pointer; }
+.studio-chip.on { background: #CC0000; border-color: #CC0000; color: #ffffff; font-weight: 600; }
 .studio-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .studio-thumb { position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line, #2a2a2a); background: #000; }
 .studio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1099,6 +1099,9 @@
 
     <label class="studio-label">Format</label>
     <div class="studio-chips" id="studio-format-chips"></div>
+
+    <label class="studio-label">Scenes</label>
+    <div class="studio-chips" id="studio-scene-chips"></div>
 
     <button class="btn btn-primary" id="studio-generate" style="width:100%;margin-top:14px">GENERATE PACKAGE</button>
 
@@ -3195,19 +3198,29 @@ async function ensureFirebaseAdmin() {
     { name: "Rank It Top List", type: "reel", why: "The list format feels intentional but is low effort, and it is a natural fit for showing off products and picks.", use: "Rank something your crowd argues about: best swap meet finds, top C10 years, your own designs. On-screen numbered text, fast cuts." },
     { name: "Do I Need This Debate", type: "reel", why: "Dramatizing the internal 'should I buy it' argument is relatable, funny, and built for shares.", use: "You play both sides talking to camera about buying the shirt. Keep it under 15 seconds. Add the trending debate audio in-app." },
     { name: "Booth Day Spotlight", type: "reel", why: "New-car-day style spotlights are aspirational and relatable. People picture themselves there. Perfect for live events.", use: "At the June 13 booth: a customer holding up a shirt, a truck rolling in, the table. Real people, real reactions. Capture it live." },
+    { name: "Before And After", type: "reel", why: "Transformation content is the highest-saving format on Instagram right now. Pinstriping, paint, builds, restorations all land hard.", use: "Open on the rough/dirty/stock state, fast cut to the finished work. 3 to 4 seconds total. Big on-screen text labels each state." },
+    { name: "POV Storytime", type: "reel", why: "First-person narration of a wild find, a near-miss, or a build moment hits algorithmically and emotionally. People watch to the end.", use: "Face to camera or voiceover over B-roll. 'POV: you find a 67 C10 behind a barn.' Build the tension, pay it off. 20 to 40 seconds." },
+    { name: "Behind The Scenes", type: "reel", why: "The mess, the late nights, the failed cuts. Audiences want the real shop, not the showroom. Builds trust fast.", use: "Show what the brand normally hides: the cleanup, the bolt that broke, the 11pm pinstripe redo. Voice over what went wrong and what you learned." },
+    { name: "Hot Take", type: "reel", why: "Controversial gearhead opinions drive shares and comments harder than any other format. Comments are the new currency.", use: "Talk to camera. Take a clear side on something the crowd argues about: lifted vs. dropped, big block vs. small, restomod vs. period correct. Own it." },
+    { name: "Customer Spotlight", type: "carousel", why: "Real humans in real Wolf's Garage gear next to their real trucks is the single best social proof you can post. Beats any ad.", use: "5 to 7 photos: the customer, their truck, them wearing the shirt, a detail shot, the handshake or pose. Tag them. Their name in the caption." },
     { name: "Build Recap Carousel", type: "carousel", why: "Carousels beat reels for engagement and intent. Swiping is counted as real interaction, and they hold a story.", use: "5 to 8 photos telling a story: before, the work, the after. Or a booth recap. First slide is the hook, last slide is the call to action." },
     { name: "Photo Dump", type: "carousel", why: "Casual photo dumps feel native to the feed and lean into the authentic, less-polished style winning in 2026.", use: "8 to 10 raw shots from a day at the shop or a meet. No heavy editing. Caption ties it together and points to the shop." }
   ];
 
   var GOALS = [
-    { id: "sell",   label: "Sell a shirt" },
-    { id: "booth",  label: "Promote June 13 booth" },
-    { id: "follow", label: "Grow following" },
-    { id: "show",   label: "Show the work" }
+    { id: "sell",      label: "Sell a shirt" },
+    { id: "booth",     label: "Promote June 13 booth" },
+    { id: "follow",    label: "Grow following" },
+    { id: "show",      label: "Show the work" },
+    { id: "traffic",   label: "Drive site traffic" },
+    { id: "drop",      label: "Announce a drop" },
+    { id: "recap",     label: "Recap an event" },
+    { id: "community", label: "Build community" }
   ];
 
   var selGoal = "sell";
   var selFormat = "auto";
+  var selScenes = "auto"; // "auto" or a number 3-10
   var mediaItems = [];
 
   function $(id) { return document.getElementById(id); }
@@ -3337,6 +3350,17 @@ async function ensureFirebaseAdmin() {
       host.appendChild(b);
     });
   }
+  function renderSceneChips() {
+    var host = $("studio-scene-chips"); host.innerHTML = "";
+    var options = ["auto", 3, 4, 5, 6, 7, 8, 9, 10];
+    options.forEach(function (n) {
+      var b = document.createElement("button");
+      b.className = "studio-chip" + (selScenes === n ? " on" : "");
+      b.textContent = n === "auto" ? "Auto" : String(n);
+      b.addEventListener("click", function () { selScenes = n; renderSceneChips(); });
+      host.appendChild(b);
+    });
+  }
   function renderTrends() {
     $("studio-trend-principles").innerHTML = "<b>The rules of the game right now:</b><br>" + esc(PRINCIPLES);
     var host = $("studio-trend-list"); host.innerHTML = "";
@@ -3409,7 +3433,7 @@ async function ensureFirebaseAdmin() {
         "Look at every shot. Build the package around what is actually in them: the real subject, the truck or shirt or setting, the colors, the mood. Reference specifics you can see. " +
         "Video frames are stills pulled from footage Wolf already has, so treat them as moments from a clip he can cut.";
     }
-    return [
+    var parts = [
       "You are the content director for Wolf's Garage, a Portland Oregon hot rodder and kustom kulture apparel brand and community.",
       "Audience: blue-collar hot rodders, C10 and C-Series truck owners, swap meet regulars, kustom kulture. Pacific Northwest.",
       "Voice: blue-collar, direct, no fluff, no corporate speak.",
@@ -3450,9 +3474,17 @@ async function ensureFirebaseAdmin() {
       '  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],',
       '  "audio": "what kind of trending sound to add in-app when posting",',
       '  "cta": "the specific call to action (this should reinforce the final brand-outro beat)"',
-      "}",
-      "Give 4 to 6 beats for a reel, 5 to 8 for a carousel. The LAST beat is always the brand outro (is_brand_outro: true). Every other beat has is_brand_outro: false." + mediaNote
-    ].join("\n");
+      "}"
+    ];
+    var sceneRule;
+    if (selScenes === "auto") {
+      sceneRule = "Beat count: pick what fits the format. 4 to 6 for a reel, 5 to 8 for a carousel. The LAST beat is always the brand outro (is_brand_outro: true). Every other beat has is_brand_outro: false.";
+    } else {
+      var n = selScenes;
+      sceneRule = "Beat count: produce EXACTLY " + n + " beats, no more, no less. Beat " + n + " is the brand outro (is_brand_outro: true). Beats 1 through " + (n - 1) + " have is_brand_outro: false. If " + n + " is small (3 or 4), pack each content beat tighter. If " + n + " is large (8 to 10), let the story breathe across more shots.";
+    }
+    parts.push(sceneRule + mediaNote);
+    return parts.join("\n");
   }
 
   function renderPackage(pkg) {
@@ -3594,6 +3626,7 @@ async function ensureFirebaseAdmin() {
     initialized = true;
     renderGoalChips();
     renderFormatChips();
+    renderSceneChips();
     renderTrends();
     renderDrafts();
     wireSetup();
