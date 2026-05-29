@@ -550,6 +550,49 @@
     border: none !important;
     padding: 0 !important;
   }
+/* ============== STUDIO ============== */
+.studio-label { display: block; font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--copper, #C8922A); margin: 16px 0 7px; }
+.studio-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.studio-chip { background: var(--surface, #141414); border: 1px solid var(--line, #2a2a2a); border-radius: 20px; color: var(--ink, #F5F1E8); font-family: 'Oswald', sans-serif; font-size: 13px; padding: 8px 14px; cursor: pointer; }
+.studio-chip.on { background: var(--red, #CC0000); border-color: var(--red, #CC0000); color: #fff; }
+.studio-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.studio-thumb { position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line, #2a2a2a); background: #000; }
+.studio-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.studio-thumb .x { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.75); color: #fff; border: none; border-radius: 4px; width: 22px; height: 22px; font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
+.studio-thumb .vlabel { position: absolute; bottom: 2px; left: 2px; background: var(--red, #CC0000); color: #fff; font-family: 'Oswald', sans-serif; font-size: 8px; letter-spacing: 1px; padding: 1px 5px; border-radius: 3px; }
+.studio-card { background: var(--surface, #141414); border: 1px solid var(--line, #2a2a2a); border-left: 3px solid var(--red, #CC0000); border-radius: 7px; padding: 14px 15px; margin-bottom: 12px; }
+.studio-card .k { font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--copper, #C8922A); margin-bottom: 7px; display: flex; justify-content: space-between; align-items: center; }
+.studio-card .hook-text { font-family: 'Bebas Neue', sans-serif; font-size: 24px; line-height: 1.05; letter-spacing: 0.5px; }
+.studio-beat { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px dashed var(--line, #2a2a2a); }
+.studio-beat:last-child { border-bottom: none; }
+.studio-beat .n { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--red, #CC0000); min-width: 26px; }
+.studio-beat .body { flex: 1; }
+.studio-beat .time { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-dim, #888); }
+.studio-beat .dir { font-size: 14px; margin: 2px 0; }
+.studio-beat .ost { font-size: 13px; color: var(--copper, #C8922A); }
+.studio-beat .ost b { color: var(--ink, #F5F1E8); font-weight: 600; }
+.studio-beat-outro { background: rgba(204,0,0,0.08); border-radius: 6px; padding: 8px 10px; margin: 4px -4px; }
+.studio-beat-outro .n { color: var(--copper, #C8922A); }
+.studio-outro-tag { display: inline-block; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1.5px; background: var(--red, #CC0000); color: #fff; padding: 2px 7px; border-radius: 3px; margin-bottom: 6px; }
+.studio-copy { background: #1b1b1b; border: 1px solid var(--line, #2a2a2a); color: var(--copper, #C8922A); font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 5px; cursor: pointer; }
+.studio-mono { white-space: pre-wrap; word-break: break-word; font-size: 14px; }
+.studio-tags { color: var(--copper, #C8922A); font-weight: 600; }
+.studio-trend { background: var(--surface, #141414); border: 1px solid var(--line, #2a2a2a); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.studio-trend h4 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; margin: 0 0 4px; }
+.studio-trend .type-tag { display: inline-block; font-family: 'Oswald', sans-serif; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; background: var(--red, #CC0000); color: #fff; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+.studio-trend .type-tag.carousel { background: var(--copper, #C8922A); color: #111; }
+.studio-trend p { font-size: 13px; margin: 6px 0; }
+.studio-trend .why { color: var(--ink-dim, #888); }
+.studio-trend .use { color: var(--copper, #C8922A); }
+.studio-note { background: rgba(200,146,42,0.08); border: 1px solid rgba(200,146,42,0.3); border-radius: 7px; padding: 12px 14px; font-size: 13px; color: var(--copper, #C8922A); margin: 0 0 14px; }
+.studio-note b { color: var(--ink, #F5F1E8); }
+.studio-draft-item { background: var(--surface, #141414); border: 1px solid var(--line, #2a2a2a); border-radius: 7px; padding: 12px; margin-bottom: 10px; cursor: pointer; }
+.studio-draft-item .ttl { font-family: 'Oswald', sans-serif; font-size: 14px; }
+.studio-draft-item .when { font-family: 'Special Elite', monospace; font-size: 10px; color: var(--ink-dim, #888); margin-top: 4px; }
+.studio-draft-item .cap { font-size: 12px; color: var(--ink-dim, #888); margin-top: 6px; max-height: 50px; overflow: hidden; }
+.studio-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(245,241,232,0.3); border-top-color: #fff; border-radius: 50%; animation: studio-spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes studio-spin { to { transform: rotate(360deg); } }
+.studio-empty { text-align: center; color: var(--ink-dim, #888); padding: 30px 20px; font-size: 13px; }
 </style>
 <!-- Firebase SDK (compat mode) for gallery moderation -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -614,6 +657,7 @@
   <button class="tab" data-tab="comments" onclick="switchTab('comments')">COMMENTS</button>
   <button class="tab" data-tab="wolf-photos" onclick="switchTab('wolf-photos')">WOLF'S PHOTOS</button>
   <button class="tab" data-tab="social" onclick="switchTab('social')">SOCIAL</button>
+  <button class="tab" data-tab="studio" onclick="switchTab('studio')">STUDIO</button>
 </nav>
 
 <!-- ============== DASHBOARD ============== -->
@@ -1032,6 +1076,61 @@
   </div>
 </section>
 
+<!-- ============== STUDIO ============== -->
+<section class="panel" id="panel-studio">
+  <div class="panel-head">
+    <h2>CONTENT STUDIO</h2>
+    <p>// trend-aware post packages, brand handoff baked in</p>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>BUILD A POST</h3></div>
+
+    <label class="studio-label">Your photos or video</label>
+    <input type="file" id="studio-media-input" accept="image/*,video/*" multiple style="display:none">
+    <button class="btn btn-ghost" id="studio-add-media" style="width:100%">+ ADD PHOTOS OR VIDEO</button>
+    <div class="studio-thumbs" id="studio-thumbs"></div>
+
+    <label class="studio-label">What are you posting about?</label>
+    <textarea class="textarea" id="studio-topic" placeholder="e.g. the Get Off Your Phone tee on a buddy. Or progress on the C10. Or the June 13 booth." style="min-height:90px"></textarea>
+
+    <label class="studio-label">What is this post for?</label>
+    <div class="studio-chips" id="studio-goal-chips"></div>
+
+    <label class="studio-label">Format</label>
+    <div class="studio-chips" id="studio-format-chips"></div>
+
+    <button class="btn btn-primary" id="studio-generate" style="width:100%;margin-top:14px">GENERATE PACKAGE</button>
+
+    <div id="studio-package-out" style="margin-top:18px"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>SAVED PACKAGES</h3>
+      <span class="section-count" id="studio-drafts-count">0</span>
+    </div>
+    <div id="studio-drafts-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>WHAT IS WORKING NOW</h3></div>
+    <div class="studio-note" id="studio-trend-principles"></div>
+    <div id="studio-trend-list"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h3>SETUP</h3></div>
+    <p style="font-size:12px;color:var(--ink-dim);margin-top:0">Anthropic API key. Stays on this phone only.</p>
+    <input type="password" class="textarea" id="studio-key-field" placeholder="sk-ant-..." autocomplete="off" style="min-height:auto;padding:11px">
+    <div class="card-actions" style="margin-top:10px">
+      <button class="btn btn-primary" id="studio-save-key">SAVE KEY</button>
+      <button class="btn btn-ghost" id="studio-test-key">TEST KEY</button>
+    </div>
+    <div id="studio-key-status" style="margin-top:10px;font-size:13px;color:var(--ink-dim)"></div>
+  </div>
+</section>
+
 <svg class="pinstripe" viewBox="0 0 1200 14" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M0 7 Q 150 12, 300 7 T 600 7 T 900 7 T 1200 7" stroke="#C8922A" stroke-width="0.7" fill="none"/>
   <path d="M0 7 Q 150 2, 300 7 T 600 7 T 900 7 T 1200 7" stroke="#CC0000" stroke-width="1" fill="none"/>
@@ -1291,6 +1390,7 @@ function switchTab(name, pushHistory) {
   if (name === 'comments') loadComments();
   if (name === 'wolf-photos') renderWolfPhotos();
   if (name === 'social') renderSocial();
+  if (name === 'studio' && window.renderStudio) window.renderStudio();
   if (name === 'morning') renderMorning();
   if (name === 'dashboard') renderDashboard();
   // Track in browser history so phone back button moves through tabs
@@ -3074,6 +3174,438 @@ async function ensureFirebaseAdmin() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     await initApp();
+  }
+})();
+</script>
+<!-- ============== STUDIO MODULE ============== -->
+<script>
+(function () {
+  "use strict";
+
+  var MODEL = "claude-sonnet-4-6";
+  var MAX_HASHTAGS = 5;
+  var LS_KEY = "wgpost:key";
+  var LS_DRAFTS = "wgcs:drafts";
+
+  var PRINCIPLES = "Hooks land in the first 2.5 seconds or the scroll wins. Reels: cut every 3 to 5 seconds (about 32 percent more engagement than one long shot). Always burn on-screen captions in (80 percent more people finish). Add a trending sound inside Instagram when you post (about 42 percent more engagement, and you can only do it in the app). Real hands on real metal beats polished brand video every time. Write the caption like a search bar, Instagram is a search engine now. Chase saves and shares, not likes. Under 5K followers is the sweet spot for organic reach, so post consistently and adapt trends with your own spin (Instagram penalizes copied clips).";
+
+  var TRENDS = [
+    { name: "Hands On Metal", type: "reel", why: "Authentic operator-front-and-center content out-performs polished brand film. The automotive crowd stops for real work, not ads.", use: "Film your hands doing the actual work: laying a pinstripe, wrenching, pulling a part. Face or voice in it. 3 to 5 quick cuts. End on the finished detail." },
+    { name: "Stomp Reveal Drop", type: "reel", why: "A bold frame-shift reveal is addictive to watch and signals a new drop without feeling like an ad.", use: "Start on you or a plain shot, stomp or jump, frame drops to reveal the shirt or product with big on-screen text. One product, one moment." },
+    { name: "Rank It Top List", type: "reel", why: "The list format feels intentional but is low effort, and it is a natural fit for showing off products and picks.", use: "Rank something your crowd argues about: best swap meet finds, top C10 years, your own designs. On-screen numbered text, fast cuts." },
+    { name: "Do I Need This Debate", type: "reel", why: "Dramatizing the internal 'should I buy it' argument is relatable, funny, and built for shares.", use: "You play both sides talking to camera about buying the shirt. Keep it under 15 seconds. Add the trending debate audio in-app." },
+    { name: "Booth Day Spotlight", type: "reel", why: "New-car-day style spotlights are aspirational and relatable. People picture themselves there. Perfect for live events.", use: "At the June 13 booth: a customer holding up a shirt, a truck rolling in, the table. Real people, real reactions. Capture it live." },
+    { name: "Build Recap Carousel", type: "carousel", why: "Carousels beat reels for engagement and intent. Swiping is counted as real interaction, and they hold a story.", use: "5 to 8 photos telling a story: before, the work, the after. Or a booth recap. First slide is the hook, last slide is the call to action." },
+    { name: "Photo Dump", type: "carousel", why: "Casual photo dumps feel native to the feed and lean into the authentic, less-polished style winning in 2026.", use: "8 to 10 raw shots from a day at the shop or a meet. No heavy editing. Caption ties it together and points to the shop." }
+  ];
+
+  var GOALS = [
+    { id: "sell",   label: "Sell a shirt" },
+    { id: "booth",  label: "Promote June 13 booth" },
+    { id: "follow", label: "Grow following" },
+    { id: "show",   label: "Show the work" }
+  ];
+
+  var selGoal = "sell";
+  var selFormat = "auto";
+  var mediaItems = [];
+
+  function $(id) { return document.getElementById(id); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function setLS(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function getLS(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function getKey() { return getLS(LS_KEY) || ""; }
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tellUser(msg) { if (typeof toast === "function") toast(msg); else alert(msg); }
+  function copyText(s) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(s).then(function () { tellUser("Copied"); }, function () { tellUser("Copy failed"); });
+    } else {
+      var ta = document.createElement("textarea"); ta.value = s; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); tellUser("Copied"); } catch (e) { tellUser("Copy failed"); }
+      ta.remove();
+    }
+  }
+
+  function loadImageEl(src) {
+    return new Promise(function (res, rej) {
+      var im = new Image();
+      im.onload = function () { res(im); };
+      im.onerror = function () { rej(new Error("decode failed")); };
+      im.src = src;
+    });
+  }
+  function drawToJpeg(el, w, h, maxDim) {
+    var scale = Math.min(1, maxDim / Math.max(w, h));
+    var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+    var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+    c.getContext("2d").drawImage(el, 0, 0, cw, ch);
+    return c.toDataURL("image/jpeg", 0.85);
+  }
+  function readFileAsDataURL(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader();
+      r.onload = function () { res(r.result); };
+      r.onerror = function () { rej(new Error("read failed")); };
+      r.readAsDataURL(file);
+    });
+  }
+  function imageFileToItem(file) {
+    return readFileAsDataURL(file).then(loadImageEl).then(function (im) {
+      var jpeg = drawToJpeg(im, im.naturalWidth, im.naturalHeight, 1200);
+      return { id: uid(), base64: jpeg.split(",")[1], mediaType: "image/jpeg", kind: "image", thumbUrl: jpeg };
+    });
+  }
+  function videoFileToItem(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file);
+      var v = document.createElement("video");
+      v.muted = true; v.playsInline = true; v.preload = "metadata"; v.src = url;
+      var done = false;
+      function fail(e) { if (done) return; done = true; URL.revokeObjectURL(url); rej(e || new Error("video frame failed")); }
+      v.onloadeddata = function () {
+        try {
+          var target = Math.min(1, (v.duration && isFinite(v.duration)) ? v.duration / 2 : 0);
+          var grab = function () {
+            try {
+              var jpeg = drawToJpeg(v, v.videoWidth, v.videoHeight, 1200);
+              done = true; URL.revokeObjectURL(url);
+              res({ id: uid(), base64: jpeg.split(",")[1], mediaType: "image/jpeg", kind: "video", thumbUrl: jpeg });
+            } catch (e) { fail(e); }
+          };
+          v.onseeked = grab; v.currentTime = target;
+          setTimeout(function () { if (!done) grab(); }, 1200);
+        } catch (e) { fail(e); }
+      };
+      v.onerror = function () { fail(new Error("video read failed")); };
+    });
+  }
+  function addFiles(fileList) {
+    var files = Array.prototype.slice.call(fileList || []);
+    if (!files.length) return;
+    var jobs = files.map(function (f) {
+      if (f.type.indexOf("video") === 0) return videoFileToItem(f).catch(function () { tellUser("Skipped a video it could not read"); return null; });
+      if (f.type.indexOf("image") === 0) return imageFileToItem(f).catch(function () { tellUser("Skipped a photo it could not read"); return null; });
+      return Promise.resolve(null);
+    });
+    Promise.all(jobs).then(function (items) {
+      items.forEach(function (it) { if (it) mediaItems.push(it); });
+      renderThumbs();
+      var added = items.filter(function (x) { return x; }).length;
+      if (added) tellUser("Added " + added + " shot" + (added === 1 ? "" : "s"));
+    });
+  }
+  function renderThumbs() {
+    var host = $("studio-thumbs"); host.innerHTML = "";
+    mediaItems.forEach(function (m) {
+      var d = document.createElement("div");
+      d.className = "studio-thumb";
+      d.innerHTML = '<img src="' + m.thumbUrl + '" alt="">' +
+        (m.kind === "video" ? '<span class="vlabel">VIDEO</span>' : '') +
+        '<button class="x" data-id="' + m.id + '">&times;</button>';
+      d.querySelector(".x").addEventListener("click", function () {
+        var id = this.getAttribute("data-id");
+        mediaItems = mediaItems.filter(function (x) { return x.id !== id; });
+        renderThumbs();
+      });
+      host.appendChild(d);
+    });
+  }
+
+  function renderGoalChips() {
+    var host = $("studio-goal-chips"); host.innerHTML = "";
+    GOALS.forEach(function (g) {
+      var b = document.createElement("button");
+      b.className = "studio-chip" + (g.id === selGoal ? " on" : "");
+      b.textContent = g.label;
+      b.addEventListener("click", function () { selGoal = g.id; renderGoalChips(); });
+      host.appendChild(b);
+    });
+  }
+  function renderFormatChips() {
+    var host = $("studio-format-chips"); host.innerHTML = "";
+    var auto = document.createElement("button");
+    auto.className = "studio-chip" + (selFormat === "auto" ? " on" : "");
+    auto.textContent = "Let Wolf pick best";
+    auto.addEventListener("click", function () { selFormat = "auto"; renderFormatChips(); });
+    host.appendChild(auto);
+    TRENDS.forEach(function (t) {
+      var b = document.createElement("button");
+      b.className = "studio-chip" + (selFormat === t.name ? " on" : "");
+      b.textContent = t.name;
+      b.addEventListener("click", function () { selFormat = t.name; renderFormatChips(); });
+      host.appendChild(b);
+    });
+  }
+  function renderTrends() {
+    $("studio-trend-principles").innerHTML = "<b>The rules of the game right now:</b><br>" + esc(PRINCIPLES);
+    var host = $("studio-trend-list"); host.innerHTML = "";
+    TRENDS.forEach(function (t) {
+      var d = document.createElement("div");
+      d.className = "studio-trend";
+      d.innerHTML = '<span class="type-tag ' + (t.type === "carousel" ? "carousel" : "") + '">' + esc(t.type) + '</span>' +
+        '<h4>' + esc(t.name) + '</h4>' +
+        '<p class="why">' + esc(t.why) + '</p>' +
+        '<p class="use"><b>Run it:</b> ' + esc(t.use) + '</p>';
+      host.appendChild(d);
+    });
+  }
+
+  function callClaude(system, userText, images, maxTokens) {
+    var apiKey = getKey();
+    if (!apiKey) { tellUser("Add your API key in Studio Setup"); return Promise.resolve(null); }
+    var userContent = [];
+    (images || []).forEach(function (img) {
+      userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType || "image/jpeg", data: img.base64 } });
+    });
+    userContent.push({ type: "text", text: userText });
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: MODEL, max_tokens: maxTokens || 1800, system: system, messages: [{ role: "user", content: userContent }] })
+    }).then(function (resp) {
+      if (!resp.ok) {
+        return resp.text().then(function (errText) {
+          var msg = "API " + resp.status;
+          try { var j = JSON.parse(errText); if (j && j.error && j.error.message) msg = j.error.message; } catch (e) {}
+          throw new Error(msg);
+        });
+      }
+      return resp.json();
+    }).then(function (data) {
+      return (data.content || []).filter(function (b) { return b.type === "text"; }).map(function (b) { return b.text; }).join("\n");
+    });
+  }
+  function parseJSON(text) {
+    if (!text) return null;
+    var t = text.trim().replace(/```json/gi, "").replace(/```/g, "").trim();
+    var a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a >= 0 && b > a) t = t.slice(a, b + 1);
+    try { return JSON.parse(t); } catch (e) { return null; }
+  }
+
+  function buildSystem() {
+    var fmtInstruction;
+    if (selFormat === "auto") {
+      fmtInstruction = "Pick the single best format for this from the trend list below, based on the goal.";
+    } else {
+      var chosen = null;
+      TRENDS.forEach(function (t) { if (t.name === selFormat) chosen = t; });
+      fmtInstruction = "Use this format: " + selFormat + ". " + (chosen ? "(" + chosen.use + ")" : "");
+    }
+    var goalLabel = "";
+    GOALS.forEach(function (g) { if (g.id === selGoal) goalLabel = g.label; });
+    var trendText = TRENDS.map(function (t) { return "- " + t.name + " [" + t.type + "]: " + t.why + " HOW: " + t.use; }).join("\n");
+    var mediaNote = "";
+    if (mediaItems.length) {
+      var photos = mediaItems.filter(function (m) { return m.kind === "image"; }).length;
+      var vids = mediaItems.filter(function (m) { return m.kind === "video"; }).length;
+      mediaNote = "\n\nATTACHED SHOTS: " + mediaItems.length + " total (" + photos + " photo, " + vids + " video frame). " +
+        "Look at every shot. Build the package around what is actually in them: the real subject, the truck or shirt or setting, the colors, the mood. Reference specifics you can see. " +
+        "Video frames are stills pulled from footage Wolf already has, so treat them as moments from a clip he can cut.";
+    }
+    return [
+      "You are the content director for Wolf's Garage, a Portland Oregon hot rodder and kustom kulture apparel brand and community.",
+      "Audience: blue-collar hot rodders, C10 and C-Series truck owners, swap meet regulars, kustom kulture. Pacific Northwest.",
+      "Voice: blue-collar, direct, no fluff, no corporate speak.",
+      "",
+      "HARD WRITING RULES. Break none of these:",
+      "- No emojis anywhere.",
+      "- No em dashes. Use periods or commas.",
+      "- No curly quotes. Straight quotes only.",
+      "- Public name is always Wolf, never John.",
+      "- Exactly " + MAX_HASHTAGS + " hashtags, no more.",
+      "",
+      "GOAL OF THIS POST: " + goalLabel + ".",
+      "",
+      "WHAT IS WORKING RIGHT NOW (May 2026), build on this:",
+      "- Hook must hit in the first 2.5 seconds.",
+      "- Reels: a cut every 3 to 5 seconds.",
+      "- On-screen text on every beat.",
+      "- Caption written for search (Instagram is a search engine), front-load keywords a hot rodder would type.",
+      "- Drive saves and shares, and a clear call to action (shop link in bio, the June 13 booth, or follow).",
+      "- Adapt the format with an original spin, never a copy.",
+      "",
+      "BRAND HANDOFF RULE (non-negotiable):",
+      "The FINAL beat in every shot list or slide plan must be a Wolf's Garage brand moment that ties thematically to the rest of the post. It must feel like the natural ending of the story, not a tacked-on ad. Set is_brand_outro to true on that beat only. The on-screen text on the final beat must include 'wolfsgarage.com' (or '@wolfsgarage' for follow-focused posts, or the booth date 'JUNE 13' for booth-related posts). The visual direction must echo a key element from the earlier beats.",
+      "",
+      "TREND FORMATS AVAILABLE:",
+      trendText,
+      "",
+      "FORMAT DIRECTION: " + fmtInstruction,
+      "",
+      "Return ONLY valid JSON, no prose, no code fences. Schema:",
+      "{",
+      '  "hook": "the first line or first 2.5 seconds, punchy",',
+      '  "format_used": "name of the format you chose",',
+      '  "why_it_works": "one short sentence",',
+      '  "content_type": "reel" or "carousel",',
+      '  "beats": [ { "time": "0-3s or Slide 1", "direction": "what to film or show", "on_screen_text": "the words on screen", "is_brand_outro": false } ],',
+      '  "caption": "the full caption, search-friendly, no hashtags inside it",',
+      '  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],',
+      '  "audio": "what kind of trending sound to add in-app when posting",',
+      '  "cta": "the specific call to action (this should reinforce the final brand-outro beat)"',
+      "}",
+      "Give 4 to 6 beats for a reel, 5 to 8 for a carousel. The LAST beat is always the brand outro (is_brand_outro: true). Every other beat has is_brand_outro: false." + mediaNote
+    ].join("\n");
+  }
+
+  function renderPackage(pkg) {
+    var host = $("studio-package-out");
+    if (!pkg) { host.innerHTML = '<div class="studio-empty">Could not read the package. Try Generate again.</div>'; return; }
+    var beatsHtml = (pkg.beats || []).map(function (bt, i) {
+      var outro = !!bt.is_brand_outro;
+      var cls = "studio-beat" + (outro ? " studio-beat-outro" : "");
+      var label = outro ? '<div class="studio-outro-tag">WOLF\'S GARAGE HANDOFF</div>' : '';
+      return '<div class="' + cls + '">' +
+        '<div class="n">' + (i + 1) + '</div>' +
+        '<div class="body">' + label +
+        '<div class="time">' + esc(bt.time || "") + '</div>' +
+        '<div class="dir">' + esc(bt.direction || "") + '</div>' +
+        (bt.on_screen_text ? '<div class="ost"><b>On screen:</b> ' + esc(bt.on_screen_text) + '</div>' : '') +
+        '</div></div>';
+    }).join("");
+    var tags = (pkg.hashtags || []).slice(0, MAX_HASHTAGS).join(" ");
+    var ctype = (pkg.content_type || "reel").toUpperCase();
+    host.innerHTML =
+      '<div class="studio-card"><div class="k">Hook &middot; ' + esc(ctype) + '</div><div class="hook-text">' + esc(pkg.hook || "") + '</div></div>' +
+      '<div class="studio-card"><div class="k">Format</div><div><b>' + esc(pkg.format_used || "") + '</b><br><span style="color:var(--ink-dim,#888);font-size:12px;">' + esc(pkg.why_it_works || "") + '</span></div></div>' +
+      '<div class="studio-card"><div class="k">' + (ctype === "CAROUSEL" ? "Slide Plan" : "Shot List") + '</div>' + beatsHtml + '</div>' +
+      '<div class="studio-card"><div class="k">Caption <button class="studio-copy" data-copy="caption">Copy</button></div><div class="studio-mono">' + esc(pkg.caption || "") + '</div></div>' +
+      '<div class="studio-card"><div class="k">Hashtags <button class="studio-copy" data-copy="tags">Copy</button></div><div class="studio-mono studio-tags">' + esc(tags) + '</div></div>' +
+      '<div class="studio-card"><div class="k">Audio</div><div>' + esc(pkg.audio || "") + '</div></div>' +
+      '<div class="studio-card"><div class="k">Call To Action</div><div>' + esc(pkg.cta || "") + '</div></div>' +
+      '<button class="btn btn-ghost" id="studio-save-draft" style="width:100%;padding:13px;margin-top:4px">SAVE TO DRAFTS</button>';
+    var caps = host.querySelectorAll(".studio-copy");
+    for (var i = 0; i < caps.length; i++) {
+      caps[i].addEventListener("click", function () {
+        var which = this.getAttribute("data-copy");
+        copyText(which === "caption" ? (pkg.caption || "") : tags);
+      });
+    }
+    $("studio-save-draft").addEventListener("click", function () { saveDraft(pkg); });
+  }
+
+  function getDrafts() { try { return JSON.parse(getLS(LS_DRAFTS) || "[]"); } catch (e) { return []; } }
+  function saveDrafts(arr) { setLS(LS_DRAFTS, JSON.stringify(arr)); }
+  function saveDraft(pkg) {
+    var arr = getDrafts();
+    arr.unshift({ id: uid(), ts: Date.now(), title: (pkg.format_used || "Post") + " for " + selGoal, pkg: pkg });
+    saveDrafts(arr);
+    renderDrafts();
+    tellUser("Saved to Drafts");
+  }
+  function renderDrafts() {
+    var host = $("studio-drafts-list");
+    var arr = getDrafts();
+    $("studio-drafts-count").textContent = arr.length;
+    if (!arr.length) { host.innerHTML = '<div class="studio-empty">No saved packages yet.</div>'; return; }
+    host.innerHTML = "";
+    arr.forEach(function (d) {
+      var el = document.createElement("div");
+      el.className = "studio-draft-item";
+      var when = new Date(d.ts);
+      var cap = (d.pkg && d.pkg.caption) ? d.pkg.caption : "";
+      el.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div class="ttl">' + esc(d.title) + '</div>' +
+        '<button class="studio-copy" data-del="' + d.id + '">Delete</button></div>' +
+        '<div class="when">' + when.toLocaleString() + '</div>' +
+        '<div class="cap">' + esc(cap) + '</div>';
+      el.addEventListener("click", function (e) {
+        if (e.target && e.target.getAttribute("data-del")) return;
+        renderPackage(d.pkg);
+        window.scrollTo({ top: $("studio-package-out").offsetTop - 20, behavior: "smooth" });
+      });
+      el.querySelector("[data-del]").addEventListener("click", function (e) {
+        e.stopPropagation();
+        var id = this.getAttribute("data-del");
+        saveDrafts(getDrafts().filter(function (x) { return x.id !== id; }));
+        renderDrafts();
+        tellUser("Deleted");
+      });
+      host.appendChild(el);
+    });
+  }
+
+  function wireSetup() {
+    var k = getKey();
+    if (k) { $("studio-key-field").value = k; $("studio-key-status").textContent = "Key loaded from this device."; }
+    $("studio-save-key").addEventListener("click", function () {
+      var v = $("studio-key-field").value.trim();
+      setLS(LS_KEY, v);
+      tellUser(v ? "Key saved" : "Key cleared");
+      $("studio-key-status").textContent = v ? "Key saved on this device." : "No key set.";
+    });
+    $("studio-test-key").addEventListener("click", function () {
+      var v = $("studio-key-field").value.trim();
+      if (!v) { tellUser("Enter a key first"); return; }
+      setLS(LS_KEY, v);
+      $("studio-key-status").textContent = "Testing...";
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": v, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: MODEL, max_tokens: 10, messages: [{ role: "user", content: "ping" }] })
+      }).then(function (r) {
+        if (r.ok) { $("studio-key-status").textContent = "Key works. You are good."; tellUser("Key works"); }
+        else { $("studio-key-status").textContent = "Key rejected. HTTP " + r.status; tellUser("Key rejected"); }
+      }).catch(function (e) {
+        $("studio-key-status").textContent = "Network error: " + (e.message || "unknown");
+        tellUser("Network error");
+      });
+    });
+  }
+
+  function wireGenerate() {
+    $("studio-add-media").addEventListener("click", function () { $("studio-media-input").click(); });
+    $("studio-media-input").addEventListener("change", function () { addFiles(this.files); this.value = ""; });
+    $("studio-generate").addEventListener("click", function () {
+      var topic = $("studio-topic").value.trim();
+      if (!topic && !mediaItems.length) { tellUser("Add a shot or describe the post"); return; }
+      var btn = $("studio-generate");
+      btn.disabled = true;
+      var orig = btn.textContent;
+      btn.innerHTML = '<span class="studio-spinner"></span>BUILDING';
+      $("studio-package-out").innerHTML = "";
+      var system = buildSystem();
+      var userText = topic ? ("Topic: " + topic) : "Build the post from the attached shots. No extra topic notes given, work from what you see.";
+      var images = mediaItems.map(function (m) { return { base64: m.base64, mediaType: m.mediaType }; });
+      callClaude(system, userText, images, 1800).then(function (text) {
+        btn.disabled = false; btn.textContent = orig;
+        if (text == null) return;
+        var pkg = parseJSON(text);
+        if (!pkg) { renderPackage(null); tellUser("Got a reply but could not parse it"); return; }
+        renderPackage(pkg);
+        tellUser("Package ready");
+      }).catch(function (err) {
+        btn.disabled = false; btn.textContent = orig;
+        tellUser("Failed: " + (err.message || "unknown"));
+      });
+    });
+  }
+
+  var initialized = false;
+  function init() {
+    if (initialized) return;
+    initialized = true;
+    renderGoalChips();
+    renderFormatChips();
+    renderTrends();
+    renderDrafts();
+    wireSetup();
+    wireGenerate();
+  }
+  // Expose renderStudio for admin's switchTab hook; init the first time it's invoked
+  window.renderStudio = function () { init(); renderDrafts(); };
+  // Also init eagerly so it works even if user never taps the tab before opening drafts
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
 })();
 </script>
