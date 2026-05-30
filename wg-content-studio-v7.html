@@ -49,11 +49,12 @@
   nav.tabs {
     display: flex; gap: 0; position: fixed; bottom: 0; left: 0; right: 0;
     background: #0e0e0e; border-top: 1px solid var(--line); z-index: 30;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   nav.tabs button {
-    flex: 1; background: none; border: none; color: var(--muted);
-    font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
-    padding: 14px 4px 16px; cursor: pointer; border-top: 3px solid transparent;
+    flex: 1 0 auto; min-width: 60px; background: none; border: none; color: var(--muted);
+    font-family: 'Oswald', sans-serif; font-size: 11.5px; letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 14px 2px 16px; cursor: pointer; border-top: 3px solid transparent; white-space: nowrap;
   }
   nav.tabs button.active { color: var(--bone); border-top-color: var(--red); }
 
