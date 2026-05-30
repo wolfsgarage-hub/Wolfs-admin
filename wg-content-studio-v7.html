@@ -261,7 +261,7 @@
         <button class="ghost" id="socCopyCaption" style="margin-top:10px;width:100%;">COPY CAPTION</button>
       </div>
       <div class="pkg" style="margin-top:12px;">
-        <div class="sub" style="margin-bottom:6px;">HASHTAGS (first comment)</div>
+        <div class="sub" style="margin-bottom:6px;">HASHTAGS (5 — first comment)</div>
         <div id="socHashtags" style="white-space:pre-wrap;line-height:1.5;word-break:break-word;"></div>
         <button class="ghost" id="socCopyHashtags" style="margin-top:10px;width:100%;">COPY HASHTAGS</button>
       </div>
@@ -943,7 +943,7 @@
       var origLabel = socRunBtn.textContent;
       socRunBtn.textContent = "READING VIDEO...";
 
-      extractVideoFrames(file, [0.15, 0.5, 0.85]).then(function (frames) {
+      extractVideoFrames(file, [0.08, 0.24, 0.40, 0.56, 0.72, 0.88]).then(function (frames) {
         frames.forEach(function (f) {
           var img = document.createElement("img");
           img.src = f.dataUrl;
@@ -961,10 +961,10 @@
 
         var system = "You are Wolf, writing Instagram posts for Wolf's Garage — a Portland-area hot rodder community brand (apparel, builds, C10 trucks, swap meet culture, kustom kulture). " +
           "Voice rules: " + toneDesc + ". Never use corporate marketing language. Use period-end statements, fragments are OK. Real over polished. " +
-          "Look at the 1-3 frames from a video about to be posted. Generate an Instagram post package. " +
+          "Look at the 1-6 frames from a video about to be posted. Generate an Instagram post package. " +
           "Output ONLY valid JSON with this exact shape: " +
           '{"caption": "post caption, under 220 chars, line breaks allowed, 0-2 emojis OK if they fit", ' +
-          '"hashtags": "10-15 hashtags space-separated, all lowercase with the # prefix, no commas, mix big-reach (#hotrod #c10) and niche (#pnwhotrods #portlandhotrods #wolfsgarage)", ' +
+          '"hashtags": "exactly ' + MAX_HASHTAGS + ' hashtags space-separated, all lowercase with the # prefix, no commas. Mix one or two big-reach tags (#hotrod #c10) with niche/local ones (#pnwhotrods #portlandhotrods #wolfsgarage). Pick the highest-relevance ' + MAX_HASHTAGS + ' for THIS specific video.", ' +
           '"alt_text": "1-2 concrete sentences describing what is visually in the frames, for accessibility"}';
 
         var userText = "Frames from the video are above. Generate the IG post package.";
