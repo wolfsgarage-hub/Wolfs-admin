@@ -246,11 +246,24 @@
     <input type="text" id="socSeed" placeholder="e.g. first paint, Tessa's truck, weekend run">
 
     <label>Tone</label>
-    <select id="socTone">
-      <option value="straight" selected>Straight Wolf</option>
-      <option value="gritty">Gritty</option>
-      <option value="hype">Hype</option>
-    </select>
+    <select id="socTone"></select>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="ghost" id="socTonesAddBtn" style="flex:1;font-size:12px;">+ ADD CUSTOM TONE</button>
+      <button class="ghost" id="socTonesManageBtn" style="flex:1;font-size:12px;">MANAGE CUSTOM</button>
+    </div>
+
+    <div id="socToneAddForm" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:7px;background:var(--panel);">
+      <label style="margin-top:0;">Tone label (short)</label>
+      <input type="text" id="socToneNewLabel" placeholder="e.g. Reflective, Trash-talking, Reverent" maxlength="40">
+      <label>How should Wolf write in this tone?</label>
+      <textarea id="socToneNewDesc" rows="3" placeholder="Describe the voice. e.g. 'Quiet, reverent, almost obituary-like. Short sentences. Honors the people, not the machinery.'" maxlength="400"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="act" id="socToneSaveBtn" style="flex:1;">SAVE TONE</button>
+        <button class="ghost" id="socToneCancelBtn" style="flex:1;">CANCEL</button>
+      </div>
+    </div>
+
+    <div id="socToneManageList" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:7px;background:var(--panel);"></div>
 
     <button class="act" id="socRun" style="margin-top:14px;">GENERATE POST</button>
 
@@ -884,6 +897,124 @@
   }
 
   // ---------------- SOCIAL TAB ----------------
+  var BUILT_IN_TONES = [
+    { id: "straight", label: "Straight Wolf",   desc: "matter-of-fact Wolf, no hype, no slogans, just the truth of what's happening" },
+    { id: "gritty",   label: "Gritty",          desc: "gritty, no-bullshit, blue-collar voice. Real hands, real metal, swearing OK but sparse" },
+    { id: "hype",     label: "Hype",            desc: "energetic and punchy, but never corporate. Short bursts, exclamation only if earned" },
+    { id: "nostalgic",label: "Nostalgic",       desc: "looking back at the era. Period detail, family garage feel, slight ache for what was" },
+    { id: "funny",    label: "Funny / Wry",     desc: "dry, tongue-in-cheek, self-deprecating. Garage humor. Never punch down" },
+    { id: "story",    label: "Storytelling",    desc: "narrative-driven. Open with a moment, end with a turn. Reads like a paragraph from a memoir" },
+    { id: "howto",    label: "Educational",     desc: "teaching voice. Walks the viewer through what they're seeing. Practical, concrete steps" },
+    { id: "reverent", label: "Reverent",        desc: "quiet, honoring tone. For memorials, lost rigs, departed friends. Short sentences. No marketing" }
+  ];
+  var TONE_LS_KEY = "wgcs:customTones";
+
+  function loadCustomTones() {
+    try { var raw = localStorage.getItem(TONE_LS_KEY); return raw ? JSON.parse(raw) : []; }
+    catch (e) { return []; }
+  }
+  function saveCustomTones(arr) {
+    try { localStorage.setItem(TONE_LS_KEY, JSON.stringify(arr || [])); } catch (e) {}
+  }
+  function getAllTones() {
+    var custom = loadCustomTones().map(function (t, i) {
+      return { id: "custom-" + i, label: t.label, desc: t.desc, isCustom: true, customIndex: i };
+    });
+    return BUILT_IN_TONES.concat(custom);
+  }
+  function renderToneDropdown() {
+    var sel = $("socTone");
+    if (!sel) return;
+    var prev = sel.value;
+    sel.innerHTML = "";
+    var all = getAllTones();
+    all.forEach(function (t, i) {
+      var opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.label + (t.isCustom ? " ★" : "");
+      if ((prev && prev === t.id) || (!prev && i === 0)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+  function getSelectedToneDesc() {
+    var sel = $("socTone");
+    if (!sel) return BUILT_IN_TONES[0].desc;
+    var val = sel.value;
+    var match = getAllTones().filter(function (t) { return t.id === val; })[0];
+    return match ? match.desc : BUILT_IN_TONES[0].desc;
+  }
+  function renderToneManageList() {
+    var wrap = $("socToneManageList");
+    var custom = loadCustomTones();
+    if (custom.length === 0) {
+      wrap.innerHTML = '<div class="sub" style="margin:0;">No custom tones yet. Tap + ADD CUSTOM TONE to create one.</div>';
+      return;
+    }
+    var html = '<div class="sub" style="margin:0 0 10px;">Your custom tones — tap × to delete</div>';
+    custom.forEach(function (t, i) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:8px;border-top:1px solid var(--line);">' +
+        '<div style="flex:1;"><div style="font-weight:600;">' + (t.label || '(unlabeled)') + '</div>' +
+        '<div class="sub" style="margin:4px 0 0;font-size:12px;">' + (t.desc || '') + '</div></div>' +
+        '<button class="ghost" data-del="' + i + '" style="padding:4px 10px;color:#ff5555;border-color:#ff5555;">×</button>' +
+        '</div>';
+    });
+    wrap.innerHTML = html;
+    wrap.querySelectorAll("[data-del]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idx = parseInt(btn.getAttribute("data-del"), 10);
+        var arr = loadCustomTones();
+        arr.splice(idx, 1);
+        saveCustomTones(arr);
+        renderToneDropdown();
+        renderToneManageList();
+        toast("Tone removed", "ok");
+      });
+    });
+  }
+
+  // Wire add/manage UI
+  if ($("socTone")) {
+    renderToneDropdown();
+    var addForm = $("socToneAddForm");
+    var manageList = $("socToneManageList");
+    $("socTonesAddBtn").addEventListener("click", function () {
+      manageList.style.display = "none";
+      addForm.style.display = addForm.style.display === "none" ? "block" : "none";
+      if (addForm.style.display === "block") {
+        $("socToneNewLabel").value = "";
+        $("socToneNewDesc").value = "";
+        $("socToneNewLabel").focus();
+      }
+    });
+    $("socTonesManageBtn").addEventListener("click", function () {
+      addForm.style.display = "none";
+      if (manageList.style.display === "none") {
+        renderToneManageList();
+        manageList.style.display = "block";
+      } else {
+        manageList.style.display = "none";
+      }
+    });
+    $("socToneCancelBtn").addEventListener("click", function () {
+      addForm.style.display = "none";
+    });
+    $("socToneSaveBtn").addEventListener("click", function () {
+      var label = ($("socToneNewLabel").value || "").trim();
+      var desc  = ($("socToneNewDesc").value || "").trim();
+      if (!label) { toast("Give the tone a label", "err"); return; }
+      if (!desc)  { toast("Describe how Wolf writes in this tone", "err"); return; }
+      var arr = loadCustomTones();
+      arr.push({ label: label, desc: desc });
+      saveCustomTones(arr);
+      renderToneDropdown();
+      // select the newly added tone
+      var sel = $("socTone");
+      sel.value = "custom-" + (arr.length - 1);
+      addForm.style.display = "none";
+      toast("Tone saved", "ok");
+    });
+  }
+
   function extractVideoFrames(file, percents) {
     return new Promise(function (resolve, reject) {
       var video = document.createElement("video");
@@ -932,7 +1063,7 @@
       if (!file) { toast("Pick a video first", "err"); return; }
       if (file.size > 100 * 1024 * 1024) { toast("Video over 100MB — trim it first", "err"); return; }
       var seed = ($("socSeed").value || "").trim();
-      var tone = $("socTone").value;
+      var toneDesc = getSelectedToneDesc();
       var out = $("socOut");
       var framesWrap = $("socFrames");
       var framesStrip = $("socFramesStrip");
@@ -952,12 +1083,6 @@
         });
         framesWrap.style.display = "block";
         socRunBtn.textContent = "WRITING POST...";
-
-        var toneDesc = ({
-          straight: "matter-of-fact Wolf, no hype, no slogans",
-          gritty: "gritty, no-bullshit, blue-collar voice",
-          hype: "energetic and punchy, but never corporate"
-        })[tone] || "matter-of-fact Wolf";
 
         var system = "You are Wolf, writing Instagram posts for Wolf's Garage — a Portland-area hot rodder community brand (apparel, builds, C10 trucks, swap meet culture, kustom kulture). " +
           "Voice rules: " + toneDesc + ". Never use corporate marketing language. Use period-end statements, fragments are OK. Real over polished. " +
