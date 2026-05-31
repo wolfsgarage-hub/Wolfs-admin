@@ -105,6 +105,15 @@
   .login-input:focus {
     outline: none; border-color: var(--red);
   }
+  .pw-row { display:flex; gap:8px; align-items:stretch; margin-bottom:14px; }
+  .pw-row .login-input { flex:1 1 auto; width:auto; margin-bottom:0; }
+  .pw-row .pw-toggle {
+    flex:0 0 auto; min-width:64px; box-sizing:border-box;
+    background: var(--black); border:1px solid var(--line-strong); color: var(--bone);
+    font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:1px;
+    padding:0 16px; cursor:pointer;
+  }
+  .pw-row .pw-toggle:hover, .pw-row .pw-toggle:active { border-color: var(--red); color: var(--red); }
   .login-btn {
     width: 100%;
     background: var(--red);
@@ -609,7 +618,10 @@
     <h1 class="login-title">WOLF'S GARAGE</h1>
     <div class="login-tag">// authorized hands only</div>
     <div class="login-error" id="login-error"></div>
-    <input type="password" id="login-pw" class="login-input" placeholder="PASSWORD" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="pw-row">
+      <input type="password" id="login-pw" class="login-input" placeholder="PASSWORD" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button type="button" class="pw-toggle" id="pw-toggle" onclick="togglePw()" aria-label="Show password">SHOW</button>
+    </div>
     <button class="login-btn" onclick="doLogin()">ENTER THE GARAGE</button>
     <div class="login-hint">
       forgot password? tap the wolf 5 times<br>
@@ -1325,6 +1337,14 @@ async function ensureDefaultPw() {
   }
 }
 
+function togglePw(){
+  var f=document.getElementById('login-pw'), b=document.getElementById('pw-toggle');
+  var show=f.type==='password';
+  f.type=show?'text':'password';
+  b.textContent=show?'HIDE':'SHOW';
+  b.setAttribute('aria-label', show?'Hide password':'Show password');
+  f.focus();
+}
 async function doLogin() {
   const pw = document.getElementById('login-pw').value;
   const stored = await Store.get(K.PW);
