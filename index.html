@@ -1002,7 +1002,31 @@
 <section class="panel" id="panel-events">
   <div class="panel-head">
     <h2>EVENT CALENDAR</h2>
-    <p>// approve, reject, re-queue, delete event submissions</p>
+    <p>// add your own events, or approve/reject/delete submissions</p>
+  </div>
+
+  <!-- ADD AN EVENT (admin-entered, auto-approved, posts straight to public calendar) -->
+  <div class="section" id="add-event-section">
+    <div class="section-head"><h3>ADD AN EVENT</h3></div>
+    <p style="font-family:'Special Elite',monospace;font-size:11px;color:rgba(245,241,232,0.55);margin:0 0 12px">Posts straight to the public calendar. No review needed.</p>
+
+    <input type="text" class="textarea" id="add-evt-title" placeholder="Event title (e.g. KICKIN' IT OLD SCHOOL)" maxlength="80" style="min-height:auto;padding:11px;margin-bottom:10px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <input type="date" class="textarea" id="add-evt-date" style="flex:1 1 150px;min-height:auto;padding:11px">
+      <input type="text" class="textarea" id="add-evt-time" placeholder="Time (e.g. 9AM-3PM)" maxlength="40" style="flex:1 1 150px;min-height:auto;padding:11px">
+    </div>
+    <input type="text" class="textarea" id="add-evt-location" placeholder="Location (e.g. Barton Park, Boring OR)" maxlength="120" style="min-height:auto;padding:11px;margin-bottom:10px">
+    <textarea class="textarea" id="add-evt-desc" placeholder="Short description (host, vibe, what to expect)" maxlength="400" style="min-height:90px;margin-bottom:10px"></textarea>
+
+    <label class="upload-zone" id="add-evt-flyer-zone" style="margin-bottom:10px">
+      <div class="upload-zone-icon">+</div>
+      <div class="upload-zone-label" id="add-evt-flyer-label">TAP TO ADD FLYER</div>
+      <div class="upload-zone-hint">JPG or PNG, max 10MB. Optional &mdash; you can post a date now and add art later.</div>
+      <input type="file" id="add-evt-flyer" accept="image/jpeg,image/png" style="display:none" onchange="addEvtFlyerPicked(event)">
+    </label>
+
+    <button class="btn btn-primary" id="add-evt-submit" style="width:100%" onclick="submitWolfEvent()">POST EVENT TO CALENDAR</button>
+    <div id="add-evt-status" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:12px;color:var(--copper)"></div>
   </div>
 
   <div class="section">
@@ -1242,6 +1266,11 @@ const FB_CONFIG = {
 };
 const ADMIN_EMAILS = ['wolfsgaragenw@gmail.com', 'illsupernova.ja@gmail.com'];
 const ADMIN_EMAIL = ADMIN_EMAILS[0]; // default suggestion in prompts
+// Cloudinary (unsigned) — same cloud / preset / folder the public site uses
+// for event flyers, so admin-added events match community submissions exactly.
+const CLOUDINARY_CLOUD = "dancaaglf";
+const CLOUDINARY_PRESET = "wolfs-garage";
+const CLOUDINARY_EVENTS_FOLDER = "wolfs-garage-events";
 let fbReady = false;
 let fbUser = null;
 let fbDb = null;
@@ -2534,6 +2563,90 @@ window.deleteBulletin = async function(id) {
 // approve at write time. Community submissions land as status='pending' and
 // need this UI to flip to 'approved' before they render on the public site.
 // Mirrors the renderPackPhotos pattern (Firestore-only, no local cache).
+
+// ----- Admin event entry (auto-approved, isWolf:true) -----
+// Writes the identical doc shape the public site's submission form produces,
+// so admin-added events render the same on the public calendar.
+let _addEvtFlyerFile = null;
+
+window.addEvtFlyerPicked = function(event) {
+  const f = event.target.files && event.target.files[0];
+  const label = document.getElementById('add-evt-flyer-label');
+  if (!f) { _addEvtFlyerFile = null; if (label) label.textContent = 'TAP TO ADD FLYER'; return; }
+  if (!['image/jpeg', 'image/png'].includes(f.type)) { toast('JPG or PNG only'); event.target.value = ''; _addEvtFlyerFile = null; if (label) label.textContent = 'TAP TO ADD FLYER'; return; }
+  if (f.size > 10 * 1024 * 1024) { toast('Flyer too big. Max 10MB'); event.target.value = ''; _addEvtFlyerFile = null; if (label) label.textContent = 'TAP TO ADD FLYER'; return; }
+  _addEvtFlyerFile = f;
+  if (label) label.textContent = 'FLYER READY \u2713';
+};
+
+window.submitWolfEvent = async function() {
+  if (!fbReady || !fbIsAdmin()) { toast('Sign in as admin first'); return; }
+  const title = (document.getElementById('add-evt-title').value || '').trim();
+  const date = document.getElementById('add-evt-date').value;
+  const time = (document.getElementById('add-evt-time').value || '').trim();
+  const location = (document.getElementById('add-evt-location').value || '').trim();
+  const description = (document.getElementById('add-evt-desc').value || '').trim();
+  const statusEl = document.getElementById('add-evt-status');
+  const btn = document.getElementById('add-evt-submit');
+  if (!title || !date || !location || !description) { toast('Need title, date, location, and description'); return; }
+
+  btn.disabled = true;
+  const origLabel = btn.textContent;
+  btn.textContent = 'POSTING...';
+  if (statusEl) statusEl.textContent = '';
+
+  try {
+    let flyerUrl = '';
+    let cloudinaryPublicId = '';
+    if (_addEvtFlyerFile) {
+      if (statusEl) statusEl.textContent = 'Uploading flyer...';
+      const fd = new FormData();
+      fd.append('file', _addEvtFlyerFile);
+      fd.append('upload_preset', CLOUDINARY_PRESET);
+      fd.append('folder', CLOUDINARY_EVENTS_FOLDER);
+      const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error('Cloudinary upload failed (' + res.status + ')');
+      const data = await res.json();
+      flyerUrl = data.secure_url || '';
+      cloudinaryPublicId = data.public_id || '';
+    }
+    if (statusEl) statusEl.textContent = 'Saving to calendar...';
+    const user = fbAuth.currentUser;
+    await fbDb.collection('events').add({
+      userId: user ? user.uid : '',
+      userEmail: user ? user.email : ADMIN_EMAIL,
+      title: title,
+      date: date,
+      time: time,
+      location: location,
+      description: description,
+      flyerUrl: flyerUrl,
+      cloudinaryPublicId: cloudinaryPublicId,
+      status: 'approved',
+      isWolf: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('Event posted to calendar');
+    if (statusEl) statusEl.textContent = 'Live on the public calendar.';
+    document.getElementById('add-evt-title').value = '';
+    document.getElementById('add-evt-date').value = '';
+    document.getElementById('add-evt-time').value = '';
+    document.getElementById('add-evt-location').value = '';
+    document.getElementById('add-evt-desc').value = '';
+    _addEvtFlyerFile = null;
+    const flyerInput = document.getElementById('add-evt-flyer'); if (flyerInput) flyerInput.value = '';
+    const flyerLabel = document.getElementById('add-evt-flyer-label'); if (flyerLabel) flyerLabel.textContent = 'TAP TO ADD FLYER';
+    if (typeof renderEvents === 'function') await renderEvents();
+  } catch (err) {
+    console.error('submitWolfEvent error:', err);
+    toast('Post failed: ' + (err.message || err.code || 'try again'));
+    if (statusEl) statusEl.textContent = 'Failed: ' + (err.message || err.code || 'try again');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origLabel;
+  }
+};
+
 const EVENT_MONTHS_ADMIN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function formatEventDate(d) {
