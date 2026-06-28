@@ -307,6 +307,8 @@
   .btn-approve:hover, .btn-approve:active { background: var(--copper); color: var(--black); }
   .btn-reject { border-color: var(--red); color: var(--red); }
   .btn-reject:hover, .btn-reject:active { background: var(--red); color: var(--bone); }
+  .btn-feature { border-color: var(--copper); color: var(--copper); }
+  .btn-feature:hover, .btn-feature:active { background: var(--red); color: var(--bone); border-color: var(--red); }
   .btn-primary { background: var(--red); border-color: var(--red); color: var(--bone); }
   .btn-primary:hover, .btn-primary:active { background: var(--red-dark); }
   .btn-ghost { color: rgba(245,241,232,0.55); }
@@ -2170,7 +2172,8 @@ function listingCard(l, isPending) {
     ? `<button class="btn btn-approve" onclick="setStatus('${l.id}','approved')">APPROVE</button>
        <button class="btn btn-reject" onclick="setStatus('${l.id}','rejected')">REJECT</button>
        <button class="btn btn-ghost" onclick="deleteListing('${l.id}')">DELETE</button>`
-    : `<button class="btn btn-ghost" onclick="setStatus('${l.id}','pending')">RE-QUEUE</button>
+    : `<button class="btn btn-feature" onclick="featureListing('${l.id}')">★ FEATURE</button>
+       <button class="btn btn-ghost" onclick="setStatus('${l.id}','pending')">RE-QUEUE</button>
        <button class="btn btn-reject" onclick="deleteListing('${l.id}')">DELETE</button>`;
 
   // Email lives on the auth-bound userEmail field (directory writes currentUser.email there).
@@ -2214,6 +2217,23 @@ function listingCard(l, isPending) {
       <div class="card-actions">${actions}</div>
     </div>
   `;
+}
+
+async function featureListing(id) {
+  const all = await loadAllListings();
+  const listing = all.find(l => l.id === id);
+  const name = (listing && listing.bizName) ? listing.bizName : 'Business';
+  if (!(fbReady && fbIsAdmin())) { toast('Sign in as admin to feature'); return; }
+  try {
+    await fbDb.collection('settings').doc('featured').set({
+      listingId: id, bizName: name, updatedAt: Date.now()
+    });
+  } catch (err) {
+    console.error('Featured write failed:', err);
+    toast('Feature failed - check connection');
+    return;
+  }
+  toast(name + ' is now featured');
 }
 
 async function setStatus(id, status) {
