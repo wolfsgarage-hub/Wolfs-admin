@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Wolf's Garage Content Studio v7</title>
+<title>Wolf's Garage Content Studio v7.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
@@ -160,7 +160,7 @@
 <header>
   <div class="wrap">
     <h1>WOLF'S <span class="acc">GARAGE</span></h1>
-    <div class="tag">Content Studio v7 // Trend Intel May 2026</div>
+    <div class="tag">Content Studio v7.1 // proxy // Trend Intel May 2026</div>
   </div>
 </header>
 
@@ -296,11 +296,11 @@
   <!-- ============ SETUP ============ -->
   <section class="panel" id="p-setup">
     <h2>SETUP</h2>
-    <p class="sub">Your Anthropic key stays on this phone only. Never leaves the browser.</p>
-    <label>Anthropic API Key</label>
-    <input type="password" id="keyField" placeholder="sk-ant-..." autocomplete="off">
-    <button class="ghost" id="saveKey" style="margin-top:10px;">Save Key</button>
-    <button class="ghost" id="testKey" style="margin-top:10px;margin-left:6px;">Test Key</button>
+    <p class="sub">No API key in the browser anymore — requests go through the Wolf's Garage anthropic-proxy, which holds the key server-side.</p>
+    <label>Proxy token <span style="color:var(--muted)">(only if you opened this as a local file)</span></label>
+    <input type="password" id="keyField" placeholder="leave blank on phone / hosted" autocomplete="off">
+    <button class="ghost" id="saveKey" style="margin-top:10px;">Save Token</button>
+    <button class="ghost" id="testKey" style="margin-top:10px;margin-left:6px;">Test Proxy</button>
     <div id="keyStatus" style="margin-top:12px;font-size:13px;color:var(--muted);"></div>
 
     <div class="note" style="margin-top:24px;">
@@ -329,9 +329,11 @@
 
   // ---------------- CONFIG ----------------
   var MODEL = "claude-sonnet-4-6";
+  var ANTHROPIC_PROXY = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/anthropic-proxy";
   var MAX_HASHTAGS = 5;
   var LS = {
-    KEY: "wgpost:key",        // shared with old app so the saved key carries over
+    KEY: "wgpost:key",        // legacy; no longer used for Anthropic
+    PROXYTOKEN: "wgpost:proxytoken", // optional, only for local file:// use of the proxy
     DRAFTS: "wgcs:drafts"     // new namespace for studio drafts
   };
 
@@ -409,6 +411,12 @@
   function setLS(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function getLS(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function getKey() { return getLS(LS.KEY) || ""; }
+  function proxyHeaders() {
+    var h = { "Content-Type": "application/json" };
+    var tok = getLS(LS.PROXYTOKEN) || "";   // only needed for local file:// use
+    if (tok) h["x-wg-token"] = tok;
+    return h;
+  }
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -586,8 +594,7 @@
 
   // ---------------- CLAUDE CALL ----------------
   function callClaude(system, userText, images, maxTokens) {
-    var apiKey = getKey();
-    if (!apiKey) { toast("Add your API key in Setup", "err"); switchTab("setup"); return Promise.resolve(null); }
+    // No API key in the browser — the anthropic-proxy holds it server-side.
     var userContent = [];
     (images || []).forEach(function (img) {
       userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType || "image/jpeg", data: img.base64 } });
@@ -599,14 +606,9 @@
       system: system,
       messages: [{ role: "user", content: userContent }]
     };
-    return fetch("https://api.anthropic.com/v1/messages", {
+    return fetch(ANTHROPIC_PROXY, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
+      headers: proxyHeaders(),
       body: JSON.stringify(body)
     }).then(function (resp) {
       if (!resp.ok) {
@@ -1123,31 +1125,28 @@
 
   // ---------------- SETUP / KEY ----------------
   (function initKey() {
-    var k = getKey();
-    if (k) { $("keyField").value = k; $("keyStatus").textContent = "Key loaded from this device."; }
+    var t = getLS(LS.PROXYTOKEN) || "";
+    if (t) { $("keyField").value = t; }
+    $("keyStatus").textContent = "Using the anthropic-proxy — no API key stored in this browser.";
   })();
   $("saveKey").addEventListener("click", function () {
     var v = $("keyField").value.trim();
-    setLS(LS.KEY, v);
-    toast(v ? "Key saved" : "Key cleared", "ok");
-    $("keyStatus").textContent = v ? "Key saved on this device." : "No key set.";
+    setLS(LS.PROXYTOKEN, v);
+    toast(v ? "Token saved" : "Token cleared", "ok");
+    $("keyStatus").textContent = v ? "Proxy token saved on this device." : "No token set (fine on phone / hosted).";
   });
   $("testKey").addEventListener("click", function () {
-    var v = $("keyField").value.trim();
-    if (!v) { toast("Enter a key first", "err"); return; }
-    setLS(LS.KEY, v);
-    $("keyStatus").textContent = "Testing...";
-    fetch("https://api.anthropic.com/v1/messages", {
+    setLS(LS.PROXYTOKEN, $("keyField").value.trim());
+    $("keyStatus").textContent = "Testing proxy...";
+    fetch(ANTHROPIC_PROXY, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json", "x-api-key": v,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
+      headers: proxyHeaders(),
       body: JSON.stringify({ model: MODEL, max_tokens: 10, messages: [{ role: "user", content: "ping" }] })
     }).then(function (r) {
-      if (r.ok) { $("keyStatus").textContent = "Key works. You are good."; toast("Key works", "ok"); }
-      else { $("keyStatus").textContent = "Key rejected. HTTP " + r.status; toast("Key rejected", "err"); }
+      if (r.ok) { $("keyStatus").textContent = "Proxy works. You are good."; toast("Proxy works", "ok"); }
+      else if (r.status === 403) { $("keyStatus").textContent = "Blocked (403). Phone/hosted should pass; for the local file, paste your proxy token above and Save."; toast("403 blocked", "err"); }
+      else if (r.status === 500) { $("keyStatus").textContent = "Proxy is up, but ANTHROPIC_API_KEY is not set in Supabase yet."; toast("Set the secret", "err"); }
+      else { $("keyStatus").textContent = "Proxy error HTTP " + r.status; toast("Proxy error", "err"); }
     }).catch(function (e) {
       $("keyStatus").textContent = "Network error: " + (e.message || "unknown");
       toast("Network error", "err");
