@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="wg-version" content="1.0">
+<title>WG Post Queue v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--bone); font-family:'Work Sans',sans-serif; padding-bottom:70px; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; }
+  header h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:.04em; }
+  header img { height:44px; }
+  .pinstripe { height:4px; background:linear-gradient(to bottom, transparent 0, transparent 1px, var(--red) 1px, var(--red) 2px, var(--bone) 2px, var(--bone) 3px, transparent 3px, transparent 4px); opacity:.9; }
+  .sub { font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.15em; text-transform:uppercase; color:var(--copper); padding:10px 16px 2px; }
+  .card { background:var(--bg2); border:1px solid var(--line); border-radius:4px; margin:14px 12px; overflow:hidden; }
+  .meta { display:flex; justify-content:space-between; align-items:center; padding:10px 12px 0; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; gap:8px; flex-wrap:wrap; }
+  .meta .fmt { color:var(--copper); }
+  .meta .slot { color:var(--bone-dim); }
+  .chip { padding:3px 9px; border-radius:3px; font-size:11px; background:var(--bg3); border:1px solid var(--line); }
+  .chip.pending { color:var(--copper); border-color:var(--copper); }
+  .chip.approved { color:var(--bone); border-color:var(--bone); }
+  .chip.killed { color:var(--red); border-color:var(--red); }
+  .chip.fix { color:var(--bone); border-color:var(--bone-dim); }
+  .slides { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:8px; padding:12px; }
+  .slides canvas, .slides img { width:82%; flex:0 0 82%; scroll-snap-align:center; border-radius:3px; display:block; border:2px solid transparent; }
+  .slides .sel { border-color:var(--copper); }
+  .panel { margin:0 12px 10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--line); border-radius:4px; }
+  .panel .rowlab { font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--bone-dim); margin:8px 0 2px; }
+  .panel input[type=range] { width:100%; accent-color:var(--red); min-height:32px; }
+  .srow { display:flex; gap:8px; margin-top:10px; }
+  .sbtn { flex:1; padding:11px 6px; min-height:44px; background:var(--bg2); color:var(--bone); border:1px solid var(--line); border-radius:4px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
+  .sbtn:active { background:#000; }
+  .sbtn.warn { border-color:var(--red-dim); color:var(--red); }
+  .field { margin:0 12px 10px; }
+  .field label { display:block; font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--copper); margin-bottom:4px; }
+  .field textarea, .field input[type=text] { width:100%; background:var(--bg3); color:var(--bone); border:1px solid var(--line); border-radius:4px; padding:10px; font-family:'Work Sans',sans-serif; font-size:14.5px; line-height:1.5; }
+  .field textarea { min-height:96px; resize:vertical; }
+  .hint { font-size:11px; color:var(--bone-dim); margin-top:3px; }
+  .flag { margin:0 12px 10px; padding:8px 10px; border-left:3px solid var(--red); background:#1a1a1a; font-size:13px; color:var(--bone-dim); }
+  .actions { display:flex; gap:8px; padding:0 12px 12px; flex-wrap:wrap; }
+  .btn { flex:1 1 45%; padding:13px 8px; min-height:48px; border:0; border-radius:4px; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:.12em; text-transform:uppercase; color:var(--bone); }
+  .btn.save { background:var(--bg3); border:1px solid var(--copper); color:var(--copper); }
+  .btn.post { background:var(--red); }
+  .btn.post:active { background:#a30000; }
+  .btn.kill { background:var(--bg3); border:1px solid var(--red); color:var(--red); }
+  .btn.fixit { background:var(--bg3); border:1px solid var(--line); }
+  .btn:disabled { opacity:.45; }
+  .reasons { display:none; padding:0 12px 12px; gap:8px; flex-wrap:wrap; }
+  .reasons.open { display:flex; }
+  .note { margin:0 12px 12px; display:none; }
+  .note.open { display:block; }
+  .stat { margin:0 12px 12px; font-size:13px; color:var(--bone-dim); display:none; }
+  .stat.err { color:var(--red); display:block; }
+  .stat.ok { color:var(--copper); display:block; }
+  .card.busy { pointer-events:none; opacity:.75; }
+  footer { font-family:'Special Elite',monospace; text-align:center; color:#555; font-size:11px; padding:18px 10px 8px; }
+  #status { text-align:center; color:var(--bone-dim); padding:30px 16px; font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>POST QUEUE</h1>
+  <img src="assets/wolf-logo.png" alt="Wolf's Garage">
+</header>
+<div class="pinstripe"></div>
+<div class="sub">Tap a slide to edit its crop. Edit text in place. Nothing posts itself.</div>
+<div id="status">Loading queue...</div>
+<div id="list"></div>
+<div class="pinstripe"></div>
+<footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
+<script>
+console.log("WG post-queue v1.0");
+(function () {
+  "use strict";
+  var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
+  var SUPABASE_ANON_KEY = "sb_publishable_6HlaADfe1rKI0qLuPLxEXg_LrpQR57u";
+  var RAW_BASE = "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/";
+  var QUEUE_PATH = "data/post-queue.json";
+  var W = 1080, H = 1350, INSET = 43, IW = 994, IH = 1264;
+  var BLACK = "#0A0A0A", RED = "#CC0000", BONE = "#F5F1E8";
+
+  var statusEl = document.getElementById("status");
+  var listEl = document.getElementById("list");
+  var models = [];
+  var queueDoc = null; /* session source of truth for writes - see saveQueueDoc */
+  function modelById(id) {
+    for (var i = 0; i < models.length; i++) { if (models[i].draft.id === id) { return models[i]; } }
+    return null;
+  }
+  window.addEventListener("beforeunload", function (e) {
+    var dirty = models.some(function (m) { return m.dirtyDoc; });
+    if (dirty) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  function callProxy(action, extraBody) {
+    var body = Object.assign({ action: action }, extraBody || {});
+    return fetch(SUPABASE_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return null; }).then(function (data) {
+        if (!r.ok) {
+          var e = new Error((data && (data.error || data.detail)) || ("HTTP " + r.status));
+          e.status = r.status; throw e;
+        }
+        return data;
+      });
+    });
+  }
+
+  function b64utf8(str) { return btoa(unescape(encodeURIComponent(str))); }
+
+  /* ---- template renderer: canvas port of _skills/post-assembler/assemble.py ---- */
+  function bandRect(ctx, x0, y0, x1, y1, t, color) {
+    var w = x1 - x0 + 1, h = y1 - y0 + 1;
+    ctx.fillStyle = color;
+    ctx.fillRect(x0, y0, w, t); ctx.fillRect(x0, y1 - t + 1, w, t);
+    ctx.fillRect(x0, y0, t, h); ctx.fillRect(x1 - t + 1, y0, t, h);
+  }
+  function hstripes(ctx, x, w, y, topDown) {
+    var seq = topDown ? [[RED, 3], [null, 3], [BONE, 2]] : [[BONE, 2], [null, 3], [RED, 3]];
+    for (var i = 0; i < seq.length; i++) {
+      if (seq[i][0]) { ctx.fillStyle = seq[i][0]; ctx.fillRect(x, y, w, seq[i][1]); }
+      y += seq[i][1];
+    }
+  }
+  function hookPlate(ctx, text) {
+    var x0 = INSET, y1 = H - INSET, ph = 168, y0 = y1 - ph;
+    ctx.fillStyle = "rgba(10,10,10,0.7216)"; ctx.fillRect(x0, y0, IW, ph);
+    hstripes(ctx, x0, IW, y0 + 10, true);
+    hstripes(ctx, x0, IW, y1 - 18, false);
+    var size = 84, maxW = IW * 0.84;
+    ctx.font = size + "px 'Bebas Neue'";
+    while (size > 28 && ctx.measureText(text).width > maxW) { size -= 2; ctx.font = size + "px 'Bebas Neue'"; }
+    ctx.fillStyle = BONE; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(text, W / 2, y0 + ph / 2 + 4);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+  function renderSlide(canvas, img, crop, hook) {
+    var ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.fillStyle = BLACK; ctx.fillRect(0, 0, W, H);
+    var zoom = Math.max(1, crop.zoom || 1);
+    var scale = Math.max(IW / img.naturalWidth, IH / img.naturalHeight) * zoom;
+    var sw = IW / scale, sh = IH / scale;
+    var sx = (img.naturalWidth - sw) * crop.focus_x;
+    var sy = (img.naturalHeight - sh) * crop.focus_y;
+    ctx.drawImage(img, sx, sy, sw, sh, INSET, INSET, IW, IH);
+    if (hook) { hookPlate(ctx, hook); }
+    bandRect(ctx, 26, 26, W - 27, H - 27, 4, RED);
+    bandRect(ctx, 34, 34, W - 35, H - 35, 3, BONE);
+  }
+
+  /* ---- model ---- */
+  function firstPhotoIdx(slides) {
+    for (var i = 0; i < slides.length; i++) { if (slides[i].kind === "photo") { return i; } }
+    return -1;
+  }
+  function makeModel(draft) {
+    var m = { orig: draft, draft: JSON.parse(JSON.stringify(draft)), sel: -1, dirtyDoc: false, busy: false, els: {} };
+    m.draft.slides.forEach(function (s) { if (s.kind === "photo") { s._dirtyPixels = false; } });
+    m.savedDraft = JSON.parse(JSON.stringify(draft));
+    return m;
+  }
+
+  function markPixelsDirty(s) {
+    /* slides whose source image failed to load stay un-editable - never queue them for re-render */
+    if (s && s.kind === "photo" && s._img) { s._dirtyPixels = true; }
+  }
+  function firstPhoto(slides) {
+    var i = firstPhotoIdx(slides);
+    return i >= 0 ? slides[i] : null;
+  }
+
+  function loadImage(src) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { reject(new Error("image load failed: " + src)); };
+      img.src = src;
+    });
+  }
+
+  /* ---- per-draft UI ---- */
+  function setStat(m, msg, cls) {
+    m.els.stat.textContent = msg || "";
+    m.els.stat.className = "stat" + (cls ? " " + cls : "");
+  }
+
+  function repaint(m) {
+    var hookIdx = m.draft.format === "carousel" ? firstPhotoIdx(m.draft.slides) : -1;
+    m.draft.slides.forEach(function (s, i) {
+      if (s.kind !== "photo" || !s._img || !s._canvas) { return; }
+      renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null);
+    });
+  }
+
+  function markDirty(m) {
+    m.dirtyDoc = true;
+    m.els.save.disabled = false;
+    m.els.save.textContent = "SAVE EDITS";
+  }
+
+  function rebuildStrip(m) {
+    var strip = m.els.strip;
+    strip.innerHTML = "";
+    m.draft.slides.forEach(function (s, i) {
+      var el;
+      if (s.kind === "photo") {
+        el = s._canvas || document.createElement("canvas");
+        el.width = W; el.height = H;
+        s._canvas = el;
+      } else {
+        el = document.createElement("img");
+        el.src = s.file; el.loading = "lazy"; el.alt = "brand card";
+      }
+      el.className = (m.sel === i && s.kind === "photo") ? "sel" : "";
+      el.onclick = function () { m.sel = (m.sel === i ? -1 : i); rebuildStrip(m); buildPanel(m); };
+      strip.appendChild(el);
+    });
+    repaint(m);
+  }
+
+  function buildPanel(m) {
+    var p = m.els.panel;
+    p.innerHTML = ""; p.style.display = "none";
+    var i = m.sel;
+    if (i < 0) { return; }
+    var s = m.draft.slides[i];
+    if (!s || s.kind !== "photo") { return; }
+    p.style.display = "block";
+
+    function slider(label, val, min, max, oninput) {
+      var lab = document.createElement("div"); lab.className = "rowlab"; lab.textContent = label;
+      var r = document.createElement("input");
+      r.type = "range"; r.min = min; r.max = max; r.value = val;
+      r.oninput = function () { if (m.busy) { return; } oninput(Number(r.value)); markPixelsDirty(s); markDirty(m); repaint(m); };
+      p.appendChild(lab); p.appendChild(r);
+    }
+    if (s._img) {
+      slider("Left / right", Math.round(s.crop.focus_x * 100), 0, 100, function (v) { s.crop.focus_x = v / 100; });
+      slider("Up / down", Math.round(s.crop.focus_y * 100), 0, 100, function (v) { s.crop.focus_y = v / 100; });
+      slider("Zoom", Math.round((s.crop.zoom || 1) * 100), 100, 250, function (v) { s.crop.zoom = v / 100; });
+    } else {
+      var lock = document.createElement("div"); lock.className = "hint";
+      lock.textContent = "Source image did not load, so crop is locked. Move or remove still works.";
+      p.appendChild(lock);
+    }
+
+    var row = document.createElement("div"); row.className = "srow";
+    function sbtn(txt, cls, fn) {
+      var b = document.createElement("button"); b.className = "sbtn" + (cls ? " " + cls : "");
+      b.textContent = txt; b.onclick = fn; row.appendChild(b);
+    }
+    sbtn("MOVE LEFT", "", function () { moveSlide(m, i, -1); });
+    sbtn("MOVE RIGHT", "", function () { moveSlide(m, i, 1); });
+    sbtn("REMOVE", "warn", function () { removeSlide(m, i); });
+    p.appendChild(row);
+    var hint = document.createElement("div"); hint.className = "hint";
+    hint.textContent = "Crop and zoom re-render this slide on the brand frame when you hit SAVE EDITS.";
+    p.appendChild(hint);
+  }
+
+  function moveSlide(m, i, dir) {
+    if (m.busy) { return; }
+    var j = i + dir, arr = m.draft.slides;
+    if (j < 0 || j >= arr.length) { return; }
+    if (arr[j].kind !== "photo") { return; } /* brand end card stays last */
+    var wasFirst = firstPhoto(arr);
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    m.sel = j;
+    var isFirst = firstPhoto(arr);
+    if (m.draft.hook && wasFirst !== isFirst) { markPixelsDirty(wasFirst); markPixelsDirty(isFirst); }
+    markDirty(m); rebuildStrip(m); buildPanel(m);
+  }
+  function removeSlide(m, i) {
+    if (m.busy) { return; }
+    var photos = m.draft.slides.filter(function (s) { return s.kind === "photo"; }).length;
+    if (m.draft.slides[i].kind === "photo" && photos <= 1) {
+      setStat(m, "Last photo slide stays. KILL IT if the whole post is wrong.", "err"); return;
+    }
+    var wasFirst = firstPhoto(m.draft.slides);
+    m.draft.slides.splice(i, 1);
+    m.sel = -1;
+    var isFirst = firstPhoto(m.draft.slides);
+    if (m.draft.hook && wasFirst !== isFirst) { markPixelsDirty(isFirst); }
+    markDirty(m); rebuildStrip(m); buildPanel(m);
+  }
+
+  /* ---- persistence ---- */
+  function serializeDraft(m) {
+    var d = JSON.parse(JSON.stringify(m.draft, function (k, v) {
+      return (k === "_dirtyPixels" || k === "_img" || k === "_canvas") ? undefined : v;
+    }));
+    return d;
+  }
+
+  function uploadDirtySlides(m) {
+    var chain = Promise.resolve();
+    var hookIdx = m.draft.format === "carousel" ? firstPhotoIdx(m.draft.slides) : -1;
+    m.draft.slides.forEach(function (s, i) {
+      if (s.kind !== "photo" || !s._dirtyPixels) { return; }
+      if (!s._img) { s._dirtyPixels = false; return; } /* un-editable slide keeps its existing render */
+      chain = chain.then(function () {
+        renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null);
+        var b64 = s._canvas.toDataURL("image/jpeg", 0.9).split(",")[1];
+        var path = "renders/posts/" + m.draft.id + "/slide-" + (i + 1) + "-" + Date.now() + ".jpg";
+        return callProxy("upload", { path: path, contentBase64: b64, message: "queue edit: " + m.draft.id + " slide " + (i + 1) }).then(function () {
+          s.file = path; s.raw_url = RAW_BASE + path; s._dirtyPixels = false;
+        });
+      });
+    });
+    return chain;
+  }
+
+  function saveQueueDoc(m) {
+    /* No CDN refetch on the write path - the CDN lags commits by ~60s and sequential
+       saves would clobber each other. queueDoc is this session's source of truth:
+       the saving draft serializes fresh, every other draft contributes its LAST-SAVED
+       state, so a save never resurrects stale data or leaks unsaved edits. */
+    var mine = serializeDraft(m);
+    queueDoc.drafts = queueDoc.drafts.map(function (d) {
+      if (d.id === mine.id) { return mine; }
+      var other = modelById(d.id);
+      return other ? other.savedDraft : d;
+    });
+    queueDoc.updated = new Date().toISOString();
+    return callProxy("upload", {
+      path: QUEUE_PATH,
+      contentBase64: b64utf8(JSON.stringify(queueDoc, null, 2)),
+      message: "queue update: " + mine.id + " -> " + mine.status
+    }).then(function () { m.savedDraft = mine; });
+  }
+
+  function persist(m, busyMsg, okMsg) {
+    if (m.busy) { return Promise.resolve(); }
+    m.busy = true;
+    if (m.els.card) { m.els.card.classList.add("busy"); }
+    var prev = { status: m.draft.status, kill_reason: m.draft.kill_reason, fix_note: m.draft.fix_note };
+    setStat(m, busyMsg, "ok");
+    m.els.save.disabled = true;
+    return uploadDirtySlides(m)
+      .then(function () { return saveQueueDoc(m); })
+      .then(function () {
+        m.dirtyDoc = false;
+        m.els.save.textContent = "SAVED";
+        setStat(m, okMsg + " (repo updates in ~60s on the CDN)", "ok");
+      })
+      .catch(function (e) {
+        m.draft.status = prev.status;
+        m.draft.kill_reason = prev.kill_reason;
+        m.draft.fix_note = prev.fix_note;
+        m.els.save.disabled = false;
+        setStat(m, "Save failed: " + e.message + " - nothing sent, draft is back to " + prev.status + ". Try again or tell Claude.", "err");
+      })
+      .then(function () {
+        m.busy = false;
+        if (m.els.card) { m.els.card.classList.remove("busy"); }
+        refreshChip(m);
+      });
+  }
+
+  function refreshChip(m) {
+    var map = { pending_approval: ["PENDING", "pending"], approved: ["APPROVED", "approved"], killed: ["KILLED", "killed"], fix: ["FIX IT", "fix"], published: ["PUBLISHED", "approved"] };
+    var v = map[m.draft.status] || [m.draft.status, "pending"];
+    m.els.chip.textContent = v[0];
+    m.els.chip.className = "chip " + v[1];
+  }
+
+  /* ---- card build ---- */
+  function buildCard(m) {
+    var d = m.draft;
+    var card = document.createElement("div"); card.className = "card";
+    m.els.card = card;
+
+    var meta = document.createElement("div"); meta.className = "meta";
+    var left = document.createElement("span"); left.className = "fmt";
+    left.textContent = d.format + " · " + d.id;
+    var chip = document.createElement("span"); chip.className = "chip"; m.els.chip = chip;
+    var slot = document.createElement("span"); slot.className = "slot";
+    slot.textContent = (d.target_slot || "").replace(" America/Los_Angeles", " PT");
+    meta.appendChild(left); meta.appendChild(slot); meta.appendChild(chip);
+    card.appendChild(meta);
+
+    var strip = document.createElement("div"); strip.className = "slides"; m.els.strip = strip;
+    card.appendChild(strip);
+
+    var panel = document.createElement("div"); panel.className = "panel"; panel.style.display = "none";
+    m.els.panel = panel; card.appendChild(panel);
+
+    if (d.format === "carousel") {
+      var fh = document.createElement("div"); fh.className = "field";
+      fh.innerHTML = "<label>Hook (baked onto slide 1)</label>";
+      var hi = document.createElement("input"); hi.type = "text"; hi.value = d.hook || "";
+      hi.oninput = function () {
+        if (m.busy) { return; }
+        d.hook = hi.value;
+        markPixelsDirty(firstPhoto(d.slides));
+        markDirty(m); repaint(m);
+      };
+      fh.appendChild(hi); card.appendChild(fh);
+    }
+
+    var fc = document.createElement("div"); fc.className = "field";
+    fc.innerHTML = "<label>Caption</label>";
+    var ta = document.createElement("textarea"); ta.value = d.caption;
+    ta.oninput = function () { if (m.busy) { return; } d.caption = ta.value; markDirty(m); };
+    fc.appendChild(ta); card.appendChild(fc);
+
+    var ft = document.createElement("div"); ft.className = "field";
+    ft.innerHTML = "<label>Hashtags</label>";
+    var ti = document.createElement("input"); ti.type = "text"; ti.value = (d.hashtags || []).join(" ");
+    var hintT = document.createElement("div"); hintT.className = "hint";
+    function tagHint() {
+      var tags = ti.value.split(/\s+/).filter(function (t) { return t.length; });
+      hintT.textContent = tags.length + " tags. House rule: 5, open #wolfsgarage, close #getbackinthegarage.";
+    }
+    tagHint();
+    ti.oninput = function () {
+      if (m.busy) { return; }
+      d.hashtags = ti.value.split(/\s+/).filter(function (t) { return t.length; });
+      tagHint(); markDirty(m);
+    };
+    ft.appendChild(ti); ft.appendChild(hintT); card.appendChild(ft);
+
+    (d.flags || []).forEach(function (f) {
+      var fl = document.createElement("div"); fl.className = "flag"; fl.textContent = "FLAG: " + f;
+      card.appendChild(fl);
+    });
+
+    var actions = document.createElement("div"); actions.className = "actions";
+    var save = document.createElement("button"); save.className = "btn save"; save.textContent = "SAVE EDITS"; save.disabled = true;
+    m.els.save = save;
+    save.onclick = function () { persist(m, "Saving edits...", "Edits saved."); };
+    var post = document.createElement("button"); post.className = "btn post"; post.textContent = "POST IT";
+    post.onclick = function () {
+      if (m.busy) { return; }
+      d.status = "approved"; d.kill_reason = null; d.fix_note = null;
+      persist(m, "Approving...", "Approved. Waits for the publisher (Build 1.3).");
+    };
+    var fixb = document.createElement("button"); fixb.className = "btn fixit"; fixb.textContent = "FIX IT";
+    var kill = document.createElement("button"); kill.className = "btn kill"; kill.textContent = "KILL IT";
+    actions.appendChild(save); actions.appendChild(post); actions.appendChild(fixb); actions.appendChild(kill);
+    card.appendChild(actions);
+
+    var reasons = document.createElement("div"); reasons.className = "reasons";
+    ["WRONG PHOTO", "WEAK CAPTION", "OFF-BRAND", "OTHER"].forEach(function (rz) {
+      var b = document.createElement("button"); b.className = "sbtn warn"; b.textContent = rz;
+      b.onclick = function () {
+        if (m.busy) { return; }
+        d.status = "killed"; d.kill_reason = rz.toLowerCase(); d.fix_note = null;
+        reasons.className = "reasons";
+        persist(m, "Killing...", "Killed. The assembler learns from the reason.");
+      };
+      reasons.appendChild(b);
+    });
+    kill.onclick = function () { reasons.className = reasons.className === "reasons open" ? "reasons" : "reasons open"; };
+    card.appendChild(reasons);
+
+    var note = document.createElement("div"); note.className = "note field";
+    note.innerHTML = "<label>What should change? (one line back to the assembler)</label>";
+    var ni = document.createElement("input"); ni.type = "text";
+    var send = document.createElement("button"); send.className = "sbtn"; send.style.marginTop = "8px"; send.textContent = "SEND TO REDO PILE";
+    send.onclick = function () {
+      if (m.busy) { return; }
+      if (!ni.value.trim()) { setStat(m, "Write the one-liner first.", "err"); return; }
+      d.status = "fix"; d.fix_note = ni.value.trim(); d.kill_reason = null;
+      note.className = "note field";
+      persist(m, "Sending...", "In the redo pile for the next assembler run.");
+    };
+    note.appendChild(ni); note.appendChild(send);
+    fixb.onclick = function () { note.className = note.className.indexOf("open") > -1 ? "note field" : "note field open"; };
+    card.appendChild(note);
+
+    var stat = document.createElement("div"); stat.className = "stat"; m.els.stat = stat;
+    card.appendChild(stat);
+
+    refreshChip(m);
+    listEl.appendChild(card);
+    rebuildStrip(m);
+  }
+
+  /* ---- boot ---- */
+  var fontsReady = Promise.all([
+    document.fonts.load("84px 'Bebas Neue'"),
+    document.fonts.load("500 12px 'Oswald'")
+  ]).catch(function () { /* draw anyway */ });
+
+  fetch(QUEUE_PATH + "?v=" + Date.now())
+    .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
+    .then(function (doc) {
+      queueDoc = doc;
+      statusEl.style.display = "none";
+      (doc.drafts || []).forEach(function (draft) {
+        var m = makeModel(draft);
+        models.push(m);
+        buildCard(m);
+      });
+      return fontsReady.then(function () {
+        var loads = [];
+        models.forEach(function (m) {
+          m.draft.slides.forEach(function (s) {
+            if (s.kind !== "photo") { return; }
+            loads.push(loadImage(s.source_file + "?v=1").then(function (img) { s._img = img; }).catch(function (e) { console.log("source missing, slide stays un-editable: " + e.message); }));
+          });
+        });
+        return Promise.all(loads);
+      });
+    })
+    .then(function () { models.forEach(repaint); })
+    .catch(function (e) {
+      statusEl.style.display = "block";
+      statusEl.textContent = "Could not load the queue (" + e.message + "). Open this page from its raw.githack link, not as a local file.";
+    });
+})();
+</script>
+</body>
+</html>

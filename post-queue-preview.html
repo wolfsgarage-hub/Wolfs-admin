@@ -3,122 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="0.1">
-<title>WG Post Queue - Preview v0.1</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
+<meta name="wg-version" content="0.2">
+<meta http-equiv="refresh" content="0; url=post-queue.html">
+<title>WG Post Queue - moved</title>
 <style>
-  :root { --bg:#0A0A0A; --bg2:#141414; --line:#2a2a2a; --red:#CC0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--bone); font-family:'Work Sans',sans-serif; padding-bottom:60px; }
-  header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; }
-  header h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:.04em; }
-  header img { height:44px; }
-  .pinstripe { height:4px; background:linear-gradient(to bottom, transparent 0, transparent 1px, var(--red) 1px, var(--red) 2px, var(--bone) 2px, var(--bone) 3px, transparent 3px, transparent 4px); opacity:.9; }
-  .sub { font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.15em; text-transform:uppercase; color:var(--copper); padding:10px 16px 2px; }
-  .card { background:var(--bg2); border:1px solid var(--line); border-radius:4px; margin:14px 12px; overflow:hidden; }
-  .meta { display:flex; justify-content:space-between; align-items:center; padding:10px 12px 0; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
-  .meta .fmt { color:var(--copper); }
-  .meta .slot { color:var(--bone-dim); }
-  .slides { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:8px; padding:12px; }
-  .slides img { width:82%; flex:0 0 82%; scroll-snap-align:center; border-radius:3px; display:block; }
-  .cap { padding:0 14px 6px; font-size:14.5px; line-height:1.5; }
-  .tags { padding:0 14px 10px; font-size:13px; color:var(--copper); word-spacing:.35em; }
-  .flag { margin:0 14px 10px; padding:8px 10px; border-left:3px solid var(--red); background:#1a1010; font-size:13px; color:var(--bone-dim); }
-  .btn { display:block; width:calc(100% - 28px); margin:0 14px 14px; padding:13px; min-height:48px; background:var(--red); color:var(--bone); border:0; border-radius:4px; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:.12em; text-transform:uppercase; }
-  .btn:active { background:#a30000; }
-  footer { font-family:'Special Elite',monospace; text-align:center; color:#555; font-size:11px; padding:18px 10px 8px; }
-  #status { text-align:center; color:var(--bone-dim); padding:30px 16px; font-size:14px; }
+  body { background:#0A0A0A; color:#F5F1E8; font-family:sans-serif; text-align:center; padding:60px 20px; }
+  a { color:#C8922A; }
 </style>
 </head>
 <body>
-<header>
-  <h1>POST QUEUE <span style="color:var(--copper);font-size:18px;">PREVIEW</span></h1>
-  <img src="assets/wolf-logo.png" alt="Wolf's Garage">
-</header>
-<div class="pinstripe"></div>
-<div class="sub">Read-only. Approve buttons land with Build 1.2.</div>
-<div id="status">Loading queue...</div>
-<div id="list"></div>
-<div class="pinstripe"></div>
-<footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
-<script>
-console.log("WG post-queue-preview v0.1");
-(function () {
-  var status = document.getElementById("status");
-  var list = document.getElementById("list");
-
-  function copyText(txt, btn) {
-    var done = function () {
-      var old = btn.textContent;
-      btn.textContent = "COPIED";
-      setTimeout(function () { btn.textContent = old; }, 1400);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(txt).then(done, function () { fallback(); });
-    } else { fallback(); }
-    function fallback() {
-      var ta = document.createElement("textarea");
-      ta.value = txt; document.body.appendChild(ta);
-      ta.select(); document.execCommand("copy");
-      document.body.removeChild(ta); done();
-    }
-  }
-
-  function render(data) {
-    status.style.display = "none";
-    var drafts = data.drafts || [];
-    drafts.forEach(function (d) {
-      var card = document.createElement("div");
-      card.className = "card";
-
-      var meta = document.createElement("div");
-      meta.className = "meta";
-      meta.innerHTML = "<span class=\"fmt\">" + d.format + " &middot; " + d.id + "</span>" +
-                       "<span class=\"slot\">" + (d.target_slot || "").replace(" America/Los_Angeles", " PT") + "</span>";
-      card.appendChild(meta);
-
-      var slides = document.createElement("div");
-      slides.className = "slides";
-      (d.slides || []).forEach(function (s) {
-        var img = document.createElement("img");
-        img.src = s.file; img.loading = "lazy"; img.alt = d.id;
-        slides.appendChild(img);
-      });
-      card.appendChild(slides);
-
-      var cap = document.createElement("div");
-      cap.className = "cap"; cap.textContent = d.caption;
-      card.appendChild(cap);
-
-      var tags = document.createElement("div");
-      tags.className = "tags"; tags.textContent = (d.hashtags || []).join(" ");
-      card.appendChild(tags);
-
-      (d.flags || []).forEach(function (f) {
-        var fl = document.createElement("div");
-        fl.className = "flag"; fl.textContent = "FLAG: " + f;
-        card.appendChild(fl);
-      });
-
-      var btn = document.createElement("button");
-      btn.className = "btn"; btn.textContent = "COPY CAPTION + TAGS";
-      btn.addEventListener("click", function () {
-        copyText(d.caption + "\n\n" + (d.hashtags || []).join(" "), btn);
-      });
-      card.appendChild(btn);
-
-      list.appendChild(card);
-    });
-    if (!drafts.length) { status.style.display = "block"; status.textContent = "Queue is empty."; }
-  }
-
-  fetch("data/post-queue.json?v=" + Date.now())
-    .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
-    .then(render)
-    .catch(function (e) {
-      status.textContent = "Could not load the queue (" + e.message + "). If you opened this as a local file, use the raw.githack link instead.";
-    });
-})();
-</script>
+<p>The queue moved to the editable page: <a href="post-queue.html">post-queue.html</a></p>
+<script>console.log("WG post-queue-preview v0.2 (redirect)"); window.location.replace("post-queue.html" + (window.location.search || "?v=" + Date.now()));</script>
 </body>
 </html>
