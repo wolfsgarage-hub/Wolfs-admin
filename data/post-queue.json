@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "updated": "2026-07-03",
+  "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap.",
+  "drafts": [
+    {
+      "id": "wgpost-20260703-01",
+      "created": "2026-07-03",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "brand truck around Portland",
+      "hook": "THIS TRUCK GETS AROUND. PORTLAND KEEPS UP.",
+      "caption": "Murals, graffiti walls, wet show lots. Same primer, same white steelies, on the ground wherever it parks. Portland looks right behind this truck. Get back in the garage.",
+      "hashtags": ["#wolfsgarage", "#slammed", "#kustomkulture", "#portland", "#getbackinthegarage"],
+      "cta": "brand",
+      "slides": [
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-01/slide-1.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-1.jpg", "source_asset": "GX010490_1759117548886.jpg"},
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-01/slide-2.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-2.jpg", "source_asset": "20260627_164839.jpg"},
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-01/slide-3.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-3.jpg", "source_asset": "MAC00933.jpg"},
+        {"kind": "end_card", "file": "renders/posts/wgpost-20260703-01/slide-4.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-4.jpg", "source_asset": "assets/wolf-logo.png"}
+      ],
+      "target_slot": "2026-07-07 18:30 America/Los_Angeles",
+      "platforms": ["instagram", "facebook"],
+      "flags": [
+        "Slide 3 background graffiti reads FUCK THA SYSTEM - keep it or kill the slide, one tap either way.",
+        "Library tags disagree on the truck make (GMC vs Chevy) so the caption names no make."
+      ],
+      "fix_note": null,
+      "kill_reason": null
+    },
+    {
+      "id": "wgpost-20260703-02",
+      "created": "2026-07-03",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "color hero - rain detail",
+      "hook": null,
+      "caption": "Rain does a '52 Chevy a favor. Every drop sits on that jade paint like it was ordered. Chrome teeth, hooded headlight, nothing extra. Some cars you shoot from across the lot. This one pulls you in close. Get back in the garage.",
+      "hashtags": ["#wolfsgarage", "#chevy", "#kustomkulture", "#classiccar", "#getbackinthegarage"],
+      "cta": "brand",
+      "slides": [
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-02/slide-1.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-02/slide-1.jpg", "source_asset": "20260627_165651.jpg"}
+      ],
+      "target_slot": "2026-07-11 18:30 America/Los_Angeles",
+      "platforms": ["instagram", "facebook"],
+      "flags": [],
+      "fix_note": null,
+      "kill_reason": null
+    },
+    {
+      "id": "wgpost-20260703-03",
+      "created": "2026-07-03",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "show details - kneel-down stuff",
+      "hook": "TWENTY MINUTES TO WALK IT. ALL DAY TO SEE IT.",
+      "caption": "The good stuff at a show is at knee height. A dressed mill with Roadmen pinstriped right on the cover. Chrome spears down a black quarter in the rain. You can walk a show in twenty minutes. Seeing it takes all day. Get back in the garage.",
+      "hashtags": ["#wolfsgarage", "#hotrod", "#kustomkulture", "#showseason", "#getbackinthegarage"],
+      "cta": "brand",
+      "slides": [
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-03/slide-1.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-1.jpg", "source_asset": "20260627_130008.jpg"},
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-03/slide-2.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-2.jpg", "source_asset": "20260627_130014.jpg"},
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-03/slide-3.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-3.jpg", "source_asset": "20260627_143802.jpg"},
+        {"kind": "end_card", "file": "renders/posts/wgpost-20260703-03/slide-4.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-4.jpg", "source_asset": "assets/wolf-logo.png"}
+      ],
+      "target_slot": "2026-07-09 18:30 America/Los_Angeles",
+      "platforms": ["instagram", "facebook"],
+      "flags": [
+        "The content pack's Sun Jul 5 post is the pinstriping-craft angle and its planned photo was never recorded (pack file truncated). If Sunday's post uses this same Roadmen engine, kill this or push the slot back a week.",
+        "Slide 3's black lead-sled may be the same car as the pack's Tue Jun 30 post (shot minutes apart). Your eye, your call."
+      ],
+      "fix_note": null,
+      "kill_reason": null
+    },
+    {
+      "id": "wgpost-20260703-04",
+      "created": "2026-07-03",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "survivor patina",
+      "hook": null,
+      "caption": "Hudson Hornet wearing every year of its life. Primer spots, straight chrome, and a Clifford 6=8 sticker in the vent glass. A six that pulls like an eight, and a car that never needed saving. Survivors earn the patina. Get back in the garage.",
+      "hashtags": ["#wolfsgarage", "#hudson", "#patina", "#kustomkulture", "#getbackinthegarage"],
+      "cta": "brand",
+      "slides": [
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-04/slide-1.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-04/slide-1.jpg", "source_asset": "20260627_143658.jpg"}
+      ],
+      "target_slot": "2026-07-08 18:30 America/Los_Angeles",
+      "platforms": ["instagram", "facebook"],
+      "flags": [],
+      "fix_note": null,
+      "kill_reason": null
+    },
+    {
+      "id": "wgpost-20260703-05",
+      "created": "2026-07-03",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "craft - metal shaping",
+      "hook": null,
+      "caption": "Cardboard template, pencil lines, torch-colored steel. This is how a fender gets its shape back. No kit for it, just checking the curve until the curve is right. Slow hands, straight metal. Get back in the garage.",
+      "hashtags": ["#wolfsgarage", "#metalshaping", "#fabrication", "#handmade", "#getbackinthegarage"],
+      "cta": "brand",
+      "slides": [
+        {"kind": "photo", "file": "renders/posts/wgpost-20260703-05/slide-1.jpg", "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-05/slide-1.jpg", "source_asset": "20250723_172941.jpg"}
+      ],
+      "target_slot": "2026-07-10 18:30 America/Los_Angeles",
+      "platforms": ["instagram", "facebook"],
+      "flags": [
+        "Ashtray with cigarette butts visible bottom-left, in frame. Keep it or I re-crop it out, one word."
+      ],
+      "fix_note": null,
+      "kill_reason": null
+    }
+  ]
+}
