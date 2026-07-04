@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.0">
-<title>WG Post Queue v1.0</title>
+<meta name="wg-version" content="1.1">
+<title>WG Post Queue v1.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -58,6 +58,16 @@
   .card.busy { pointer-events:none; opacity:.75; }
   footer { font-family:'Special Elite',monospace; text-align:center; color:#555; font-size:11px; padding:18px 10px 8px; }
   #status { text-align:center; color:var(--bone-dim); padding:30px 16px; font-size:14px; }
+  .addbtn { display:block; width:calc(100% - 24px); margin:0 12px 10px; padding:11px; min-height:44px; background:var(--bg3); color:var(--bone-dim); border:1px dashed var(--line); border-radius:4px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+  #picker { display:none; position:fixed; inset:0; background:var(--bg); z-index:50; overflow-y:auto; }
+  #picker.open { display:block; }
+  #picker .phead { position:sticky; top:0; background:var(--bg); padding:12px; border-bottom:1px solid var(--line); }
+  #picker .prow { display:flex; gap:6px; overflow-x:auto; padding-top:10px; }
+  #picker .ptag { padding:7px 12px; min-height:36px; background:var(--bg3); color:var(--bone-dim); border:1px solid var(--line); border-radius:3px; font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+  #picker .ptag.on { color:var(--copper); border-color:var(--copper); }
+  #picker .pgrid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:10px; }
+  #picker .pgrid img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:3px; display:block; }
+  #picker .pclose { width:100%; padding:12px; min-height:48px; background:var(--red); color:var(--bone); border:0; border-radius:4px; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:.12em; text-transform:uppercase; }
 </style>
 </head>
 <body>
@@ -69,10 +79,17 @@
 <div class="sub">Tap a slide to edit its crop. Edit text in place. Nothing posts itself.</div>
 <div id="status">Loading queue...</div>
 <div id="list"></div>
+<div id="picker">
+  <div class="phead">
+    <button class="pclose" id="pickerClose">CLOSE - NO PICK</button>
+    <div class="prow" id="pickerTags"></div>
+  </div>
+  <div class="pgrid" id="pickerGrid"></div>
+</div>
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.0");
+console.log("WG post-queue v1.1");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -86,6 +103,9 @@ console.log("WG post-queue v1.0");
   var listEl = document.getElementById("list");
   var models = [];
   var queueDoc = null; /* session source of truth for writes - see saveQueueDoc */
+  var pool = null; /* curated library pool (data/library-pool.json), exported by the assembler */
+  var pickerFor = null;
+  var SHARED_END_CARD = "renders/posts/_shared/end-card.jpg";
   function modelById(id) {
     for (var i = 0; i < models.length; i++) { if (models[i].draft.id === id) { return models[i]; } }
     return null;
@@ -169,12 +189,70 @@ console.log("WG post-queue v1.0");
   }
 
   function markPixelsDirty(s) {
-    /* slides whose source image failed to load stay un-editable - never queue them for re-render */
-    if (s && s.kind === "photo" && s._img) { s._dirtyPixels = true; }
+    /* mark unless the source is known-dead; a not-yet-loaded slide still gets marked,
+       and stillLoading() keeps saves blocked until its image arrives */
+    if (s && s.kind === "photo" && !s._loadFailed) { s._dirtyPixels = true; }
+  }
+  function stillLoading(m) {
+    return m.draft.slides.some(function (s) {
+      if (s.kind !== "photo" || s._loadFailed) { return false; }
+      if (!s._img && !s.file) { return true; }        /* freshly added, image still coming */
+      if (!s._img && s._dirtyPixels) { return true; } /* edited before its image arrived */
+      return false;
+    });
+  }
+  function blockIfNotReady(m) {
+    if (m.busy) { return true; }
+    if (stillLoading(m)) {
+      setStat(m, "A picture is still loading - give it a second, then tap again.", "err");
+      return true;
+    }
+    return false;
   }
   function firstPhoto(slides) {
     var i = firstPhotoIdx(slides);
     return i >= 0 ? slides[i] : null;
+  }
+
+  function normalizeFormat(m) {
+    /* 2+ photos = carousel with the brand end card last; 1 photo = clean single */
+    var arr = m.draft.slides;
+    var was = m.draft.format;
+    var photos = arr.filter(function (s) { return s.kind === "photo"; }).length;
+    if (photos > 1) {
+      m.draft.format = "carousel";
+      var hasEnd = arr.some(function (s) { return s.kind === "end_card"; });
+      if (!hasEnd) {
+        arr.push({ kind: "end_card", file: SHARED_END_CARD, raw_url: RAW_BASE + SHARED_END_CARD, source_asset: "assets/wolf-logo.png" });
+      }
+    } else {
+      m.draft.format = "single";
+      for (var i = arr.length - 1; i >= 0; i--) { if (arr[i].kind === "end_card") { arr.splice(i, 1); } }
+    }
+    if (was !== m.draft.format && m.draft.hook) { markPixelsDirty(firstPhoto(arr)); }
+    if (m.els.fmt) { m.els.fmt.textContent = m.draft.format + " · " + m.draft.id; }
+  }
+
+  function addSlide(m, item) {
+    var s = { kind: "photo", file: null, raw_url: null, source_asset: item.id, source_file: item.source_file,
+              crop: { focus_x: 0.5, focus_y: 0.5, zoom: 1.0 }, _dirtyPixels: false };
+    var arr = m.draft.slides;
+    var at = arr.length;
+    for (var i = 0; i < arr.length; i++) { if (arr[i].kind === "end_card") { at = i; break; } }
+    arr.splice(at, 0, s);
+    normalizeFormat(m);
+    m.sel = arr.indexOf(s);
+    rebuildStrip(m); buildPanel(m);
+    loadImage(s.source_file + "?v=" + poolBust()).then(function (img) {
+      s._img = img; markPixelsDirty(s); markDirty(m); repaint(m); buildPanel(m);
+    }).catch(function () {
+      var selObj = m.sel >= 0 ? arr[m.sel] : null;
+      var k = arr.indexOf(s);
+      if (k > -1) { arr.splice(k, 1); }
+      m.sel = (selObj && selObj !== s) ? arr.indexOf(selObj) : -1;
+      normalizeFormat(m); rebuildStrip(m); buildPanel(m);
+      setStat(m, "That picture would not load. Nothing was added.", "err");
+    });
   }
 
   function loadImage(src) {
@@ -289,13 +367,14 @@ console.log("WG post-queue v1.0");
     m.sel = -1;
     var isFirst = firstPhoto(m.draft.slides);
     if (m.draft.hook && wasFirst !== isFirst) { markPixelsDirty(isFirst); }
+    normalizeFormat(m);
     markDirty(m); rebuildStrip(m); buildPanel(m);
   }
 
   /* ---- persistence ---- */
   function serializeDraft(m) {
     var d = JSON.parse(JSON.stringify(m.draft, function (k, v) {
-      return (k === "_dirtyPixels" || k === "_img" || k === "_canvas") ? undefined : v;
+      return (k === "_dirtyPixels" || k === "_img" || k === "_canvas" || k === "_loadFailed") ? undefined : v;
     }));
     return d;
   }
@@ -338,9 +417,10 @@ console.log("WG post-queue v1.0");
   }
 
   function persist(m, busyMsg, okMsg) {
-    if (m.busy) { return Promise.resolve(); }
+    if (blockIfNotReady(m)) { return Promise.resolve(); }
     m.busy = true;
     if (m.els.card) { m.els.card.classList.add("busy"); }
+    (m.els.inputs || []).forEach(function (el) { el.disabled = true; });
     var prev = { status: m.draft.status, kill_reason: m.draft.kill_reason, fix_note: m.draft.fix_note };
     setStat(m, busyMsg, "ok");
     m.els.save.disabled = true;
@@ -361,6 +441,7 @@ console.log("WG post-queue v1.0");
       .then(function () {
         m.busy = false;
         if (m.els.card) { m.els.card.classList.remove("busy"); }
+        (m.els.inputs || []).forEach(function (el) { el.disabled = false; });
         refreshChip(m);
       });
   }
@@ -381,6 +462,7 @@ console.log("WG post-queue v1.0");
     var meta = document.createElement("div"); meta.className = "meta";
     var left = document.createElement("span"); left.className = "fmt";
     left.textContent = d.format + " · " + d.id;
+    m.els.fmt = left;
     var chip = document.createElement("span"); chip.className = "chip"; m.els.chip = chip;
     var slot = document.createElement("span"); slot.className = "slot";
     slot.textContent = (d.target_slot || "").replace(" America/Los_Angeles", " PT");
@@ -393,24 +475,29 @@ console.log("WG post-queue v1.0");
     var panel = document.createElement("div"); panel.className = "panel"; panel.style.display = "none";
     m.els.panel = panel; card.appendChild(panel);
 
-    if (d.format === "carousel") {
-      var fh = document.createElement("div"); fh.className = "field";
-      fh.innerHTML = "<label>Hook (baked onto slide 1)</label>";
-      var hi = document.createElement("input"); hi.type = "text"; hi.value = d.hook || "";
-      hi.oninput = function () {
-        if (m.busy) { return; }
-        d.hook = hi.value;
-        markPixelsDirty(firstPhoto(d.slides));
-        markDirty(m); repaint(m);
-      };
-      fh.appendChild(hi); card.appendChild(fh);
-    }
+    var add = document.createElement("button"); add.className = "addbtn";
+    add.textContent = "+ ADD A PICTURE FROM THE LIBRARY";
+    add.onclick = function () { if (m.busy) { return; } openPicker(m); };
+    card.appendChild(add);
+
+    var fh = document.createElement("div"); fh.className = "field";
+    fh.innerHTML = "<label>Hook (carousel covers - baked onto slide 1)</label>";
+    var hi = document.createElement("input"); hi.type = "text"; hi.value = d.hook || "";
+    hi.oninput = function () {
+      if (m.busy) { return; }
+      d.hook = hi.value;
+      markPixelsDirty(firstPhoto(d.slides));
+      markDirty(m); repaint(m);
+    };
+    fh.appendChild(hi); card.appendChild(fh);
+    m.els.inputs = [hi];
 
     var fc = document.createElement("div"); fc.className = "field";
     fc.innerHTML = "<label>Caption</label>";
     var ta = document.createElement("textarea"); ta.value = d.caption;
     ta.oninput = function () { if (m.busy) { return; } d.caption = ta.value; markDirty(m); };
     fc.appendChild(ta); card.appendChild(fc);
+    m.els.inputs.push(ta);
 
     var ft = document.createElement("div"); ft.className = "field";
     ft.innerHTML = "<label>Hashtags</label>";
@@ -427,6 +514,7 @@ console.log("WG post-queue v1.0");
       tagHint(); markDirty(m);
     };
     ft.appendChild(ti); ft.appendChild(hintT); card.appendChild(ft);
+    m.els.inputs.push(ti);
 
     (d.flags || []).forEach(function (f) {
       var fl = document.createElement("div"); fl.className = "flag"; fl.textContent = "FLAG: " + f;
@@ -439,7 +527,7 @@ console.log("WG post-queue v1.0");
     save.onclick = function () { persist(m, "Saving edits...", "Edits saved."); };
     var post = document.createElement("button"); post.className = "btn post"; post.textContent = "POST IT";
     post.onclick = function () {
-      if (m.busy) { return; }
+      if (blockIfNotReady(m)) { return; } /* never mutate status when the save cannot start */
       d.status = "approved"; d.kill_reason = null; d.fix_note = null;
       persist(m, "Approving...", "Approved. Waits for the publisher (Build 1.3).");
     };
@@ -452,7 +540,7 @@ console.log("WG post-queue v1.0");
     ["WRONG PHOTO", "WEAK CAPTION", "OFF-BRAND", "OTHER"].forEach(function (rz) {
       var b = document.createElement("button"); b.className = "sbtn warn"; b.textContent = rz;
       b.onclick = function () {
-        if (m.busy) { return; }
+        if (blockIfNotReady(m)) { return; }
         d.status = "killed"; d.kill_reason = rz.toLowerCase(); d.fix_note = null;
         reasons.className = "reasons";
         persist(m, "Killing...", "Killed. The assembler learns from the reason.");
@@ -467,7 +555,7 @@ console.log("WG post-queue v1.0");
     var ni = document.createElement("input"); ni.type = "text";
     var send = document.createElement("button"); send.className = "sbtn"; send.style.marginTop = "8px"; send.textContent = "SEND TO REDO PILE";
     send.onclick = function () {
-      if (m.busy) { return; }
+      if (blockIfNotReady(m)) { return; }
       if (!ni.value.trim()) { setStat(m, "Write the one-liner first.", "err"); return; }
       d.status = "fix"; d.fix_note = ni.value.trim(); d.kill_reason = null;
       note.className = "note field";
@@ -485,7 +573,66 @@ console.log("WG post-queue v1.0");
     rebuildStrip(m);
   }
 
+  /* ---- library picker ---- */
+  var pickerEl = document.getElementById("picker");
+  var pickerGrid = document.getElementById("pickerGrid");
+  var pickerTags = document.getElementById("pickerTags");
+  var pickerFilter = "all";
+  document.getElementById("pickerClose").onclick = function () { pickerEl.className = ""; pickerFor = null; };
+
+  function poolBust() {
+    return pool && pool.updated ? encodeURIComponent(pool.updated) : "1";
+  }
+  function fetchPool() {
+    return fetch("data/library-pool.json?v=" + Date.now())
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (p) { pool = p; })
+      .catch(function () { pool = null; });
+  }
+  function openPicker(m) {
+    if (!pool || !pool.images || !pool.images.length) {
+      setStat(m, "Loading the library list...", "ok");
+      fetchPool().then(function () {
+        if (pool && pool.images && pool.images.length) { setStat(m, "", ""); openPicker(m); }
+        else { setStat(m, "Library list would not load - bad signal, or the assembler needs a run on the laptop.", "err"); }
+      });
+      return;
+    }
+    pickerFor = m;
+    pickerEl.className = "open";
+    window.scrollTo(0, 0);
+    buildPickerTags(); buildPickerGrid();
+  }
+  function buildPickerTags() {
+    var tags = ["all"];
+    pool.images.forEach(function (x) { if (tags.indexOf(x.tag) < 0) { tags.push(x.tag); } });
+    pickerTags.innerHTML = "";
+    tags.forEach(function (t) {
+      var b = document.createElement("button");
+      b.className = "ptag" + (pickerFilter === t ? " on" : "");
+      b.textContent = t.toUpperCase();
+      b.onclick = function () { pickerFilter = t; buildPickerTags(); buildPickerGrid(); };
+      pickerTags.appendChild(b);
+    });
+  }
+  function buildPickerGrid() {
+    pickerGrid.innerHTML = "";
+    pool.images.forEach(function (x) {
+      if (pickerFilter !== "all" && x.tag !== pickerFilter) { return; }
+      var img = document.createElement("img");
+      img.src = x.thumb + "?v=" + poolBust(); img.loading = "lazy"; img.alt = x.caption || x.id; img.title = x.caption || "";
+      img.onclick = function () {
+        var m = pickerFor;
+        pickerEl.className = ""; pickerFor = null;
+        if (m) { addSlide(m, x); }
+      };
+      pickerGrid.appendChild(img);
+    });
+  }
+
   /* ---- boot ---- */
+  fetchPool();
+
   var fontsReady = Promise.all([
     document.fonts.load("84px 'Bebas Neue'"),
     document.fonts.load("500 12px 'Oswald'")
@@ -506,7 +653,7 @@ console.log("WG post-queue v1.0");
         models.forEach(function (m) {
           m.draft.slides.forEach(function (s) {
             if (s.kind !== "photo") { return; }
-            loads.push(loadImage(s.source_file + "?v=1").then(function (img) { s._img = img; }).catch(function (e) { console.log("source missing, slide stays un-editable: " + e.message); }));
+            loads.push(loadImage(s.source_file + "?v=1").then(function (img) { s._img = img; }).catch(function (e) { s._loadFailed = true; console.log("source missing, slide stays un-editable: " + e.message); }));
           });
         });
         return Promise.all(loads);
