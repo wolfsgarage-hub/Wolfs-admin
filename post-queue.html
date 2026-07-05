@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.2">
-<title>WG Post Queue v1.2</title>
+<meta name="wg-version" content="1.3">
+<title>WG Post Queue v1.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -51,6 +51,7 @@
   .btn:disabled { opacity:.45; }
   .reasons { display:none; padding:0 12px 12px; gap:8px; flex-wrap:wrap; }
   .reasons.open { display:flex; }
+  .reasons .killsay { flex-basis:100%; display:flex; flex-direction:column; gap:8px; margin:0; }
   .note { margin:0 12px 12px; display:none; }
   .note.open { display:block; }
   .stat { margin:0 12px 12px; font-size:13px; color:var(--bone-dim); display:none; }
@@ -90,7 +91,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.2");
+console.log("WG post-queue v1.3");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -556,16 +557,28 @@ console.log("WG post-queue v1.2");
     card.appendChild(actions);
 
     var reasons = document.createElement("div"); reasons.className = "reasons";
-    ["WRONG PHOTO", "WEAK CAPTION", "OFF-BRAND", "OTHER"].forEach(function (rz) {
+    function killWith(reason) {
+      if (blockIfNotReady(m)) { return; }
+      d.status = "killed"; d.kill_reason = reason; d.fix_note = null;
+      reasons.className = "reasons";
+      persist(m, "Killing...", "Killed. The assembler learns from the reason.");
+    }
+    ["WRONG PHOTO", "WEAK CAPTION", "OFF-BRAND"].forEach(function (rz) {
       var b = document.createElement("button"); b.className = "sbtn warn"; b.textContent = rz;
-      b.onclick = function () {
-        if (blockIfNotReady(m)) { return; }
-        d.status = "killed"; d.kill_reason = rz.toLowerCase(); d.fix_note = null;
-        reasons.className = "reasons";
-        persist(m, "Killing...", "Killed. The assembler learns from the reason.");
-      };
+      b.onclick = function () { killWith(rz.toLowerCase()); };
       reasons.appendChild(b);
     });
+    var kv = document.createElement("div"); kv.className = "killsay field";
+    var ki = document.createElement("input"); ki.type = "text";
+    ki.placeholder = "or say why in your own words";
+    var kb = document.createElement("button"); kb.className = "sbtn warn"; kb.textContent = "KILL IT - THAT'S THE REASON";
+    kb.onclick = function () {
+      if (!ki.value.trim()) { setStat(m, "Type the reason first, then kill it.", "err"); return; }
+      killWith(ki.value.trim());
+    };
+    kv.appendChild(ki); kv.appendChild(kb);
+    reasons.appendChild(kv);
+    m.els.inputs.push(ki);
     kill.onclick = function () { reasons.className = reasons.className === "reasons open" ? "reasons" : "reasons open"; };
     card.appendChild(reasons);
 
