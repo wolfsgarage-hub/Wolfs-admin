@@ -713,6 +713,13 @@
     <textarea class="textarea" id="dash-notes" placeholder="Drop a note. Auto-saves." oninput="saveNotes()"></textarea>
   </div>
 
+  <!-- 2026-07-05: scheduled-posts strip reading data/post-queue.json (John: show what is scheduled on the dashboard) -->
+  <div class="section">
+    <div class="section-head"><h3>SCHEDULED POSTS</h3></div>
+    <div id="sched-posts" style="font-family:'Special Elite',monospace;font-size:12px;color:var(--bone);line-height:1.7">loading queue...</div>
+    <a class="btn btn-ghost" href="post-queue.html" style="display:block;text-align:center;text-decoration:none;margin-top:10px">OPEN THE POST QUEUE</a>
+  </div>
+
   <div class="section">
     <div class="section-head"><h3>INTEGRATIONS</h3></div>
 
@@ -3793,6 +3800,33 @@ async function ensureFirebaseAdmin() {
   } else {
     init();
   }
+})();
+</script>
+<script>
+/* 2026-07-05: scheduled-posts strip - reads the post queue, standalone on purpose */
+(function () {
+  "use strict";
+  var box = document.getElementById("sched-posts");
+  if (!box) { return; }
+  var LABELS = { approved: "SCHEDULED", pending_approval: "AWAITING YOUR OK", fix: "IN THE REDO PILE", published: "POSTED" };
+  fetch("data/post-queue.json?v=" + Date.now())
+    .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
+    .then(function (doc) {
+      var rows = [];
+      ((doc && doc.drafts) || []).forEach(function (d) {
+        var label = LABELS[d.status];
+        if (!label) { return; } /* killed drafts stay off the dashboard */
+        var slot = (d.target_slot || "no slot yet").replace(" America/Los_Angeles", " PT");
+        var line = (d.hook || (d.caption || "").split("\n")[0] || d.id).slice(0, 52).replace(/</g, "&lt;");
+        rows.push('<div style="margin-bottom:8px"><span style="color:' +
+          (d.status === "approved" ? "var(--copper)" : "rgba(245,241,232,0.55)") +
+          '">' + label + "</span> &middot; " + slot + "<br>" + line + "</div>");
+      });
+      box.innerHTML = rows.length ? rows.join("") : "Queue is empty. The assembler fills it after the next media run.";
+    })
+    .catch(function (e) {
+      box.textContent = "Queue unreachable (" + e.message + "). Open this app from its raw.githack link.";
+    });
 })();
 </script>
 </body>

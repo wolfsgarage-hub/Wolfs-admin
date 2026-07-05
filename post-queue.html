@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.3">
-<title>WG Post Queue v1.3</title>
+<meta name="wg-version" content="1.4">
+<title>WG Post Queue v1.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -91,7 +91,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.3");
+console.log("WG post-queue v1.4");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -126,10 +126,22 @@ console.log("WG post-queue v1.3");
     }).then(function (r) {
       return r.json().catch(function () { return null; }).then(function (data) {
         if (!r.ok) {
-          var e = new Error((data && (data.error || data.detail)) || ("HTTP " + r.status));
+          var msg = (data && data.error) || ("HTTP " + r.status);
+          if (data && data.detail) { msg += " - " + String(data.detail).slice(0, 160); }
+          var e = new Error(msg);
           e.status = r.status; throw e;
         }
         return data;
+      });
+    });
+  }
+
+  function callProxyRetry(action, extraBody) {
+    /* GitHub throws transient 403/5xx under write bursts - one retry after a beat
+       fixed John's 2026-07-04 SAVE EDITS failure class */
+    return callProxy(action, extraBody).catch(function () {
+      return new Promise(function (res) { setTimeout(res, 2500); }).then(function () {
+        return callProxy(action, extraBody);
       });
     });
   }
@@ -409,7 +421,7 @@ console.log("WG post-queue v1.3");
         renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null);
         var b64 = s._canvas.toDataURL("image/jpeg", 0.9).split(",")[1];
         var path = "renders/posts/" + m.draft.id + "/slide-" + (i + 1) + "-" + Date.now() + ".jpg";
-        return callProxy("upload", { path: path, contentBase64: b64, message: "queue edit: " + m.draft.id + " slide " + (i + 1) }).then(function () {
+        return callProxyRetry("upload", { path: path, contentBase64: b64, message: "queue edit: " + m.draft.id + " slide " + (i + 1) }).then(function () {
           s.file = path; s.raw_url = RAW_BASE + path; s._dirtyPixels = false;
         });
       });
@@ -429,7 +441,7 @@ console.log("WG post-queue v1.3");
       return other ? other.savedDraft : d;
     });
     queueDoc.updated = new Date().toISOString();
-    return callProxy("upload", {
+    return callProxyRetry("upload", {
       path: QUEUE_PATH,
       contentBase64: b64utf8(JSON.stringify(queueDoc, null, 2)),
       message: "queue update: " + mine.id + " -> " + mine.status
