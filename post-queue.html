@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.2">
-<title>WG Post Queue v1.2</title>
+<meta name="wg-version" content="1.1">
+<title>WG Post Queue v1.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -30,7 +30,6 @@
   .panel { margin:0 12px 10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--line); border-radius:4px; }
   .panel .rowlab { font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--bone-dim); margin:8px 0 2px; }
   .panel input[type=range] { width:100%; accent-color:var(--red); min-height:32px; }
-  .panel input[type=range]:disabled { opacity:.35; }
   .srow { display:flex; gap:8px; margin-top:10px; }
   .sbtn { flex:1; padding:11px 6px; min-height:44px; background:var(--bg2); color:var(--bone); border:1px solid var(--line); border-radius:4px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
   .sbtn:active { background:#000; }
@@ -90,7 +89,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.2");
+console.log("WG post-queue v1.1");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -314,35 +313,17 @@ console.log("WG post-queue v1.2");
     if (!s || s.kind !== "photo") { return; }
     p.style.display = "block";
 
-    function slackFor(axis) {
-      /* leftover source pixels on one axis at the current zoom; 0 = nothing to pan */
-      var img = s._img;
-      var zoom = Math.max(1, s.crop.zoom || 1);
-      var scale = Math.max(IW / img.naturalWidth, IH / img.naturalHeight) * zoom;
-      return axis === "x" ? img.naturalWidth - IW / scale : img.naturalHeight - IH / scale;
-    }
-    function slider(label, val, min, max, oninput, fmt) {
-      var lab = document.createElement("div"); lab.className = "rowlab";
+    function slider(label, val, min, max, oninput) {
+      var lab = document.createElement("div"); lab.className = "rowlab"; lab.textContent = label;
       var r = document.createElement("input");
       r.type = "range"; r.min = min; r.max = max; r.value = val;
-      function paintLab() { lab.textContent = label + " · " + fmt(Number(r.value), r.disabled); }
-      r.oninput = function () { if (m.busy) { return; } oninput(Number(r.value)); paintLab(); markPixelsDirty(s); markDirty(m); repaint(m); };
+      r.oninput = function () { if (m.busy) { return; } oninput(Number(r.value)); markPixelsDirty(s); markDirty(m); repaint(m); };
       p.appendChild(lab); p.appendChild(r);
-      paintLab();
-      return { input: r, paintLab: paintLab };
     }
     if (s._img) {
-      var panFmt = function (v, off) { return off ? "zoom in to unlock" : v + "%"; };
-      var panX = slider("Left / right", Math.round(s.crop.focus_x * 100), 0, 100, function (v) { s.crop.focus_x = v / 100; }, panFmt);
-      var panY = slider("Up / down", Math.round(s.crop.focus_y * 100), 0, 100, function (v) { s.crop.focus_y = v / 100; }, panFmt);
-      var syncPans = function () {
-        panX.input.disabled = slackFor("x") < 1;
-        panY.input.disabled = slackFor("y") < 1;
-        panX.paintLab(); panY.paintLab();
-      };
-      slider("Zoom", Math.round((s.crop.zoom || 1) * 100), 100, 250, function (v) { s.crop.zoom = v / 100; syncPans(); },
-        function (v) { return v === 100 ? "100% (photo already fills the frame)" : v + "%"; });
-      syncPans();
+      slider("Left / right", Math.round(s.crop.focus_x * 100), 0, 100, function (v) { s.crop.focus_x = v / 100; });
+      slider("Up / down", Math.round(s.crop.focus_y * 100), 0, 100, function (v) { s.crop.focus_y = v / 100; });
+      slider("Zoom", Math.round((s.crop.zoom || 1) * 100), 100, 250, function (v) { s.crop.zoom = v / 100; });
     } else {
       var lock = document.createElement("div"); lock.className = "hint";
       lock.textContent = "Source image did not load, so crop is locked. Move or remove still works.";
@@ -359,7 +340,7 @@ console.log("WG post-queue v1.2");
     sbtn("REMOVE", "warn", function () { removeSlide(m, i); });
     p.appendChild(row);
     var hint = document.createElement("div"); hint.className = "hint";
-    hint.textContent = "The frame already crops the photo tight, so 100% zoom is the widest view. A slider greys out when there is nothing left to move on that axis - zoom in and it wakes up. Edits re-render on SAVE EDITS.";
+    hint.textContent = "Crop and zoom re-render this slide on the brand frame when you hit SAVE EDITS.";
     p.appendChild(hint);
   }
 
