@@ -76,7 +76,8 @@
         "Library tags disagree on the truck make (GMC vs Chevy) so the caption names no make."
       ],
       "fix_note": null,
-      "kill_reason": null
+      "kill_reason": null,
+      "slot_why": "Tue 18:30 PT kept: inside Sprout Tue 1-7p + Hootsuite Tue 3-7p"
     },
     {
       "id": "wgpost-20260703-02",
@@ -109,14 +110,15 @@
           }
         }
       ],
-      "target_slot": "2026-07-11 18:30 America/Los_Angeles",
+      "target_slot": "2026-07-08 18:30 America/Los_Angeles",
       "platforms": [
         "instagram",
         "facebook"
       ],
       "flags": [],
       "fix_note": null,
-      "kill_reason": null
+      "kill_reason": null,
+      "slot_why": "moved off Sat 7/11 (weekends = weakest, all datasets) to Wed 18:30 PT (Buffer top-3 slot Wed 6p)"
     },
     {
       "id": "wgpost-20260703-03",
@@ -181,7 +183,7 @@
           "source_asset": "assets/wolf-logo.png"
         }
       ],
-      "target_slot": "2026-07-09 18:30 America/Los_Angeles",
+      "target_slot": "2026-07-09 15:00 America/Los_Angeles",
       "platforms": [
         "instagram",
         "facebook"
@@ -191,7 +193,8 @@
         "Slide 3's black lead-sled may be the same car as the pack's Tue Jun 30 post (shot minutes apart). Your eye, your call."
       ],
       "fix_note": null,
-      "kill_reason": null
+      "kill_reason": null,
+      "slot_why": "Thu shifted earlier: Sprout Thu 12-2p, Hootsuite Thu 4-5p; 18:30 misses both"
     },
     {
       "id": "wgpost-20260703-04",
@@ -264,7 +267,7 @@
           }
         }
       ],
-      "target_slot": "2026-07-10 18:30 America/Los_Angeles",
+      "target_slot": "2026-07-14 18:30 America/Los_Angeles",
       "platforms": [
         "instagram",
         "facebook"
@@ -274,7 +277,8 @@
         "FIX APPLIED 2026-07-05: 'pull out the butts and ashtray' - ashtray cropped out of slide 1 (fy 0.18). Re-check and approve or kill."
       ],
       "fix_note": null,
-      "kill_reason": null
+      "kill_reason": null,
+      "slot_why": "moved off Fri (no significant peaks, Buffer/Sprout worst weekday) to next Tue prime slot; keeps cadence at 4/wk with the Mon recap"
     }
   ]
 }
