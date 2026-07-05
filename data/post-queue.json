@@ -27,9 +27,10 @@
           "source_asset": "GX010490_1759117548886.jpg",
           "source_file": "renders/posts/_sources/GX010490_1759117548886.jpg",
           "crop": {
-            "focus_x": 0.45,
+            "focus_x": 0.75,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "front clip: grille, chrome bumper, white steelie, mural overhead"
           }
         },
         {
@@ -39,9 +40,10 @@
           "source_asset": "20260627_164839.jpg",
           "source_file": "renders/posts/_sources/20260627_164839.jpg",
           "crop": {
-            "focus_x": 0.35,
+            "focus_x": 0.05,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "hubcap reflection + fender curve detail; old crop was blank door"
           }
         },
         {
@@ -51,9 +53,10 @@
           "source_asset": "MAC00933.jpg",
           "source_file": "renders/posts/_sources/MAC00933.jpg",
           "crop": {
-            "focus_x": 0.5,
+            "focus_x": 0.3,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "full Cash mural incl. finger + grille and front wheel (profanity flag stands - John's call)"
           }
         },
         {
@@ -99,9 +102,10 @@
           "source_asset": "20260627_165651.jpg",
           "source_file": "renders/posts/_sources/20260627_165651.jpg",
           "crop": {
-            "focus_x": 0.45,
+            "focus_x": 0.15,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "full chrome grille teeth + emblem + headlight"
           }
         }
       ],
@@ -138,9 +142,10 @@
           "source_asset": "20260627_130008.jpg",
           "source_file": "renders/posts/_sources/20260627_130008.jpg",
           "crop": {
-            "focus_x": 0.5,
+            "focus_x": 0.8,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "nose + open engine bay + whitewall; whole car cannot fit the strip"
           }
         },
         {
@@ -150,9 +155,10 @@
           "source_asset": "20260627_130014.jpg",
           "source_file": "renders/posts/_sources/20260627_130014.jpg",
           "crop": {
-            "focus_x": 0.5,
+            "focus_x": 0.3,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "Boxdmen cover, coils, headers, pinstriped firewall"
           }
         },
         {
@@ -162,9 +168,10 @@
           "source_asset": "20260627_143802.jpg",
           "source_file": "renders/posts/_sources/20260627_143802.jpg",
           "crop": {
-            "focus_x": 0.5,
+            "focus_x": 0.65,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "clean fender + chrome spears, canopy people cropped out"
           }
         },
         {
@@ -210,9 +217,10 @@
           "source_asset": "20260627_143658.jpg",
           "source_file": "renders/posts/_sources/20260627_143658.jpg",
           "crop": {
-            "focus_x": 0.5,
+            "focus_x": 0.1,
             "focus_y": 0.5,
-            "zoom": 1.0
+            "zoom": 1.0,
+            "why": "rear 3/4: taillight, patina, Save a Hudson script"
           }
         }
       ],
@@ -250,8 +258,9 @@
           "source_file": "renders/posts/_sources/20250723_172941.jpg",
           "crop": {
             "focus_x": 0.5,
-            "focus_y": 0.45,
-            "zoom": 1.0
+            "focus_y": 0.18,
+            "zoom": 1.0,
+            "why": "torch-blued metal + template + hand; fy 0.18 puts the ashtray just below the frame edge"
           }
         }
       ],
