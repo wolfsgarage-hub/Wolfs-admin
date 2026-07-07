@@ -1302,6 +1302,12 @@ try {
     if (panel && !panel.classList.contains('hidden')) {
       renderPackPhotos();
     }
+    // Re-render Listings if it's the active tab, so pending submissions appear
+    // immediately after sign-in without a manual tab switch.
+    const lpanel = document.getElementById('panel-listings');
+    if (lpanel && lpanel.classList.contains('active')) {
+      renderListings();
+    }
   });
   // Catch redirect result if user just came back from Google sign-in
   fbAuth.getRedirectResult().then(result => {
@@ -2064,9 +2070,16 @@ function calendarCard(e) {
 // Also writes the fresh result back to local Store so Categories tab, offline
 // reloads, and other readers stay in sync.
 async function loadAllListings() {
-  if (fbReady && fbIsAdmin()) {
+  if (fbReady) {
     try {
-      const snap = await fbDb.collection('listings').get();
+      // Admin sees everything (approved + pending). When not signed in as admin,
+      // approved listings are public-readable, so still pull them LIVE instead of
+      // falling back to a stale local cache. The query must be constrained to
+      // approved so Firestore rules permit the read without admin auth.
+      const query = fbIsAdmin()
+        ? fbDb.collection('listings')
+        : fbDb.collection('listings').where('status', '==', 'approved');
+      const snap = await query.get();
       const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       await Store.set(K.LISTINGS, list);
       return list;
@@ -2082,13 +2095,23 @@ async function renderListings() {
   const pending = all.filter(l => l.status === 'pending');
   const live = all.filter(l => l.status === 'approved');
 
-  document.getElementById('listings-pending-count').textContent = pending.length;
+  const signedIn = fbReady && fbIsAdmin();
+  document.getElementById('listings-pending-count').textContent = signedIn ? pending.length : '?';
   document.getElementById('listings-live-count').textContent = live.length;
 
   const pEl = document.getElementById('listings-pending');
-  pEl.innerHTML = pending.length === 0
-    ? '<div class="empty">no pending submissions</div>'
-    : pending.map(l => listingCard(l, true)).join('');
+  if (!fbReady) {
+    pEl.innerHTML = '<div class="empty">Firebase not loaded. Refresh page.</div>';
+  } else if (!signedIn) {
+    pEl.innerHTML = '<div class="empty" style="padding:20px;">'
+      + '<p style="margin-bottom:14px;">Showing live listings only. Sign in as admin to see and moderate pending submissions.</p>'
+      + '<button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>'
+      + '</div>';
+  } else {
+    pEl.innerHTML = pending.length === 0
+      ? '<div class="empty">no pending submissions</div>'
+      : pending.map(l => listingCard(l, true)).join('');
+  }
 
   const lEl = document.getElementById('listings-live');
   lEl.innerHTML = live.length === 0
