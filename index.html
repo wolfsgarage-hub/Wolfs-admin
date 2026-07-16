@@ -184,6 +184,12 @@
     scrollbar-width: none;
   }
   .tabs::-webkit-scrollbar { display: none; }
+  /* Phone: wrap the tab row so every tab is reachable without horizontal scroll.
+     12 tabs will not fit one line at 390px; scrolling hid Events/Bulletin/Comments. */
+  @media (max-width: 768px) {
+    .tabs { overflow-x: visible; white-space: normal; }
+    .tab { padding: 11px 12px; font-size: 11px; letter-spacing: 1.2px; }
+  }
   .tab {
     display: inline-block;
     font-family: 'Oswald', sans-serif;
@@ -307,6 +313,8 @@
   .btn-approve:hover, .btn-approve:active { background: var(--copper); color: var(--black); }
   .btn-reject { border-color: var(--red); color: var(--red); }
   .btn-reject:hover, .btn-reject:active { background: var(--red); color: var(--bone); }
+  .btn-feature { border-color: var(--copper); color: var(--copper); }
+  .btn-feature:hover, .btn-feature:active { background: var(--red); color: var(--bone); border-color: var(--red); }
   .btn-primary { background: var(--red); border-color: var(--red); color: var(--bone); }
   .btn-primary:hover, .btn-primary:active { background: var(--red-dark); }
   .btn-ghost { color: rgba(245,241,232,0.55); }
@@ -635,7 +643,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v23</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v24</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1299,6 +1307,12 @@ try {
     const panel = document.getElementById('panel-pack');
     if (panel && !panel.classList.contains('hidden')) {
       renderPackPhotos();
+    }
+    // Re-render Listings if it's the active tab, so pending submissions appear
+    // immediately after sign-in without a manual tab switch.
+    const lpanel = document.getElementById('panel-listings');
+    if (lpanel && lpanel.classList.contains('active')) {
+      renderListings();
     }
   });
   // Catch redirect result if user just came back from Google sign-in
@@ -2062,9 +2076,16 @@ function calendarCard(e) {
 // Also writes the fresh result back to local Store so Categories tab, offline
 // reloads, and other readers stay in sync.
 async function loadAllListings() {
-  if (fbReady && fbIsAdmin()) {
+  if (fbReady) {
     try {
-      const snap = await fbDb.collection('listings').get();
+      // Admin sees everything (approved + pending). When not signed in as admin,
+      // approved listings are public-readable, so still pull them LIVE instead of
+      // falling back to a stale local cache. The query must be constrained to
+      // approved so Firestore rules permit the read without admin auth.
+      const query = fbIsAdmin()
+        ? fbDb.collection('listings')
+        : fbDb.collection('listings').where('status', '==', 'approved');
+      const snap = await query.get();
       const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       await Store.set(K.LISTINGS, list);
       return list;
@@ -2080,13 +2101,23 @@ async function renderListings() {
   const pending = all.filter(l => l.status === 'pending');
   const live = all.filter(l => l.status === 'approved');
 
-  document.getElementById('listings-pending-count').textContent = pending.length;
+  const signedIn = fbReady && fbIsAdmin();
+  document.getElementById('listings-pending-count').textContent = signedIn ? pending.length : '?';
   document.getElementById('listings-live-count').textContent = live.length;
 
   const pEl = document.getElementById('listings-pending');
-  pEl.innerHTML = pending.length === 0
-    ? '<div class="empty">no pending submissions</div>'
-    : pending.map(l => listingCard(l, true)).join('');
+  if (!fbReady) {
+    pEl.innerHTML = '<div class="empty">Firebase not loaded. Refresh page.</div>';
+  } else if (!signedIn) {
+    pEl.innerHTML = '<div class="empty" style="padding:20px;">'
+      + '<p style="margin-bottom:14px;">Showing live listings only. Sign in as admin to see and moderate pending submissions.</p>'
+      + '<button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>'
+      + '</div>';
+  } else {
+    pEl.innerHTML = pending.length === 0
+      ? '<div class="empty">no pending submissions</div>'
+      : pending.map(l => listingCard(l, true)).join('');
+  }
 
   const lEl = document.getElementById('listings-live');
   lEl.innerHTML = live.length === 0
@@ -2170,7 +2201,8 @@ function listingCard(l, isPending) {
     ? `<button class="btn btn-approve" onclick="setStatus('${l.id}','approved')">APPROVE</button>
        <button class="btn btn-reject" onclick="setStatus('${l.id}','rejected')">REJECT</button>
        <button class="btn btn-ghost" onclick="deleteListing('${l.id}')">DELETE</button>`
-    : `<button class="btn btn-ghost" onclick="setStatus('${l.id}','pending')">RE-QUEUE</button>
+    : `<button class="btn btn-feature" onclick="featureListing('${l.id}')">★ FEATURE</button>
+       <button class="btn btn-ghost" onclick="setStatus('${l.id}','pending')">RE-QUEUE</button>
        <button class="btn btn-reject" onclick="deleteListing('${l.id}')">DELETE</button>`;
 
   // Email lives on the auth-bound userEmail field (directory writes currentUser.email there).
@@ -2214,6 +2246,23 @@ function listingCard(l, isPending) {
       <div class="card-actions">${actions}</div>
     </div>
   `;
+}
+
+async function featureListing(id) {
+  const all = await loadAllListings();
+  const listing = all.find(l => l.id === id);
+  const name = (listing && listing.bizName) ? listing.bizName : 'Business';
+  if (!(fbReady && fbIsAdmin())) { toast('Sign in as admin to feature'); return; }
+  try {
+    await fbDb.collection('settings').doc('featured').set({
+      listingId: id, bizName: name, updatedAt: Date.now()
+    });
+  } catch (err) {
+    console.error('Featured write failed:', err);
+    toast('Feature failed - check connection');
+    return;
+  }
+  toast(name + ' is now featured');
 }
 
 async function setStatus(id, status) {
