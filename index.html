@@ -184,6 +184,12 @@
     scrollbar-width: none;
   }
   .tabs::-webkit-scrollbar { display: none; }
+  /* Phone: wrap the tab row so every tab is reachable without horizontal scroll.
+     12 tabs will not fit one line at 390px; scrolling hid Events/Bulletin/Comments. */
+  @media (max-width: 768px) {
+    .tabs { overflow-x: visible; white-space: normal; }
+    .tab { padding: 11px 12px; font-size: 11px; letter-spacing: 1.2px; }
+  }
   .tab {
     display: inline-block;
     font-family: 'Oswald', sans-serif;
@@ -637,7 +643,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v23</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v24</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
