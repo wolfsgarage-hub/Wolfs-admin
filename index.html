@@ -647,7 +647,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v25</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v26</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -2026,6 +2026,73 @@ function unescapeICS(s) {
   return s.replace(/\\n/gi, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
 }
 
+// ---- recurring/multi-day occurrence support (fix: "calendar not synced") ----
+// The old filter only matched events whose literal DTSTART was today, so every
+// RRULE recurring event and any multi-day event was silently invisible.
+function rruleOccursOn(e, day) {
+  const R = {};
+  for (const part of (e.rrule || "").split(";")) {
+    const [k, v] = part.split("="); if (k) R[k] = v;
+  }
+  if (!R.FREQ || !e.start) return false;
+  const interval = parseInt(R.INTERVAL || "1", 10) || 1;
+  const d0 = new Date(e.start.getFullYear(), e.start.getMonth(), e.start.getDate());
+  if (day < d0) return false;
+  if (R.UNTIL) {
+    const u = parseICSDate(R.UNTIL, "UNTIL");
+    if (u && day > u) return false;
+  }
+  const DAY = 86400000;
+  const days = Math.round((day - d0) / DAY);
+  const wdMap = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  let idx = -1; // occurrence index for COUNT (0-based); -1 = unknown
+  let hit = false;
+  if (R.FREQ === "DAILY") {
+    hit = days % interval === 0;
+    idx = Math.floor(days / interval);
+  } else if (R.FREQ === "WEEKLY") {
+    const bydays = (R.BYDAY ? R.BYDAY.split(",") : [wdMap[d0.getDay()]]);
+    const week0 = new Date(d0.getTime() - d0.getDay() * DAY);
+    const weeks = Math.floor((day - week0) / (7 * DAY));
+    hit = bydays.includes(wdMap[day.getDay()]) && weeks % interval === 0;
+    if (hit) idx = Math.floor(weeks / interval) * bydays.length; // approximation for COUNT
+  } else if (R.FREQ === "MONTHLY") {
+    const months = (day.getFullYear() - d0.getFullYear()) * 12 + (day.getMonth() - d0.getMonth());
+    if (months % interval !== 0) { hit = false; }
+    else if (R.BYDAY && /^-?\d/.test(R.BYDAY)) {
+      const m = R.BYDAY.match(/^(-?\d)([A-Z]{2})$/);
+      if (m) {
+        const ord = parseInt(m[1], 10), wd = wdMap.indexOf(m[2]);
+        if (day.getDay() === wd) {
+          if (ord > 0) hit = Math.floor((day.getDate() - 1) / 7) + 1 === ord;
+          else { const last = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
+                 hit = Math.floor((last - day.getDate()) / 7) + 1 === -ord; }
+        }
+      }
+      if (hit) idx = Math.floor(months / interval);
+    } else {
+      hit = day.getDate() === d0.getDate();
+      if (hit) idx = Math.floor(months / interval);
+    }
+  } else if (R.FREQ === "YEARLY") {
+    hit = day.getMonth() === d0.getMonth() && day.getDate() === d0.getDate();
+    if (hit) idx = day.getFullYear() - d0.getFullYear();
+  }
+  if (hit && R.COUNT && idx >= 0 && idx >= parseInt(R.COUNT, 10)) return false;
+  return hit;
+}
+function occursToday(e, win) {
+  if (!e.start) return false;
+  if (e.rrule) return rruleOccursOn(e, win.start);
+  const end = e.end || new Date(e.start.getTime() + 1); // instant if no DTEND
+  return e.start < win.end && end > win.start;          // intersects today (multi-day incl.)
+}
+function materializeToday(e, win) {
+  if (!e.rrule) return e;
+  const start = new Date(win.start); start.setHours(e.start.getHours(), e.start.getMinutes(), 0, 0);
+  const dur = e.end ? (e.end - e.start) : 0;
+  return { ...e, start, end: dur ? new Date(start.getTime() + dur) : null };
+}
 async function fetchCalendar(forceRefresh) {
   const url = await Store.get(K.CAL_URL);
   const el = document.getElementById('cal-events');
@@ -2039,13 +2106,18 @@ async function fetchCalendar(forceRefresh) {
     const events = await fetchAndParseCalendar(url, !forceRefresh);
     const today = todayWindow();
     const filtered = events
-      .filter(e => e.start && e.start >= today.start && e.start < today.end)
+      .filter(e => occursToday(e, today))
+      .map(e => materializeToday(e, today))
       .sort((a, b) => a.start - b.start);
+    const cache = await Store.get(K.CAL_CACHE);
+    const syncedAt = cache && cache.url === url ? new Date(cache.ts) : new Date();
+    const syncLine = '<div style="font-size:9px;letter-spacing:1px;color:rgba(245,241,232,0.35);margin-top:6px;text-align:right">SYNCED ' +
+      syncedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' · ' + events.length + ' EVENTS IN FEED</div>';
     if (filtered.length === 0) {
-      el.innerHTML = '<div class="empty">nothing on the calendar today</div>';
+      el.innerHTML = '<div class="empty">nothing on the calendar today</div>' + syncLine;
       return;
     }
-    el.innerHTML = filtered.map(e => calendarCard(e)).join('');
+    el.innerHTML = filtered.map(e => calendarCard(e)).join('') + syncLine;
   } catch (err) {
     el.innerHTML = `<div class="empty">calendar fetch failed: ${escapeHtml(err.message || '')}</div>`;
   }
