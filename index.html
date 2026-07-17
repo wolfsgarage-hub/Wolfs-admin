@@ -190,6 +190,10 @@
     .tabs { overflow-x: visible; white-space: normal; }
     .tab { padding: 11px 12px; font-size: 11px; letter-spacing: 1.2px; }
   }
+  /* Very narrow phones: tighter density so the wrapped bar costs fewer rows */
+  @media (max-width: 360px) {
+    .tab { padding: 10px 9px; letter-spacing: 1px; }
+  }
   .tab {
     display: inline-block;
     font-family: 'Oswald', sans-serif;
@@ -643,7 +647,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v24</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v25</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -665,7 +669,7 @@
 </div>
 
 <!-- TAB NAV -->
-<nav class="tabs">
+<nav class="tabs" aria-label="Admin sections">
   <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">DASHBOARD</button>
   <button class="tab" data-tab="morning" onclick="switchTab('morning')">MORNING</button>
   <button class="tab" data-tab="listings" onclick="switchTab('listings')">LISTINGS<span class="tab-badge zero" id="badge-listings">0</span></button>
