@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WG Events Queue — Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0A;--red:#CC0000;--bone:#F5F1E8;--copper:#C8922A;--panel:#141414;--panel-2:#1c1c1c;--border:rgba(245,241,232,.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--bone);font-family:'Work Sans',sans-serif;font-size:15px;line-height:1.5;padding-bottom:60px}
+.pin{height:3px;background:repeating-linear-gradient(90deg,var(--red) 0 16px,transparent 16px 20px,var(--bone) 20px 23px,transparent 23px 27px)}
+header{padding:14px;display:flex;justify-content:space-between;align-items:center}
+h1{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.08em}
+h1 span{color:var(--red)}
+main{padding:12px;max-width:760px;margin:0 auto}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.stat{background:var(--panel);border:1px solid var(--border);padding:8px 12px;font-size:.8rem}
+.stat b{color:var(--red);font-family:'Oswald',sans-serif;font-size:1rem}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.tab{font-family:'Oswald',sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;padding:9px 14px;border:1px solid var(--border);background:none;color:var(--bone);cursor:pointer}
+.tab.on{background:var(--red);border-color:var(--red)}
+.card{background:var(--panel-2);border:1px solid var(--border);border-left:4px solid var(--red);padding:14px;margin-bottom:10px}
+.ct{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.04em}
+.cm{font-family:'Oswald',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--copper);margin:3px 0}
+.chip{display:inline-block;font-size:.68rem;font-family:'Oswald',sans-serif;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--copper);color:var(--copper);padding:2px 7px;margin:2px 4px 2px 0}
+.chip.bad{border-color:var(--red);color:var(--red)}
+.row{margin:8px 0;font-size:.88rem}
+.row a{color:var(--copper)}
+details{margin:8px 0;font-size:.78rem}
+summary{cursor:pointer;color:var(--copper);font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:.72rem;letter-spacing:.08em}
+pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.4);padding:8px;border:1px solid var(--border);max-height:240px;overflow:auto}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button.act{font-family:'Oswald',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;border:1px solid var(--border);background:none;color:var(--bone);cursor:pointer}
+button.act.primary{background:var(--red);border-color:var(--red)}
+button.act:disabled{opacity:.4}
+#msg{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--panel);border-left:4px solid var(--red);padding:10px 18px;font-family:'Oswald',sans-serif;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;display:none;z-index:50}
+.empty{border:1px dashed var(--border);padding:22px;text-align:center;color:rgba(245,241,232,.6)}
+input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--border);color:var(--bone);font-family:'Work Sans',sans-serif}
+</style>
+</head>
+<body>
+<header><h1>WG <span>EVENTS</span> QUEUE</h1><button class="act" id="lockBtn" type="button">LOCK</button></header>
+<div class="pin"></div>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="tabs">
+    <button class="tab on" data-tab="new" type="button">New</button>
+    <button class="tab" data-tab="held" type="button">Held</button>
+    <button class="tab" data-tab="needs_recheck" type="button">Recheck</button>
+    <button class="tab" data-tab="inbox" type="button">Inbox</button>
+    <button class="tab" data-tab="sources" type="button">Sources</button>
+  </div>
+  <div id="list"></div>
+</main>
+<div id="msg"></div>
+<script>
+(function () {
+  'use strict';
+  var SB = 'https://pcqoivjzcokgdtlvoona.supabase.co/rest/v1/rpc/';
+  var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcW9pdmp6Y29rZ2R0bHZvb25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3NzgsImV4cCI6MjA5NDM5OTc3OH0.yp8ypvsFewABuCjLpewEocY-8vBUjz6gmLLHofYTzbo';
+  var tab = 'new';
+  function key() {
+    var k = localStorage.getItem('wgEvAdminKey');
+    if (!k) { k = prompt('Events admin key (from your password manager / WG_EVENTS_ADMIN_KEY):') || ''; if (k) localStorage.setItem('wgEvAdminKey', k.trim()); }
+    return (k || '').trim();
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function toast(t) { var m = document.getElementById('msg'); m.textContent = t; m.style.display = 'block'; setTimeout(function () { m.style.display = 'none'; }, 2600); }
+  function rpc(name, args) {
+    args.p_key = key();
+    return fetch(SB + name, { method: 'POST', headers: { 'content-type': 'application/json', apikey: ANON, authorization: 'Bearer ' + ANON }, body: JSON.stringify(args) })
+      .then(function (r) {
+        if (r.status === 400 || r.status === 401 || r.status === 403) {
+          return r.json().catch(function(){return {};}).then(function (e) {
+            if (/unauthorized|admin_key/.test(JSON.stringify(e))) { localStorage.removeItem('wgEvAdminKey'); toast('Bad key — re-enter'); }
+            throw new Error('auth');
+          });
+        }
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      });
+  }
+  document.getElementById('lockBtn').addEventListener('click', function () { localStorage.removeItem('wgEvAdminKey'); toast('Key cleared'); });
+
+  function loadStats() {
+    rpc('wg_admin_lists', {}).then(function (d) {
+      document.getElementById('stats').innerHTML =
+        '<div class="stat"><b>' + d.candidates_new + '</b> new</div>' +
+        '<div class="stat"><b>' + d.candidates_held + '</b> held</div>' +
+        '<div class="stat"><b>' + d.candidates_recheck + '</b> recheck</div>' +
+        '<div class="stat"><b>' + d.events_published + '</b> live</div>' +
+        '<div class="stat"><b>' + d.weekend_events + '</b> this wknd</div>' +
+        '<div class="stat"><b>' + d.claims_new + '</b> claims</div>' +
+        '<div class="stat"><b>' + d.corrections_new + '</b> fixes</div>' +
+        '<div class="stat"><b>' + d.sources_active + '</b>/' + (d.sources_active + d.sources_proposed) + ' sources</div>';
+    }).catch(function () {});
+  }
+
+  function candCard(c) {
+    var gate = (c.gate || []).map(function (g) { return '<span class="chip bad">' + esc(g) + '</span>'; }).join('');
+    var dupes = (c.dupes || []).map(function (d) { return '<div class="row">Possible dupe: <b>' + esc(d.title) + '</b> (' + esc(d.local_date) + ', sim ' + Math.round(d.sim * 100) + '%) <button class="act" data-act="merge" data-id="' + c.id + '" data-merge="' + d.event_id + '" type="button">MERGE INTO IT</button></div>'; }).join('');
+    return '<div class="card" id="c-' + c.id + '">' +
+      '<div class="ct">' + esc(c.title) + '</div>' +
+      '<div class="cm">' + esc(c.event_date || 'no date') + ' · ' + esc([c.city, c.state].filter(Boolean).join(', ')) + (c.venue_text ? ' · ' + esc(c.venue_text) : '') + ' · conf ' + (c.confidence != null ? Math.round(c.confidence * 100) + '%' : '?') + '</div>' +
+      '<div class="row">Source: ' + (c.source_url ? '<a href="' + esc(c.source_url) + '" target="_blank" rel="noopener">' + esc(c.source_name || c.source_url) + '</a>' : 'submission') + (c.source_trust ? ' <span class="chip">' + esc(c.source_trust) + '</span>' : '') +
+      (c.canonical_url ? ' · <a href="' + esc(c.canonical_url) + '" target="_blank" rel="noopener">event page</a>' : '') + '</div>' +
+      (gate ? '<div class="row">' + gate + '</div>' : '<div class="row"><span class="chip">GATE CLEAN — WOULD AUTO-PUBLISH</span></div>') +
+      dupes +
+      '<details><summary>Extracted data</summary><pre>' + esc(JSON.stringify(c.normalized || {}, null, 1)) + '</pre></details>' +
+      (c.decision_reason ? '<div class="row">Held: ' + esc(c.decision_reason) + '</div>' : '') +
+      '<div class="btns">' +
+      '<button class="act primary" data-act="approve" data-id="' + c.id + '" type="button">APPROVE &amp; PUBLISH</button>' +
+      '<button class="act" data-act="hold" data-id="' + c.id + '" type="button">HOLD</button>' +
+      '<button class="act" data-act="reject" data-id="' + c.id + '" type="button">REJECT</button>' +
+      '<button class="act" data-act="recheck" data-id="' + c.id + '" type="button">RECHECK</button>' +
+      '</div></div>';
+  }
+
+  function loadQueue(status) {
+    document.getElementById('list').innerHTML = '<div class="empty">Loading…</div>';
+    rpc('wg_admin_queue', { p_status: status, p_page: 1 }).then(function (d) {
+      var rows = d.rows || [];
+      document.getElementById('list').innerHTML = rows.length
+        ? rows.map(candCard).join('') + (d.total > 20 ? '<div class="empty">' + d.total + ' total — showing first 20</div>' : '')
+        : '<div class="empty">Nothing in "' + esc(status) + '".</div>';
+    }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
+  }
+
+  function loadInbox() {
+    document.getElementById('list').innerHTML = '<div class="empty">Loading…</div>';
+    rpc('wg_admin_inbox', {}).then(function (d) {
+      var h = '';
+      (d.claims || []).forEach(function (c) {
+        h += '<div class="card"><div class="ct">CLAIM: ' + esc(c.event_title) + '</div>' +
+          '<div class="row">' + esc(c.name) + ' · ' + esc(c.email) + (c.evidence_url ? ' · <a href="' + esc(c.evidence_url) + '" target="_blank" rel="noopener">evidence</a>' : '') + '</div>' +
+          (c.message ? '<div class="row">' + esc(c.message) + '</div>' : '') +
+          '<div class="row"><a href="https://wolfsgarage.com/events/' + esc(c.slug) + '" target="_blank" rel="noopener">view listing</a></div>' +
+          '<div class="btns"><button class="act primary" data-act="claim-verify" data-id="' + c.id + '" data-event="' + c.event_id + '" type="button">VERIFY ORGANIZER</button>' +
+          '<button class="act" data-act="claim-reject" data-id="' + c.id + '" type="button">REJECT</button></div></div>';
+      });
+      (d.corrections || []).forEach(function (c) {
+        h += '<div class="card"><div class="ct">FIX: ' + esc(c.event_title) + '</div>' +
+          '<div class="cm">' + esc(c.kind) + '</div>' +
+          (c.detail ? '<div class="row">' + esc(c.detail) + '</div>' : '') +
+          '<div class="row"><a href="https://wolfsgarage.com/events/' + esc(c.slug) + '" target="_blank" rel="noopener">view listing</a></div>' +
+          '<div class="btns">' +
+          ((c.kind === 'canceled') ? '<button class="act primary" data-act="event-cancel" data-id="' + c.id + '" data-event="' + c.event_id + '" type="button">CANCEL EVENT + APPLY</button>' : '') +
+          ((c.kind === 'postponed') ? '<button class="act primary" data-act="event-postpone" data-id="' + c.id + '" data-event="' + c.event_id + '" type="button">POSTPONE + APPLY</button>' : '') +
+          '<button class="act" data-act="corr-applied" data-id="' + c.id + '" type="button">MARK APPLIED</button>' +
+          '<button class="act" data-act="corr-dismiss" data-id="' + c.id + '" type="button">DISMISS</button></div></div>';
+      });
+      document.getElementById('list').innerHTML = h || '<div class="empty">Inbox zero. Nice.</div>';
+    }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
+  }
+
+  function loadSources() {
+    document.getElementById('list').innerHTML = '<div class="empty">Loading…</div>';
+    rpc('wg_admin_sources', { p_filter: 'all' }).then(function (d) {
+      var rows = d.rows || [];
+      document.getElementById('list').innerHTML = rows.length ? rows.map(function (s) {
+        return '<div class="card"><div class="ct">' + esc(s.name) + '</div>' +
+          '<div class="cm">' + esc(s.kind) + ' · ' + esc((s.states || []).join('/')) + ' · ' + esc(s.trust) + ' · ' + esc(s.health) + (s.active ? ' · ACTIVE' : ' · off') + '</div>' +
+          '<div class="row"><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.url) + '</a></div>' +
+          (s.notes ? '<div class="row">' + esc(s.notes) + '</div>' : '') +
+          '<div class="btns"><button class="act ' + (s.active ? '' : 'primary') + '" data-act="src-toggle" data-id="' + s.id + '" data-on="' + (!s.active) + '" type="button">' + (s.active ? 'DEACTIVATE' : 'ACTIVATE') + '</button></div></div>';
+      }).join('') : '<div class="empty">No sources yet.</div>';
+    }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
+  }
+
+  function refresh() {
+    loadStats();
+    if (tab === 'inbox') loadInbox();
+    else if (tab === 'sources') loadSources();
+    else loadQueue(tab);
+  }
+
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on'); tab = t.getAttribute('data-tab'); refresh();
+    });
+  });
+
+  document.getElementById('list').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button.act'); if (!b) return;
+    var act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+    if (!act) return;
+    b.disabled = true;
+    var done = function (t) { toast(t); refresh(); };
+    var fail = function () { b.disabled = false; toast('Action failed'); };
+    if (act === 'approve') rpc('wg_admin_decide', { p_candidate: id, p_action: 'approve', p_reason: 'admin approved via queue' }).then(function (d) { done(d.slug ? 'Published: ' + d.slug : 'Published'); }).catch(fail);
+    else if (act === 'hold') rpc('wg_admin_decide', { p_candidate: id, p_action: 'hold', p_reason: prompt('Hold reason?') || 'held' }).then(function () { done('Held'); }).catch(fail);
+    else if (act === 'reject') rpc('wg_admin_decide', { p_candidate: id, p_action: 'reject', p_reason: prompt('Reject reason?') || 'rejected' }).then(function () { done('Rejected'); }).catch(fail);
+    else if (act === 'recheck') rpc('wg_admin_decide', { p_candidate: id, p_action: 'recheck', p_reason: 'flagged for recheck' }).then(function () { done('Flagged'); }).catch(fail);
+    else if (act === 'merge') rpc('wg_admin_decide', { p_candidate: id, p_action: 'merge', p_merge_into: b.getAttribute('data-merge'), p_reason: 'duplicate' }).then(function () { done('Merged'); }).catch(fail);
+    else if (act === 'claim-verify') rpc('wg_admin_inbox_decide', { p_kind: 'claim', p_id: id, p_action: 'verify', p_event: b.getAttribute('data-event') }).then(function () { done('Organizer verified'); }).catch(fail);
+    else if (act === 'claim-reject') rpc('wg_admin_inbox_decide', { p_kind: 'claim', p_id: id, p_action: 'reject' }).then(function () { done('Claim rejected'); }).catch(fail);
+    else if (act === 'corr-applied') rpc('wg_admin_inbox_decide', { p_kind: 'correction', p_id: id, p_action: 'apply' }).then(function () { done('Marked applied'); }).catch(fail);
+    else if (act === 'corr-dismiss') rpc('wg_admin_inbox_decide', { p_kind: 'correction', p_id: id, p_action: 'dismiss' }).then(function () { done('Dismissed'); }).catch(fail);
+    else if (act === 'event-cancel') rpc('wg_admin_event', { p_event: b.getAttribute('data-event'), p_action: 'cancel' }).then(function () { return rpc('wg_admin_inbox_decide', { p_kind: 'correction', p_id: id, p_action: 'apply' }); }).then(function () { done('Event canceled'); }).catch(fail);
+    else if (act === 'event-postpone') rpc('wg_admin_event', { p_event: b.getAttribute('data-event'), p_action: 'postpone' }).then(function () { return rpc('wg_admin_inbox_decide', { p_kind: 'correction', p_id: id, p_action: 'apply' }); }).then(function () { done('Event postponed'); }).catch(fail);
+  });
+
+  refresh();
+  console.log('WG Events Queue v1.0');
+})();
+</script>
+</body>
+</html>
