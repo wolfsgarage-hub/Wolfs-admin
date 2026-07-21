@@ -647,7 +647,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v26</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v27</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1041,9 +1041,24 @@
     <div id="add-evt-status" style="margin-top:10px;font-family:'Special Elite',monospace;font-size:12px;color:var(--copper)"></div>
   </div>
 
+  <!-- Events v2 (Supabase / Event Finder) review queue.
+       Separate backend from the Firestore sections below, so it gets its own
+       section rather than being mixed into the pending list. -->
   <div class="section">
     <div class="section-head">
-      <h3>PENDING</h3>
+      <h3>EVENT FINDER &mdash; NEEDS REVIEW</h3>
+      <span class="section-count" id="ev2-held-count">0</span>
+    </div>
+    <div id="ev2-held"></div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" onclick="loadEv2Held()" style="flex:1;min-width:130px;">REFRESH</button>
+      <a class="btn" href="events-queue.html" style="flex:1;min-width:130px;text-align:center;text-decoration:none;line-height:1.9;">FULL QUEUE</a>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>PENDING <span style="font-size:11px;opacity:.6;">(site submissions)</span></h3>
       <span class="section-count" id="events-pending-count">0</span>
     </div>
     <div id="events-pending"></div>
@@ -2789,7 +2804,128 @@ function formatEventDate(d) {
   return `${weekday}, ${EVENT_MONTHS_ADMIN[monthIdx]} ${day}, ${year}`;
 }
 
+/* ---- Events v2 (Supabase Event Finder) held queue -------------------------
+   Separate backend from the Firestore event sections. Reuses the same admin key
+   that events-queue.html stores, so setting it in either place covers both.
+   Reads are automatic; approve/reject only fire on an actual button press. */
+const EV2_SB = 'https://pcqoivjzcokgdtlvoona.supabase.co/rest/v1/rpc/';
+const EV2_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcW9pdmp6Y29rZ2R0bHZvb25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3NzgsImV4cCI6MjA5NDM5OTc3OH0.yp8ypvsFewABuCjLpewEocY-8vBUjz6gmLLHofYTzbo';
+
+function ev2Key(promptIfMissing) {
+  let k = localStorage.getItem('wgEvAdminKey');
+  if (!k && promptIfMissing) {
+    k = prompt('Events admin key (WG_EVENTS_ADMIN_KEY, from your password manager):') || '';
+    if (k) localStorage.setItem('wgEvAdminKey', k.trim());
+  }
+  return (k || '').trim();
+}
+
+function ev2Rpc(name, args, promptIfMissing) {
+  const body = Object.assign({}, args, { p_key: ev2Key(promptIfMissing !== false) });
+  return fetch(EV2_SB + name, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', apikey: EV2_ANON, authorization: 'Bearer ' + EV2_ANON },
+    body: JSON.stringify(body)
+  }).then(r => {
+    if (r.status === 400 || r.status === 401 || r.status === 403) {
+      return r.json().catch(() => ({})).then(e => {
+        if (/unauthorized|admin_key/.test(JSON.stringify(e))) {
+          localStorage.removeItem('wgEvAdminKey');
+          throw new Error('badkey');
+        }
+        throw new Error('auth');
+      });
+    }
+    if (!r.ok) throw new Error('http ' + r.status);
+    return r.json();
+  });
+}
+
+/* Local escaper. The page's esc() lives in a later script block and is not
+   reliably in scope here, so this section carries its own. */
+function ev2Esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+  });
+}
+
+function ev2Card(c) {
+  const d = (c.event_date || '').split('-');
+  const when = d.length === 3 ? d[1] + '/' + d[2] + '/' + d[0].slice(2) : 'no date';
+  const where = [c.city, c.state].filter(Boolean).join(', ') || 'location unknown';
+  const conf = c.confidence != null ? Math.round(Number(c.confidence) * 100) + '%' : '?';
+  const reasons = (c.held_reasons || []).join(', ').replace(/_/g, ' ') || 'held';
+  const flyer = c.flyer_url
+    ? '<span style="color:var(--copper)">FLYER</span>'
+    : '<span style="opacity:.5">no flyer</span>';
+  return '<div class="card pending" style="margin-bottom:10px;">'
+    + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:17px;letter-spacing:.04em;">' + ev2Esc(c.title || '(untitled)') + '</div>'
+    + '<div style="font-family:\'Special Elite\',monospace;font-size:12px;color:var(--copper);margin:3px 0;">' + ev2Esc(when) + ' &middot; ' + ev2Esc(where) + '</div>'
+    + '<div style="font-size:11px;opacity:.75;margin-bottom:8px;">confidence ' + ev2Esc(conf) + ' &middot; ' + ev2Esc(reasons) + ' &middot; ' + flyer + '</div>'
+    + '<div style="display:flex;gap:8px;">'
+    +   '<button class="btn btn-approve" style="flex:1" onclick="ev2Decide(\'' + ev2Esc(c.id) + '\',\'approve\',this)">APPROVE</button>'
+    +   '<button class="btn btn-reject" style="flex:1" onclick="ev2Decide(\'' + ev2Esc(c.id) + '\',\'reject\',this)">REJECT</button>'
+    + '</div></div>';
+}
+
+async function loadEv2Held() {
+  const el = document.getElementById('ev2-held');
+  const countEl = document.getElementById('ev2-held-count');
+  if (!el) return;
+  if (!ev2Key(false)) {
+    countEl.textContent = '?';
+    el.innerHTML = '<div class="empty" style="padding:16px;">'
+      + '<p style="margin-bottom:12px;">These are the auto-discovered events waiting on you. They live in the Event Finder system, not the site calendar, so they need the events admin key.</p>'
+      + '<button class="btn btn-approve" onclick="ev2Unlock()">ENTER KEY</button></div>';
+    return;
+  }
+  el.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const d = await ev2Rpc('wg_admin_queue', { p_status: 'held', p_page: 1 }, false);
+    const rows = (d && (d.rows || d.candidates || d.results)) || (Array.isArray(d) ? d : []);
+    const total = (d && d.total != null) ? d.total : rows.length;
+    countEl.textContent = total;
+    el.innerHTML = rows.length
+      ? rows.map(ev2Card).join('')
+        + (total > rows.length ? '<div style="text-align:center;font-size:11px;opacity:.6;margin-top:6px;">showing ' + rows.length + ' of ' + total + ' &mdash; open FULL QUEUE for the rest</div>' : '')
+      : '<div class="empty">nothing waiting</div>';
+  } catch (err) {
+    countEl.textContent = '!';
+    el.innerHTML = '<div class="empty" style="padding:16px;">'
+      + (err.message === 'badkey'
+          ? 'Key rejected. <button class="btn" onclick="ev2Unlock()">RE-ENTER KEY</button>'
+          : 'Could not load the Event Finder queue (' + ev2Esc(err.message) + '). <button class="btn" onclick="loadEv2Held()">RETRY</button>')
+      + '</div>';
+  }
+}
+
+function ev2Unlock() { ev2Key(true); loadEv2Held(); }
+
+async function ev2Decide(id, action, btn) {
+  const label = action === 'approve' ? 'Publish this event to the site?' : 'Reject this event?';
+  if (!confirm(label)) return;
+  const card = btn.closest('.card');
+  [...card.querySelectorAll('button')].forEach(b => { b.disabled = true; });
+  btn.textContent = action === 'approve' ? 'PUBLISHING...' : 'REJECTING...';
+  try {
+    await ev2Rpc('wg_admin_decide', {
+      p_candidate: id,
+      p_action: action,
+      p_reason: action === 'approve' ? 'approved from admin dashboard' : 'rejected from admin dashboard'
+    }, false);
+    card.style.opacity = '0.4';
+    card.innerHTML = '<div style="padding:10px;font-family:\'Special Elite\',monospace;font-size:12px;color:var(--copper)">'
+      + (action === 'approve' ? 'PUBLISHED' : 'REJECTED') + '</div>';
+    loadEv2Held();
+  } catch (err) {
+    [...card.querySelectorAll('button')].forEach(b => { b.disabled = false; });
+    btn.textContent = action.toUpperCase();
+    alert(err.message === 'badkey' ? 'Admin key rejected. Tap ENTER KEY and try again.' : 'Failed: ' + err.message);
+  }
+}
+
 async function renderEvents() {
+  loadEv2Held();
   const pEl = document.getElementById('events-pending');
   const aEl = document.getElementById('events-approved');
   const pCount = document.getElementById('events-pending-count');
