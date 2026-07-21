@@ -647,7 +647,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v28</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v29</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1044,6 +1044,16 @@
   <!-- Events v2 (Supabase / Event Finder) review queue.
        Separate backend from the Firestore sections below, so it gets its own
        section rather than being mixed into the pending list. -->
+  <!-- Community-reported events. Anything here was flagged by visitors; 3 open
+       flags (2 for "canceled") auto-hides it from the site until you decide. -->
+  <div class="section">
+    <div class="section-head">
+      <h3>REPORTED BY VISITORS</h3>
+      <span class="section-count" id="ev2-flag-count">0</span>
+    </div>
+    <div id="ev2-flags"></div>
+  </div>
+
   <div class="section">
     <div class="section-head">
       <h3>EVENT FINDER &mdash; NEEDS REVIEW</h3>
@@ -1549,9 +1559,10 @@ async function renderDashboard() {
   // Event Finder (Supabase) held count. Separate backend from the Firestore
   // events above, but it is the same job to John, so it lands on the same tile.
   // Cached so the number still shows on a reload before the RPC comes back.
-  let ev2Held = null;
+  let ev2Held = null, ev2Flagged = 0;
   try {
     ev2Held = await ev2HeldCount();
+    try { const fd = await ev2Rpc('wg_admin_flags', {}, false); ev2Flagged = (fd && fd.total) || 0; } catch (e) {}
   } catch (err) {
     console.warn('Dashboard Event Finder read failed:', err);
   }
@@ -1560,12 +1571,12 @@ async function renderDashboard() {
     if (!isNaN(cached)) ev2Held = cached;
   }
   const ev2Known = ev2Held != null;
-  const eventsTotal = pendingE + (ev2Known ? ev2Held : 0);
+  const eventsTotal = pendingE + (ev2Known ? ev2Held : 0) + ev2Flagged;
 
   const evLbl = document.getElementById('dash-events-label');
   if (evLbl) {
     evLbl.textContent = ev2Known
-      ? (ev2Held > 0 ? 'EVENTS TO REVIEW' : 'EVENTS PENDING')
+      ? (ev2Flagged > 0 ? 'EVENTS - ' + ev2Flagged + ' REPORTED' : (ev2Held > 0 ? 'EVENTS TO REVIEW' : 'EVENTS PENDING'))
       : 'EVENTS — TAP TO CONNECT';
   }
 
@@ -2922,7 +2933,72 @@ async function loadEv2Held() {
   }
 }
 
-function ev2Unlock() { ev2Key(true); loadEv2Held(); if (typeof renderDashboard === 'function') renderDashboard(); }
+function ev2Unlock() { ev2Key(true); loadEv2Held(); loadEv2Flags(); if (typeof renderDashboard === 'function') renderDashboard(); }
+
+/* ---- Community-reported events -------------------------------------------
+   Flag-to-review replaces pre-approval: events go live automatically and land
+   here only if visitors report them. 3 open flags (2 for "canceled") auto-hides
+   the event from the site until John decides. */
+function ev2FlagCard(f) {
+  const reasons = (f.reasons || []).join(', ').replace(/_/g, ' ');
+  const details = (f.details || []).filter(Boolean).slice(0, 3);
+  const hidden = f.hidden
+    ? '<span style="color:var(--red);font-weight:700">HIDDEN FROM SITE</span>'
+    : '<span style="opacity:.7">still showing</span>';
+  return '<div class="card pending" style="margin-bottom:10px;">'
+    + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:17px;letter-spacing:.04em;">' + ev2Esc(f.title || '(untitled)') + '</div>'
+    + '<div style="font-family:\'Special Elite\',monospace;font-size:12px;color:var(--copper);margin:3px 0;">'
+      + ev2Esc([f.city, f.state].filter(Boolean).join(', ')) + '</div>'
+    + '<div style="font-size:11px;margin-bottom:6px;"><b>' + (f.open_flags || 0) + '</b> report'
+      + ((f.open_flags === 1) ? '' : 's') + ' &middot; ' + ev2Esc(reasons) + ' &middot; ' + hidden + '</div>'
+    + (details.length
+        ? '<div style="font-size:11px;opacity:.75;border-left:2px solid var(--copper);padding-left:8px;margin-bottom:8px;">'
+          + details.map(d => ev2Esc(String(d)).slice(0, 160)).join('<br>') + '</div>'
+        : '')
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+    +   '<button class="btn btn-approve" style="flex:1;min-width:92px" onclick="ev2FlagDecide(\'' + ev2Esc(f.event_id) + '\',\'keep\',this)">KEEP</button>'
+    +   '<button class="btn" style="flex:1;min-width:92px" onclick="ev2FlagDecide(\'' + ev2Esc(f.event_id) + '\',\'cancel\',this)">CANCELED</button>'
+    +   '<button class="btn btn-reject" style="flex:1;min-width:92px" onclick="ev2FlagDecide(\'' + ev2Esc(f.event_id) + '\',\'remove\',this)">REMOVE</button>'
+    + '</div></div>';
+}
+
+async function loadEv2Flags() {
+  const el = document.getElementById('ev2-flags');
+  const countEl = document.getElementById('ev2-flag-count');
+  if (!el) return;
+  if (!ev2Key(false)) { countEl.textContent = '?'; el.innerHTML = '<div class="empty">unlock above to see reports</div>'; return; }
+  el.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const d = await ev2Rpc('wg_admin_flags', {}, false);
+    const rows = (d && d.rows) || [];
+    countEl.textContent = (d && d.total != null) ? d.total : rows.length;
+    el.innerHTML = rows.length ? rows.map(ev2FlagCard).join('')
+      : '<div class="empty">nothing reported</div>';
+  } catch (err) {
+    countEl.textContent = '!';
+    el.innerHTML = '<div class="empty">Could not load reports (' + ev2Esc(err.message) + ')</div>';
+  }
+}
+
+async function ev2FlagDecide(eventId, action, btn) {
+  const ask = { keep: 'Keep this event and clear the reports?',
+                cancel: 'Mark this event CANCELED on the site?',
+                remove: 'Remove this event from the site?' }[action];
+  if (!confirm(ask)) return;
+  const card = btn.closest('.card');
+  [...card.querySelectorAll('button')].forEach(b => { b.disabled = true; });
+  try {
+    await ev2Rpc('wg_admin_flag_decide', { p_event: eventId, p_action: action, p_reason: 'from admin dashboard' }, false);
+    card.style.opacity = '0.4';
+    card.innerHTML = '<div style="padding:10px;font-family:\'Special Elite\',monospace;font-size:12px;color:var(--copper)">'
+      + ({ keep: 'KEPT — back on the site', cancel: 'MARKED CANCELED', remove: 'REMOVED' }[action]) + '</div>';
+    loadEv2Flags();
+    if (typeof renderDashboard === 'function') renderDashboard();
+  } catch (err) {
+    [...card.querySelectorAll('button')].forEach(b => { b.disabled = false; });
+    alert('Failed: ' + err.message);
+  }
+}
 
 /* Held count for the dashboard tile. Returns null when we genuinely cannot know
    (no admin key yet, or the call failed) so the tile can say so instead of
@@ -2966,6 +3042,7 @@ async function ev2Decide(id, action, btn) {
 
 async function renderEvents() {
   loadEv2Held();
+  loadEv2Flags();
   const pEl = document.getElementById('events-pending');
   const aEl = document.getElementById('events-approved');
   const pCount = document.getElementById('events-pending-count');
