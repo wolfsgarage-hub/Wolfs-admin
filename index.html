@@ -647,7 +647,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v27</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v28</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -702,7 +702,7 @@
     </div>
     <div class="stat-card" id="dash-events" onclick="switchTab('events')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-events">0</div>
-      <div class="stat-lbl">EVENTS PENDING</div>
+      <div class="stat-lbl" id="dash-events-label">EVENTS PENDING</div>
     </div>
     <div class="stat-card" id="dash-bulletin" onclick="switchTab('bulletin')" style="cursor:pointer">
       <div class="stat-num" id="dash-stat-bulletin">0</div>
@@ -1546,15 +1546,38 @@ async function renderDashboard() {
     }
   }
 
+  // Event Finder (Supabase) held count. Separate backend from the Firestore
+  // events above, but it is the same job to John, so it lands on the same tile.
+  // Cached so the number still shows on a reload before the RPC comes back.
+  let ev2Held = null;
+  try {
+    ev2Held = await ev2HeldCount();
+  } catch (err) {
+    console.warn('Dashboard Event Finder read failed:', err);
+  }
+  if (ev2Held == null) {
+    const cached = parseInt(localStorage.getItem('wgEv2HeldCached') || '', 10);
+    if (!isNaN(cached)) ev2Held = cached;
+  }
+  const ev2Known = ev2Held != null;
+  const eventsTotal = pendingE + (ev2Known ? ev2Held : 0);
+
+  const evLbl = document.getElementById('dash-events-label');
+  if (evLbl) {
+    evLbl.textContent = ev2Known
+      ? (ev2Held > 0 ? 'EVENTS TO REVIEW' : 'EVENTS PENDING')
+      : 'EVENTS — TAP TO CONNECT';
+  }
+
   document.getElementById('dash-stat-listings').textContent = pendingL;
   document.getElementById('dash-stat-pack').textContent = pendingP;
-  document.getElementById('dash-stat-events').textContent = pendingE;
+  document.getElementById('dash-stat-events').textContent = ev2Known ? eventsTotal : (pendingE + '+');
   document.getElementById('dash-stat-bulletin').textContent = pendingB;
   document.getElementById('dash-stat-live').textContent = liveL;
 
   document.getElementById('dash-listings').classList.toggle('has-badge', pendingL > 0);
   document.getElementById('dash-pack').classList.toggle('has-badge', pendingP > 0);
-  document.getElementById('dash-events').classList.toggle('has-badge', pendingE > 0);
+  document.getElementById('dash-events').classList.toggle('has-badge', eventsTotal > 0 || !ev2Known);
   document.getElementById('dash-bulletin').classList.toggle('has-badge', pendingB > 0);
 
   // Tab badges
@@ -1564,7 +1587,7 @@ async function renderDashboard() {
   const badgeB = document.getElementById('badge-bulletin');
   if (badgeL) { badgeL.textContent = pendingL; badgeL.classList.toggle('zero', pendingL === 0); }
   if (badgeP) { badgeP.textContent = pendingP; badgeP.classList.toggle('zero', pendingP === 0); }
-  if (badgeE) { badgeE.textContent = pendingE; badgeE.classList.toggle('zero', pendingE === 0); }
+  if (badgeE) { badgeE.textContent = ev2Known ? eventsTotal : (pendingE + '+'); badgeE.classList.toggle('zero', ev2Known && eventsTotal === 0); }
   if (badgeB) { badgeB.textContent = pendingB; badgeB.classList.toggle('zero', pendingB === 0); }
 
   // Notes
@@ -2899,7 +2922,24 @@ async function loadEv2Held() {
   }
 }
 
-function ev2Unlock() { ev2Key(true); loadEv2Held(); }
+function ev2Unlock() { ev2Key(true); loadEv2Held(); if (typeof renderDashboard === 'function') renderDashboard(); }
+
+/* Held count for the dashboard tile. Returns null when we genuinely cannot know
+   (no admin key yet, or the call failed) so the tile can say so instead of
+   showing a confident zero - that wrong zero is exactly what sent John looking. */
+let _ev2CountCache = { at: 0, val: null };
+async function ev2HeldCount() {
+  if (!ev2Key(false)) return null;
+  if (Date.now() - _ev2CountCache.at < 60000 && _ev2CountCache.val != null) return _ev2CountCache.val;
+  const d = await ev2Rpc('wg_admin_lists', {}, false);
+  const n = (d && (d.candidates_held != null ? d.candidates_held : d.held));
+  const val = (typeof n === 'number') ? n : null;
+  if (val != null) {
+    _ev2CountCache = { at: Date.now(), val: val };
+    try { localStorage.setItem('wgEv2HeldCached', String(val)); } catch (e) {}
+  }
+  return val;
+}
 
 async function ev2Decide(id, action, btn) {
   const label = action === 'approve' ? 'Publish this event to the site?' : 'Reject this event?';
