@@ -63,6 +63,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcW9pdmp6Y29rZ2R0bHZvb25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3NzgsImV4cCI6MjA5NDM5OTc3OH0.yp8ypvsFewABuCjLpewEocY-8vBUjz6gmLLHofYTzbo';
   var tab = 'new';
   var pulseDays = 30;
+  var pulseSeq = 0;
   function key() {
     var k = localStorage.getItem('wgEvAdminKey');
     if (!k) { k = prompt('Events admin key (from your password manager / WG_EVENTS_ADMIN_KEY):') || ''; if (k) localStorage.setItem('wgEvAdminKey', k.trim()); }
@@ -171,14 +172,29 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
   }
 
+  var KNOWN_PULSE_EVENTS = [
+    'hero_find_event_click', 'hero_directory_click', 'shop_outbound_click', 'event_search',
+    'directory_search', 'event_submission_start', 'event_submission_complete',
+    'business_listing_start', 'business_listing_complete', 'account_created',
+    'newsletter_opt_in', 'community_submission_start', 'community_submission_complete'
+  ];
+  var PENDING_PULSE_EVENTS = { directory_search: 1, business_listing_start: 1, business_listing_complete: 1 };
+
   function renderPulse(d) {
     var totals = d.totals || {};
     var bySource = d.by_source || {};
     var daily = d.last_7_days_daily || {};
-    var keys = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
-    if (!keys.length) return '<div class="empty">No hits recorded yet.</div>';
-    var h = '<div class="stats">' + keys.map(function (k) {
-      return '<div class="stat"><b>' + esc(totals[k]) + '</b> ' + esc(k) + '</div>';
+    var totalsEmpty = !Object.keys(totals).length;
+    var allKeys = KNOWN_PULSE_EVENTS.slice();
+    Object.keys(totals).forEach(function (k) { if (allKeys.indexOf(k) === -1) allKeys.push(k); });
+    var withCounts = allKeys.filter(function (k) { return (totals[k] || 0) > 0; }).sort(function (a, b) { return totals[b] - totals[a]; });
+    var zeros = allKeys.filter(function (k) { return !(totals[k] || 0); });
+    var keys = withCounts.concat(zeros);
+    var h = totalsEmpty ? '<div class="empty">No hits recorded yet.</div>' : '';
+    h += '<div class="stats">' + keys.map(function (k) {
+      var v = totals[k] || 0;
+      var note = (PENDING_PULSE_EVENTS[k] && !v) ? '<div class="cm">(directory app - not live yet)</div>' : '';
+      return '<div class="stat"><b>' + esc(v) + '</b> ' + esc(k) + note + '</div>';
     }).join('') + '</div>';
     var srcKeys = Object.keys(bySource);
     if (srcKeys.length) {
@@ -198,10 +214,13 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     var body = document.getElementById('pulseBody');
     if (!body) return;
     body.innerHTML = '<div class="empty">Loading…</div>';
+    var seq = ++pulseSeq;
     rpc('wg_admin_analytics', { p_days: pulseDays }).then(function (d) {
+      if (seq !== pulseSeq) return;
       var b = document.getElementById('pulseBody');
       if (b) b.innerHTML = renderPulse(d);
     }).catch(function () {
+      if (seq !== pulseSeq) return;
       var b = document.getElementById('pulseBody');
       if (b) b.innerHTML = '<div class="empty">Pulse load failed.</div>';
     });
@@ -259,7 +278,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   });
 
   refresh();
-  console.log('WG Events Queue v1.1');
+  console.log('WG Events Queue v1.2');
 })();
 </script>
 </body>
