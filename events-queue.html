@@ -51,6 +51,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     <button class="tab" data-tab="needs_recheck" type="button">Recheck</button>
     <button class="tab" data-tab="inbox" type="button">Inbox</button>
     <button class="tab" data-tab="sources" type="button">Sources</button>
+    <button class="tab" data-tab="pulse" type="button">Pulse</button>
   </div>
   <div id="list"></div>
 </main>
@@ -61,6 +62,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   var SB = 'https://pcqoivjzcokgdtlvoona.supabase.co/rest/v1/rpc/';
   var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcW9pdmp6Y29rZ2R0bHZvb25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3NzgsImV4cCI6MjA5NDM5OTc3OH0.yp8ypvsFewABuCjLpewEocY-8vBUjz6gmLLHofYTzbo';
   var tab = 'new';
+  var pulseDays = 30;
   function key() {
     var k = localStorage.getItem('wgEvAdminKey');
     if (!k) { k = prompt('Events admin key (from your password manager / WG_EVENTS_ADMIN_KEY):') || ''; if (k) localStorage.setItem('wgEvAdminKey', k.trim()); }
@@ -169,10 +171,63 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
   }
 
+  function renderPulse(d) {
+    var totals = d.totals || {};
+    var bySource = d.by_source || {};
+    var daily = d.last_7_days_daily || {};
+    var keys = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; });
+    if (!keys.length) return '<div class="empty">No hits recorded yet.</div>';
+    var h = '<div class="stats">' + keys.map(function (k) {
+      return '<div class="stat"><b>' + esc(totals[k]) + '</b> ' + esc(k) + '</div>';
+    }).join('') + '</div>';
+    var srcKeys = Object.keys(bySource);
+    if (srcKeys.length) {
+      h += '<div class="row">Source split: ' + srcKeys.map(function (k) { return esc(k) + ' ' + esc(bySource[k]); }).join(' · ') + '</div>';
+    }
+    var dayKeys = Object.keys(daily).sort();
+    if (dayKeys.length) {
+      h += '<div class="row">Last 7 days: ' + dayKeys.map(function (k) {
+        return '<span class="chip">' + esc(k.slice(5)) + ': ' + esc(daily[k]) + '</span>';
+      }).join('') + '</div>';
+    }
+    h += '<div class="cm">' + esc(d.window_days) + '-day window · generated ' + esc(d.generated_at) + '</div>';
+    return h;
+  }
+
+  function fetchPulse() {
+    var body = document.getElementById('pulseBody');
+    if (!body) return;
+    body.innerHTML = '<div class="empty">Loading…</div>';
+    rpc('wg_admin_analytics', { p_days: pulseDays }).then(function (d) {
+      var b = document.getElementById('pulseBody');
+      if (b) b.innerHTML = renderPulse(d);
+    }).catch(function () {
+      var b = document.getElementById('pulseBody');
+      if (b) b.innerHTML = '<div class="empty">Pulse load failed.</div>';
+    });
+  }
+
+  function loadPulse() {
+    document.getElementById('list').innerHTML =
+      '<div class="card">' +
+      '<div class="ct">SITE PULSE</div>' +
+      '<div class="row">Window: <select id="pulseDays">' +
+      [7, 30, 90].map(function (n) { return '<option value="' + n + '"' + (n === pulseDays ? ' selected' : '') + '>' + n + ' days</option>'; }).join('') +
+      '</select></div>' +
+      '<div id="pulseBody"><div class="empty">Loading…</div></div>' +
+      '</div>';
+    document.getElementById('pulseDays').addEventListener('change', function (e) {
+      pulseDays = parseInt(e.target.value, 10) || 30;
+      fetchPulse();
+    });
+    fetchPulse();
+  }
+
   function refresh() {
     loadStats();
     if (tab === 'inbox') loadInbox();
     else if (tab === 'sources') loadSources();
+    else if (tab === 'pulse') loadPulse();
     else loadQueue(tab);
   }
 
@@ -204,7 +259,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   });
 
   refresh();
-  console.log('WG Events Queue v1.0');
+  console.log('WG Events Queue v1.1');
 })();
 </script>
 </body>
