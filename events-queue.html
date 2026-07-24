@@ -49,6 +49,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     <button class="tab on" data-tab="new" type="button">New</button>
     <button class="tab" data-tab="held" type="button">Held</button>
     <button class="tab" data-tab="needs_recheck" type="button">Recheck</button>
+    <button class="tab" data-tab="dupes" type="button">Dupes</button>
     <button class="tab" data-tab="inbox" type="button">Inbox</button>
     <button class="tab" data-tab="sources" type="button">Sources</button>
     <button class="tab" data-tab="pulse" type="button">Pulse</button>
@@ -148,6 +149,38 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
       }).catch(function () { btn.disabled = false; toast('Approve-all failed'); });
     }
     step();
+  }
+
+  // Possible-duplicate PAIRS among published events. Auto-dedup merges the
+  // confident ones (>=72%); this surfaces the borderline pairs (>=50%) for a
+  // human, with per-pair merge and a bulk MERGE ALL.
+  function loadDupes() {
+    document.getElementById('list').innerHTML = '<div class="empty">Loading…</div>';
+    rpc('wg_admin_dupes', { p_min: 0.5, p_page: 1 }).then(function (d) {
+      var rows = d.rows || [];
+      if (!rows.length) { document.getElementById('list').innerHTML = '<div class="empty">No possible duplicates. Clean.</div>'; return; }
+      var bar = '<div class="btns" style="margin:0 0 12px;justify-content:space-between;align-items:center">' +
+        '<span class="cm" style="margin:0">' + d.total + ' possible dupe pair' + (d.total === 1 ? '' : 's') + (d.total > 30 ? ' · showing first 30' : '') + '</span>' +
+        '<button class="act primary" data-act="merge-all-dupes" data-total="' + d.total + '" type="button">MERGE ALL ' + d.total + '</button></div>';
+      var cards = rows.map(function (p) {
+        return '<div class="card">' +
+          '<div class="cm">' + esc(p.shared_date || '') + ' · ' + esc([p.city, p.state].filter(Boolean).join(', ')) + ' · ' + Math.round(p.sim * 100) + '% match</div>' +
+          '<div class="row"><b>Keep:</b> <a href="https://wolfsgarage.com/events/' + esc(p.a_slug) + '" target="_blank" rel="noopener">' + esc(p.a_title) + '</a></div>' +
+          '<div class="row"><b>Fold in:</b> <a href="https://wolfsgarage.com/events/' + esc(p.b_slug) + '" target="_blank" rel="noopener">' + esc(p.b_title) + '</a></div>' +
+          '<div class="btns"><button class="act primary" data-act="merge-pair" data-a="' + p.a_id + '" data-b="' + p.b_id + '" type="button">MERGE THESE</button>' +
+          '<button class="act" data-act="keep-both" type="button">KEEP BOTH</button></div></div>';
+      }).join('');
+      document.getElementById('list').innerHTML = bar + cards;
+    }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
+  }
+
+  function mergeAllDupes(total, btn) {
+    if (!confirm('Merge ALL ' + total + ' possible-duplicate pairs? Each keeps the richer listing and folds the other in. Reversible.')) { btn.disabled = false; return; }
+    btn.textContent = 'MERGING…';
+    rpc('wg_admin_merge_all_dupes', { p_min: 0.5 }).then(function (d) {
+      toast('Merged ' + (d.merged || 0) + ' duplicate' + ((d.merged || 0) === 1 ? '' : 's'));
+      refresh();
+    }).catch(function () { btn.disabled = false; toast('Merge-all failed'); });
   }
 
   function loadInbox() {
@@ -266,6 +299,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     if (tab === 'inbox') loadInbox();
     else if (tab === 'sources') loadSources();
     else if (tab === 'pulse') loadPulse();
+    else if (tab === 'dupes') loadDupes();
     else loadQueue(tab);
   }
 
@@ -284,6 +318,9 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     var done = function (t) { toast(t); refresh(); };
     var fail = function () { b.disabled = false; toast('Action failed'); };
     if (act === 'approve-all') { approveAll(b.getAttribute('data-status'), parseInt(b.getAttribute('data-total'), 10) || 0, b); return; }
+    if (act === 'merge-all-dupes') { mergeAllDupes(parseInt(b.getAttribute('data-total'), 10) || 0, b); return; }
+    if (act === 'merge-pair') { rpc('wg_admin_merge_pair', { p_a: b.getAttribute('data-a'), p_b: b.getAttribute('data-b') }).then(function (d) { done(d.ok ? 'Merged' : 'Could not merge'); }).catch(fail); return; }
+    if (act === 'keep-both') { var cd = b.closest('.card'); if (cd) cd.style.opacity = '0.4'; b.disabled = true; toast('Kept both'); return; }
     if (act === 'approve') rpc('wg_admin_decide', { p_candidate: id, p_action: 'approve', p_reason: 'admin approved via queue' }).then(function (d) { done(d.slug ? 'Published: ' + d.slug : 'Published'); }).catch(fail);
     else if (act === 'hold') rpc('wg_admin_decide', { p_candidate: id, p_action: 'hold', p_reason: prompt('Hold reason?') || 'held' }).then(function () { done('Held'); }).catch(fail);
     else if (act === 'reject') rpc('wg_admin_decide', { p_candidate: id, p_action: 'reject', p_reason: prompt('Reject reason?') || 'rejected' }).then(function () { done('Rejected'); }).catch(fail);
@@ -298,7 +335,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   });
 
   refresh();
-  console.log('WG Events Queue v1.3');
+  console.log('WG Events Queue v1.4');
 })();
 </script>
 </body>
