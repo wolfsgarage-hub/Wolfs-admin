@@ -547,7 +547,20 @@ console.log("WG post-queue v1.1");
     };
     var fixb = document.createElement("button"); fixb.className = "btn fixit"; fixb.textContent = "FIX IT";
     var kill = document.createElement("button"); kill.className = "btn kill"; kill.textContent = "KILL IT";
-    actions.appendChild(save); actions.appendChild(post); actions.appendChild(fixb); actions.appendChild(kill);
+    // TikTok leg tracker (walk-the-shop #2.5): IG is automated, this leg is manual in the
+    // TikTok app - one tap records that it got scheduled so the daily close can stop asking.
+    var tk = document.createElement("button"); tk.className = "btn fixit";
+    function tkLabel() { tk.textContent = d.tiktok_scheduled_at ? "TIKTOK ✓ " + d.tiktok_scheduled_at.slice(5, 10) : "MARK TIKTOK SCHEDULED"; }
+    tkLabel();
+    function tkShow() { tk.style.display = (d.status === "approved" || d.status === "published") ? "" : "none"; }
+    tkShow(); m.els.tiktokShow = tkShow;
+    tk.onclick = function () {
+      if (blockIfNotReady(m)) { return; }
+      d.tiktok_scheduled_at = d.tiktok_scheduled_at ? null : new Date().toISOString().slice(0, 16);
+      tkLabel();
+      persist(m, "Saving TikTok state...", d.tiktok_scheduled_at ? "TikTok leg marked scheduled." : "TikTok mark cleared.");
+    };
+    actions.appendChild(save); actions.appendChild(post); actions.appendChild(fixb); actions.appendChild(kill); actions.appendChild(tk);
     card.appendChild(actions);
 
     var reasons = document.createElement("div"); reasons.className = "reasons";
