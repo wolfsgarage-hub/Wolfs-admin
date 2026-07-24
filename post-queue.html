@@ -287,6 +287,13 @@ console.log("WG post-queue v1.1");
   function rebuildStrip(m) {
     var strip = m.els.strip;
     strip.innerHTML = "";
+    if (!m.draft.slides.length) {
+      // text-only draft from the admin app SOCIAL tab: show the words, not an empty strip
+      var txtCard = document.createElement("div");
+      txtCard.style.cssText = "padding:16px 18px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;color:#F5F1E8;background:rgba(245,241,232,.05);border-radius:6px;margin:12px;flex:1 1 auto";
+      txtCard.textContent = (m.draft.caption || "(no content)") + (m.draft.platforms && m.draft.platforms.length ? "\n\n→ " + m.draft.platforms.join(", ") : "");
+      strip.appendChild(txtCard);
+    }
     m.draft.slides.forEach(function (s, i) {
       var el;
       if (s.kind === "photo") {
@@ -644,6 +651,7 @@ console.log("WG post-queue v1.1");
       queueDoc = doc;
       statusEl.style.display = "none";
       (doc.drafts || []).forEach(function (draft) {
+        draft.slides = draft.slides || [];   // text drafts from the admin app have no slides
         var m = makeModel(draft);
         models.push(m);
         buildCard(m);
