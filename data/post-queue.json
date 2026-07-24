@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-07-24T01:27:43.415Z",
+  "updated": "2026-07-24T02:17:18.728Z",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
   "drafts": [
     {
@@ -128,11 +128,11 @@
     {
       "id": "wgpost-20260703-03",
       "created": "2026-07-03",
-      "status": "fix",
+      "status": "pending_approval",
       "format": "carousel",
       "angle": "show details - kneel-down stuff",
       "hook": "TWENTY MINUTES TO WALK IT. ALL DAY TO SEE IT.",
-      "caption": "The good stuff at a show is at knee height. A dressed mill with Roadmen pinstriped right on the cover. Chrome spears down a black quarter in the rain. You can walk a show in twenty minutes. Seeing it takes all day. Get back in the garage.",
+      "caption": "The best stuff at any show is at knee height. Everybody shoots the paint. The Roadmen pinstriping is on the valve covers, down where you have to crouch. Get back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#hotrod",
@@ -169,19 +169,6 @@
           }
         },
         {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-03/slide-3.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-3.jpg",
-          "source_asset": "20260627_143802.jpg",
-          "source_file": "renders/posts/_sources/20260627_143802.jpg",
-          "crop": {
-            "focus_x": 0.65,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "clean fender + chrome spears, canopy people cropped out"
-          }
-        },
-        {
           "kind": "end_card",
           "file": "renders/posts/wgpost-20260703-03/slide-4.jpg",
           "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-4.jpg",
@@ -199,7 +186,9 @@
       ],
       "fix_note": "cut slide 3",
       "kill_reason": null,
-      "slot_why": "Thu shifted earlier: Sprout Thu 12-2p, Hootsuite Thu 4-5p; 18:30 misses both"
+      "slot_why": "Thu shifted earlier: Sprout Thu 12-2p, Hootsuite Thu 4-5p; 18:30 misses both",
+      "fixed_at": "2026-07-23",
+      "fix_applied": "slide 3 cut per John's note; caption rewritten to the caption bar (one claim + stance, no inventory)"
     },
     {
       "id": "wgpost-20260703-04",
