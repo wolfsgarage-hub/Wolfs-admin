@@ -125,10 +125,29 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     document.getElementById('list').innerHTML = '<div class="empty">Loading…</div>';
     rpc('wg_admin_queue', { p_status: status, p_page: 1 }).then(function (d) {
       var rows = d.rows || [];
-      document.getElementById('list').innerHTML = rows.length
-        ? rows.map(candCard).join('') + (d.total > 20 ? '<div class="empty">' + d.total + ' total — showing first 20</div>' : '')
-        : '<div class="empty">Nothing in "' + esc(status) + '".</div>';
+      if (!rows.length) { document.getElementById('list').innerHTML = '<div class="empty">Nothing in "' + esc(status) + '".</div>'; return; }
+      // Bulk bar: approve the whole queue in this status at once. Publishes each
+      // through the same gate as single approve.
+      var bar = '<div class="btns" style="margin:0 0 12px;justify-content:space-between;align-items:center">' +
+        '<span class="cm" style="margin:0">' + d.total + ' in "' + esc(status) + '"' + (d.total > 20 ? ' · showing first 20' : '') + '</span>' +
+        '<button class="act primary" data-act="approve-all" data-status="' + esc(status) + '" data-total="' + d.total + '" type="button">APPROVE ALL ' + d.total + '</button></div>';
+      document.getElementById('list').innerHTML = bar + rows.map(candCard).join('');
     }).catch(function () { document.getElementById('list').innerHTML = '<div class="empty">Load failed.</div>'; });
+  }
+
+  // Approve everything in a status, looping the bounded RPC until the queue drains.
+  function approveAll(status, total, btn) {
+    if (!confirm('Publish ALL ' + total + ' candidates in "' + status + '"? This posts them live.')) { btn.disabled = false; return; }
+    var approved = 0, failed = 0;
+    function step() {
+      btn.textContent = 'APPROVING… ' + approved + '/' + total;
+      rpc('wg_admin_approve_all', { p_status: status, p_limit: 100 }).then(function (d) {
+        approved += (d.approved || 0); failed += (d.failed || 0);
+        if ((d.approved || 0) > 0 && d.remaining > 0) { step(); }        // more to do
+        else { toast('Approved ' + approved + (failed ? ' · ' + failed + ' failed (held)' : '')); refresh(); }
+      }).catch(function () { btn.disabled = false; toast('Approve-all failed'); });
+    }
+    step();
   }
 
   function loadInbox() {
@@ -264,6 +283,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     b.disabled = true;
     var done = function (t) { toast(t); refresh(); };
     var fail = function () { b.disabled = false; toast('Action failed'); };
+    if (act === 'approve-all') { approveAll(b.getAttribute('data-status'), parseInt(b.getAttribute('data-total'), 10) || 0, b); return; }
     if (act === 'approve') rpc('wg_admin_decide', { p_candidate: id, p_action: 'approve', p_reason: 'admin approved via queue' }).then(function (d) { done(d.slug ? 'Published: ' + d.slug : 'Published'); }).catch(fail);
     else if (act === 'hold') rpc('wg_admin_decide', { p_candidate: id, p_action: 'hold', p_reason: prompt('Hold reason?') || 'held' }).then(function () { done('Held'); }).catch(fail);
     else if (act === 'reject') rpc('wg_admin_decide', { p_candidate: id, p_action: 'reject', p_reason: prompt('Reject reason?') || 'rejected' }).then(function () { done('Rejected'); }).catch(fail);
@@ -278,7 +298,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   });
 
   refresh();
-  console.log('WG Events Queue v1.2');
+  console.log('WG Events Queue v1.3');
 })();
 </script>
 </body>
