@@ -647,7 +647,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v29</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v30</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1197,11 +1197,11 @@
 
   <div class="section">
     <div class="section-head"><h3>SETUP</h3></div>
-    <p style="font-size:12px;color:var(--ink-dim);margin-top:0">Anthropic API key. Stays on this phone only.</p>
-    <input type="password" class="textarea" id="studio-key-field" placeholder="sk-ant-..." autocomplete="off" style="min-height:auto;padding:11px">
+    <p style="font-size:12px;color:var(--ink-dim);margin-top:0">No API key on this phone. Studio calls go through the Wolf's Garage proxy, which holds the key server-side. Token below is ONLY needed if you open this page as a local file.</p>
+    <input type="password" class="textarea" id="studio-key-field" placeholder="proxy token (usually leave blank)" autocomplete="off" style="min-height:auto;padding:11px">
     <div class="card-actions" style="margin-top:10px">
-      <button class="btn btn-primary" id="studio-save-key">SAVE KEY</button>
-      <button class="btn btn-ghost" id="studio-test-key">TEST KEY</button>
+      <button class="btn btn-primary" id="studio-save-key">SAVE TOKEN</button>
+      <button class="btn btn-ghost" id="studio-test-key">TEST PROXY</button>
     </div>
     <div id="studio-key-status" style="margin-top:10px;font-size:13px;color:var(--ink-dim)"></div>
   </div>
@@ -3450,6 +3450,27 @@ function togglePlatform(btn) {
   btn.classList.toggle('active');
 }
 
+async function pushToApprovalQueue(entry) {
+  // One queue for everything: drafts land in data/post-queue.json on main, where the
+  // approval page shows them. The github-proxy holds credentials server-side.
+  try {
+    const g = await fetch(WG_GITHUB_PROXY, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get", path: "data/post-queue.json" }) }).then(r => r.json());
+    const doc = g && g.contentBase64
+      ? JSON.parse(decodeURIComponent(escape(atob(g.contentBase64.replace(/\n/g, "")))))
+      : { version: 2, drafts: [] };
+    if ((doc.drafts || []).some(d => d.id === entry.id)) return true;
+    doc.drafts = doc.drafts || [];
+    doc.drafts.push(entry);
+    doc.updated = new Date().toISOString();
+    const up = await fetch(WG_GITHUB_PROXY, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "upload", path: "data/post-queue.json",
+        contentBase64: btoa(unescape(encodeURIComponent(JSON.stringify(doc, null, 2)))),
+        message: "queue: " + entry.id + " pending_approval (admin app)" }) }).then(r => r.json());
+    return !!(up && up.ok);
+  } catch (e) { return false; }
+}
+
 async function saveSocialPost(type) {
   const text = document.getElementById('social-text').value.trim();
   if (!text) { toast('Write something first'); return; }
@@ -3466,7 +3487,17 @@ async function saveSocialPost(type) {
   all.push(post);
   await Store.set(key, all);
   document.getElementById('social-text').value = '';
-  toast(type === 'queue' ? 'QUEUED' : 'SAVED AS DRAFT');
+  if (type === 'queue') {
+    const day = new Date().toISOString().slice(0, 10);
+    const ok = await pushToApprovalQueue({
+      id: 'wgpost-' + day.replace(/-/g, '') + '-' + post.id.slice(-5),
+      created: day, status: 'pending_approval', format: 'text',
+      caption: text, platforms: platforms, slides: [], origin: 'social-tab'
+    });
+    toast(ok ? 'QUEUED - on the approval page' : 'Queued on this phone only (sync failed)');
+  } else {
+    toast('SAVED AS DRAFT');
+  }
   await renderSocial();
 }
 
@@ -3698,7 +3729,9 @@ async function ensureFirebaseAdmin() {
 
   var MODEL = "claude-sonnet-4-6";
   var MAX_HASHTAGS = 5;
-  var LS_KEY = "wgpost:key";
+  var LS_KEY = "wgpost:key"; // now holds the OPTIONAL proxy token (file:// use only), never an API key
+  var ANTHROPIC_PROXY = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/anthropic-proxy";
+  var WG_GITHUB_PROXY = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
   var LS_DRAFTS = "wgcs:drafts";
 
   var PRINCIPLES = "Hooks land in the first 2.5 seconds or the scroll wins. Reels: cut every 3 to 5 seconds (about 32 percent more engagement than one long shot). Always burn on-screen captions in (80 percent more people finish). Add a trending sound inside Instagram when you post (about 42 percent more engagement, and you can only do it in the app). Real hands on real metal beats polished brand video every time. Write the caption like a search bar, Instagram is a search engine now. Chase saves and shares, not likes. Under 5K followers is the sweet spot for organic reach, so post consistently and adapt trends with your own spin (Instagram penalizes copied clips).";
@@ -3887,21 +3920,17 @@ async function ensureFirebaseAdmin() {
   }
 
   function callClaude(system, userText, images, maxTokens) {
-    var apiKey = getKey();
-    if (!apiKey) { tellUser("Add your API key in Studio Setup"); return Promise.resolve(null); }
     var userContent = [];
     (images || []).forEach(function (img) {
       userContent.push({ type: "image", source: { type: "base64", media_type: img.mediaType || "image/jpeg", data: img.base64 } });
     });
     userContent.push({ type: "text", text: userText });
-    return fetch("https://api.anthropic.com/v1/messages", {
+    var proxyHeaders = { "Content-Type": "application/json" };
+    var proxyTok = getKey();
+    if (proxyTok) { proxyHeaders["x-wg-token"] = proxyTok; }
+    return fetch(ANTHROPIC_PROXY, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
+      headers: proxyHeaders,
       body: JSON.stringify({ model: MODEL, max_tokens: maxTokens || 1800, system: system, messages: [{ role: "user", content: userContent }] })
     }).then(function (resp) {
       if (!resp.ok) {
@@ -4077,25 +4106,27 @@ async function ensureFirebaseAdmin() {
 
   function wireSetup() {
     var k = getKey();
-    if (k) { $("studio-key-field").value = k; $("studio-key-status").textContent = "Key loaded from this device."; }
+    if (k) { $("studio-key-field").value = k; $("studio-key-status").textContent = "Proxy token loaded (file:// use)."; }
+    else { $("studio-key-status").textContent = "Proxy-secured. No key needed on this phone."; }
     $("studio-save-key").addEventListener("click", function () {
       var v = $("studio-key-field").value.trim();
       setLS(LS_KEY, v);
-      tellUser(v ? "Key saved" : "Key cleared");
-      $("studio-key-status").textContent = v ? "Key saved on this device." : "No key set.";
+      tellUser(v ? "Token saved" : "Token cleared");
+      $("studio-key-status").textContent = v ? "Proxy token saved (file:// use)." : "Proxy-secured. No key needed on this phone.";
     });
     $("studio-test-key").addEventListener("click", function () {
       var v = $("studio-key-field").value.trim();
-      if (!v) { tellUser("Enter a key first"); return; }
       setLS(LS_KEY, v);
-      $("studio-key-status").textContent = "Testing...";
-      fetch("https://api.anthropic.com/v1/messages", {
+      $("studio-key-status").textContent = "Testing proxy...";
+      var th = { "Content-Type": "application/json" };
+      if (v) { th["x-wg-token"] = v; }
+      fetch(ANTHROPIC_PROXY, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": v, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        headers: th,
         body: JSON.stringify({ model: MODEL, max_tokens: 10, messages: [{ role: "user", content: "ping" }] })
       }).then(function (r) {
-        if (r.ok) { $("studio-key-status").textContent = "Key works. You are good."; tellUser("Key works"); }
-        else { $("studio-key-status").textContent = "Key rejected. HTTP " + r.status; tellUser("Key rejected"); }
+        if (r.ok) { $("studio-key-status").textContent = "Proxy works. You are good."; tellUser("Proxy works"); }
+        else { $("studio-key-status").textContent = "Proxy said HTTP " + r.status + (r.status === 401 || r.status === 403 ? " - token needed for file:// use" : ""); tellUser("Proxy error"); }
       }).catch(function (e) {
         $("studio-key-status").textContent = "Network error: " + (e.message || "unknown");
         tellUser("Network error");
