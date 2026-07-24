@@ -472,7 +472,14 @@ console.log("WG post-queue v1.1");
     m.els.fmt = left;
     var chip = document.createElement("span"); chip.className = "chip"; m.els.chip = chip;
     var slot = document.createElement("span"); slot.className = "slot";
-    slot.textContent = (d.target_slot || "").replace(" America/Los_Angeles", " PT");
+    slot.textContent = ((d.scheduled_slot || d.target_slot) || "").replace(" America/Los_Angeles", " PT");
+    if (d.status === "approved" && d.scheduled_slot) {
+      var auto = document.createElement("span"); auto.className = "chip";
+      auto.style.cssText = "border-color:#C8922A;color:#C8922A";
+      auto.textContent = "AUTO-POSTS WHEN ARMED";
+      auto.title = "Publishes to Instagram at the slot once the publisher is armed. Until then the daily close nudges instead.";
+      meta.appendChild(auto);
+    }
     meta.appendChild(left); meta.appendChild(slot); meta.appendChild(chip);
     card.appendChild(meta);
 
