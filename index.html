@@ -679,11 +679,9 @@
   <button class="tab" data-tab="listings" onclick="switchTab('listings')">LISTINGS<span class="tab-badge zero" id="badge-listings">0</span></button>
   <button class="tab" data-tab="categories" onclick="switchTab('categories')">CATEGORIES<span class="tab-badge zero" id="badge-categories">0</span></button>
   <button class="tab" data-tab="pack" onclick="switchTab('pack')">PACK PHOTOS<span class="tab-badge zero" id="badge-pack">0</span></button>
-  <button class="tab" data-tab="wolfphotos" onclick="switchTab('wolfphotos')">WOLF PHOTOS</button>
   <button class="tab" data-tab="bulletin" onclick="switchTab('bulletin')">BULLETIN<span class="tab-badge zero" id="badge-bulletin">0</span></button>
   <button class="tab" data-tab="events" onclick="switchTab('events')">EVENTS<span class="tab-badge zero" id="badge-events">0</span></button>
   <button class="tab" data-tab="comments" onclick="switchTab('comments')">COMMENTS</button>
-  <button class="tab" data-tab="wolf-photos" onclick="switchTab('wolf-photos')">WOLF'S PHOTOS</button>
   <button class="tab" data-tab="social" onclick="switchTab('social')">SOCIAL</button>
   <button class="tab" data-tab="studio" onclick="switchTab('studio')">STUDIO</button>
 </nav>
@@ -977,28 +975,6 @@
   </div>
 </section>
 
-<!-- ============== WOLF PHOTOS (pin to Wolf's Picks) ============== -->
-<section class="panel" id="panel-wolfphotos">
-  <div class="panel-head">
-    <h2>WOLF PHOTOS</h2>
-    <p>// pin up to 3 photos to Wolf's Picks on the public gallery</p>
-  </div>
-  <div class="section">
-    <div class="section-head">
-      <h3>PICKED <span style="color:rgba(245,241,232,0.5);font-size:12px;margin-left:8px;">(showing on public site)</span></h3>
-      <span class="section-count" id="wolfphotos-picked-count">0</span>
-    </div>
-    <div id="wolfphotos-picked" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;"></div>
-  </div>
-  <div class="section">
-    <div class="section-head">
-      <h3>ALL WOLF PHOTOS</h3>
-      <span class="section-count" id="wolfphotos-all-count">0</span>
-    </div>
-    <div id="wolfphotos-all" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;"></div>
-  </div>
-</section>
-
 <!-- ============== COMMENTS (moderation) ============== -->
 <section class="panel" id="panel-comments">
   <div class="panel-head">
@@ -1084,32 +1060,6 @@
       <span class="section-count" id="events-approved-count">0</span>
     </div>
     <div id="events-approved"></div>
-  </div>
-</section>
-
-<!-- ============== WOLF'S PHOTOS ============== -->
-<section class="panel" id="panel-wolf-photos">
-  <div class="panel-head">
-    <h2>WOLF'S PHOTOS</h2>
-    <p>// upload goes live instantly. no review.</p>
-  </div>
-
-  <label class="upload-zone" id="wolf-upload-zone">
-    <div class="upload-zone-icon">+</div>
-    <div class="upload-zone-label">TAP TO UPLOAD</div>
-    <div class="upload-zone-hint">pick one or many. goes live instantly</div>
-    <input type="file" id="wolf-upload-input" accept="image/*" multiple style="display:none" onchange="uploadWolfPhotos(event)">
-  </label>
-  <div style="font-family:'Special Elite',monospace;font-size:10px;color:rgba(245,241,232,0.5);margin-top:8px;line-height:1.5">
-    Tip: On Samsung phones, select photos from the initial gallery view. Sub-folder selection is unreliable on Android.
-  </div>
-
-  <div class="section">
-    <div class="section-head">
-      <h3>YOUR PHOTOS</h3>
-      <span class="section-count" id="wolf-photos-count">0</span>
-    </div>
-    <div class="photo-grid" id="wolf-photos-grid"></div>
   </div>
 </section>
 
@@ -1483,11 +1433,9 @@ function switchTab(name, pushHistory) {
   if (name === 'listings') renderListings();
   if (name === 'categories') renderCategories();
   if (name === 'pack') renderPackPhotos();
-  if (name === 'wolfphotos') loadWolfPhotos();
   if (name === 'bulletin') loadBulletin();
   if (name === 'events') renderEvents();
   if (name === 'comments') loadComments();
-  if (name === 'wolf-photos') renderWolfPhotos();
   if (name === 'social') renderSocial();
   if (name === 'studio' && window.renderStudio) window.renderStudio();
   if (name === 'morning') renderMorning();
@@ -2561,71 +2509,6 @@ async function deletePack(id) {
   }
 }
 
-// ============== WOLF PHOTOS (pin/unpin for Wolf's Picks on public site) ==============
-async function loadWolfPhotos() {
-  if (!fbDb) return;
-  const pickedEl = document.getElementById('wolfphotos-picked');
-  const allEl = document.getElementById('wolfphotos-all');
-  if (!pickedEl || !allEl) return;
-  try {
-    const snap = await fbDb.collection('wolf_photos').orderBy('addedAt', 'desc').limit(80).get();
-    const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const picked = all.filter(p => p.isPicked === true);
-    document.getElementById('wolfphotos-picked-count').textContent = picked.length;
-    document.getElementById('wolfphotos-all-count').textContent = all.length;
-    pickedEl.innerHTML = picked.length ? picked.map(p => renderWolfPhotoCard(p, true)).join('') : '<p style="color:rgba(245,241,232,0.5);font-family:\'Special Elite\',monospace;padding:14px 0;grid-column:1/-1;">No photos pinned. Pin some below.</p>';
-    allEl.innerHTML = all.length ? all.map(p => renderWolfPhotoCard(p, false)).join('') : '<p style="color:rgba(245,241,232,0.5);font-family:\'Special Elite\',monospace;padding:14px 0;grid-column:1/-1;">No Wolf photos posted yet.</p>';
-  } catch (err) {
-    console.warn('Wolf photos load failed:', err);
-    pickedEl.innerHTML = '<p style="color:var(--red);font-family:\'Special Elite\',monospace;padding:14px 0;grid-column:1/-1;">Could not load Wolf photos.</p>';
-  }
-}
-
-function renderWolfPhotoCard(p, isPickedView) {
-  const esc = s => (s || '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-  const img = p.imageUrl || p.imageData || '';
-  const caption = esc(p.caption || '');
-  const isPicked = p.isPicked === true;
-  const pinLabel = isPicked ? '★ UNPIN' : '☆ PIN';
-  const pinStyle = isPicked ? 'background:var(--red);color:var(--bone);' : 'background:none;color:var(--red);border:1px solid var(--red);';
-  return '<div style="border:1px solid rgba(245,241,232,0.2);padding:6px;">'
-    + '<div style="background-image:url(\'' + esc(img) + '\');background-size:cover;background-position:center;aspect-ratio:1;margin-bottom:6px;"></div>'
-    + '<div style="font-family:\'Special Elite\',monospace;font-size:11px;color:rgba(245,241,232,0.7);margin-bottom:6px;min-height:2.4em;">' + caption + '</div>'
-    + '<div style="display:flex;gap:4px;flex-wrap:wrap;">'
-    + '<button onclick="toggleWolfPin(\'' + p.id + '\',' + (!isPicked) + ')" style="padding:4px 8px;font-family:\'Oswald\',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;' + pinStyle + '">' + pinLabel + '</button>'
-    + '<button onclick="deleteWolfPhoto(\'' + p.id + '\')" style="padding:4px 8px;font-family:\'Oswald\',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;background:none;color:var(--red);border:1px solid rgba(204,0,0,0.5);">DEL</button>'
-    + '</div></div>';
-}
-
-window.toggleWolfPin = async function(id, shouldPin) {
-  if (!fbDb) return;
-  if (shouldPin) {
-    // Soft-cap at 3 picks: warn but allow (Wolf decides)
-    try {
-      const snap = await fbDb.collection('wolf_photos').where('isPicked', '==', true).get();
-      if (snap.size >= 3) {
-        if (!confirm('You already have ' + snap.size + ' photos pinned. Wolf\'s Picks shows the 3 most recently pinned. Continue?')) return;
-      }
-    } catch (e) { /* non-fatal */ }
-  }
-  try {
-    await fbDb.collection('wolf_photos').doc(id).update({
-      isPicked: shouldPin,
-      pickedAt: shouldPin ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.FieldValue.delete()
-    });
-    loadWolfPhotos();
-  } catch (err) { alert('Pin failed: ' + err.message); }
-};
-
-window.deleteWolfPhoto = async function(id) {
-  if (!fbDb) return;
-  if (!confirm('Delete this Wolf photo permanently?')) return;
-  try {
-    await fbDb.collection('wolf_photos').doc(id).delete();
-    loadWolfPhotos();
-  } catch (err) { alert('Delete failed: ' + err.message); }
-};
-
 // ============== COMMENTS (moderation) ==============
 async function loadComments() {
   if (!fbDb) return;
@@ -3314,138 +3197,6 @@ async function promptFbSignIn() {
     }
   } catch (err) {
     alert('Sign-in failed: ' + (err.message || err.code));
-  }
-}
-
-// ============== WOLF'S PHOTOS ==============
-document.addEventListener('click', (e) => {
-  if (e.target.closest('#wolf-upload-zone') && !e.target.matches('input')) {
-    document.getElementById('wolf-upload-input').click();
-  }
-});
-
-// Bug 2 fix. Wolf's photos now live in the Firestore wolf_photos
-// collection (the public gallery reads from there) instead of
-// localStorage, which silently dropped oversized base64 writes and never
-// reached the community site. Schema matches wolfs-garage-community:
-// { imageData, addedAt }. Uses the compat SDK (.collection().add()) to
-// match every other Firestore call in this file.
-async function uploadWolfPhotos(event) {
-  const files = Array.from(event.target.files || []);
-  // DIAGNOSTIC LOGGING - overnight May 21-22 multi-upload reliability probe.
-  // Step traces only, no behaviour change. Remove once the bug is understood.
-  console.log('[uploadWolfPhotos] files selected:', files.length,
-    files.map(f => f.name + ' (' + f.type + ', ' + f.size + ' bytes)'));
-  event.target.value = '';
-  if (files.length === 0) return;
-  if (!fbReady || !fbIsAdmin()) {
-    toast('Sign in required');
-    console.warn('[uploadWolfPhotos] aborted: fbReady=' + fbReady + ' fbIsAdmin=' + fbIsAdmin());
-    return;
-  }
-  let added = 0;
-  try {
-    for (const f of files) {
-      if (!f.type.startsWith('image/')) {
-        console.warn('[uploadWolfPhotos] skipped non-image:', f.name, f.type);
-        continue;
-      }
-      console.log('[uploadWolfPhotos] compressing:', f.name);
-      const imageData = await compressImage(f);
-      console.log('[uploadWolfPhotos] compressed:', f.name, '-> data URL length', imageData.length);
-      const ref = await fbDb.collection('wolf_photos').add({
-        imageData,
-        addedAt: new Date().toISOString()
-      });
-      console.log('[uploadWolfPhotos] addDoc resolved:', f.name, '-> doc id', ref.id);
-      added++;
-    }
-    toast(`${added} photo${added === 1 ? '' : 's'} published`);
-    console.log('[uploadWolfPhotos] complete: added ' + added + ' of ' + files.length);
-  } catch (err) {
-    toast('Upload failed: ' + (err.message || err.code));
-    console.error('[uploadWolfPhotos] FAILED after ' + added + ' of ' + files.length + ' files:', err);
-  }
-  await renderWolfPhotos();
-}
-
-// Downscale + JPEG-encode to a data URL so docs stay small. Mirrors the
-// compressImage helper in wolfs-garage-community/admin.html.
-function compressImage(file, maxPx = 1400, quality = 0.78) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = e => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let w = img.width, h = img.height;
-        if (w > maxPx || h > maxPx) {
-          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
-          else { w = Math.round(w * maxPx / h); h = maxPx; }
-        }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function renderWolfPhotos() {
-  const grid = document.getElementById('wolf-photos-grid');
-  const countEl = document.getElementById('wolf-photos-count');
-
-  if (!fbReady) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Firebase not loaded. Refresh page.</div>';
-    countEl.textContent = '0';
-    return;
-  }
-
-  if (!fbIsAdmin()) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:20px;">
-      <p style="margin-bottom:14px;">Sign in to Firebase as admin to manage Wolf's photos.</p>
-      <button class="btn btn-approve" onclick="promptFbSignIn()">SIGN IN</button>
-    </div>`;
-    countEl.textContent = '?';
-    return;
-  }
-
-  grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Loading...</div>';
-
-  try {
-    const snap = await fbDb.collection('wolf_photos').orderBy('addedAt', 'desc').get();
-    const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    countEl.textContent = photos.length;
-    grid.innerHTML = photos.length === 0
-      ? '<div class="empty" style="grid-column:1/-1">no photos yet. tap upload above</div>'
-      : photos.map(p => `
-      <div class="photo-tile">
-        <img src="${p.imageData}" alt="" onclick="openLightbox('${p.imageData}')">
-        <div class="photo-tile-actions">
-          <button class="btn btn-reject" onclick="deleteWolfPhoto('${p.id}')">DELETE</button>
-        </div>
-      </div>
-    `).join('');
-  } catch (err) {
-    console.error('renderWolfPhotos error:', err);
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Load failed: ' + (err.message || err.code) + '</div>';
-    countEl.textContent = '0';
-  }
-}
-
-async function deleteWolfPhoto(id) {
-  if (!fbReady || !fbIsAdmin()) { toast('Sign in required'); return; }
-  if (!confirm('Delete this photo?')) return;
-  try {
-    await fbDb.collection('wolf_photos').doc(id).delete();
-    toast('Deleted');
-    await renderWolfPhotos();
-  } catch (err) {
-    toast('Failed: ' + (err.message || err.code));
   }
 }
 
