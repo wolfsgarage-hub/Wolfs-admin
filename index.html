@@ -330,6 +330,10 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 8px; margin-bottom: 16px;
   }
+  /* desktop only: phone-first 2-up stays; 4-up halves the tiles on computer screens */
+  @media (min-width: 1024px) {
+    .photo-grid { grid-template-columns: repeat(4, 1fr); }
+  }
   .photo-tile {
     position: relative;
     aspect-ratio: 1;
