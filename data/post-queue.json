@@ -1,272 +1,63 @@
 {
-  "version": 2,
-  "updated": "2026-07-25T02:27:58.372528+00:00",
-  "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
   "drafts": [
     {
-      "id": "wgpost-20260703-01",
-      "created": "2026-07-03",
+      "id": "a",
       "status": "approved",
-      "format": "carousel",
-      "angle": "brand truck around Portland",
-      "hook": "THIS TRUCK GETS AROUND. PORTLAND KEEPS UP.",
-      "caption": "Murals, graffiti walls, wet show lots, on the ground wherever it parks. Portland looks good around this truck. Get back in the garage.",
-      "hashtags": [
-        "#wolfsgarage",
-        "#slammed",
-        "#kustomkulture",
-        "#portland",
-        "#getbackinthegarage"
-      ],
-      "cta": "brand",
-      "slides": [
-        {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-01/slide-1.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-1.jpg",
-          "source_asset": "GX010490_1759117548886.jpg",
-          "source_file": "renders/posts/_sources/GX010490_1759117548886.jpg",
-          "crop": {
-            "focus_x": 0.75,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "front clip: grille, chrome bumper, white steelie, mural overhead"
-          }
-        },
-        {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-01/slide-2.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-2.jpg",
-          "source_asset": "20260627_164839.jpg",
-          "source_file": "renders/posts/_sources/20260627_164839.jpg",
-          "crop": {
-            "focus_x": 0.05,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "hubcap reflection + fender curve detail; old crop was blank door"
-          }
-        },
-        {
-          "kind": "end_card",
-          "file": "renders/posts/wgpost-20260703-01/slide-4.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-01/slide-4.jpg",
-          "source_asset": "assets/wolf-logo.png"
-        }
-      ],
-      "target_slot": "2026-07-07 18:30 America/Los_Angeles",
-      "platforms": [
-        "instagram",
-        "facebook"
-      ],
-      "flags": [
-        "Slide 3 background graffiti reads FUCK THA SYSTEM - keep it or kill the slide, one tap either way.",
-        "Library tags disagree on the truck make (GMC vs Chevy) so the caption names no make."
-      ],
-      "fix_note": null,
-      "kill_reason": null,
-      "slot_why": "auto-assigned next open slot from the timing table on approval",
-      "scheduled_slot": "2026-07-29T18:30 America/Los_Angeles"
-    },
-    {
-      "id": "wgpost-20260703-02",
-      "created": "2026-07-03",
-      "status": "approved",
-      "format": "single",
-      "angle": "color hero - rain detail",
-      "hook": null,
-      "caption": "Rain does a '52 Chevy a favor. Every drop sits on that jade paint like it was ordered. Chrome teeth, hooded headlight, nothing extra. Some cars you shoot from across the lot. This one pulls you in close. Get back in the garage.",
-      "hashtags": [
-        "#wolfsgarage",
-        "#chevy",
-        "#kustomkulture",
-        "#classiccar",
-        "#getbackinthegarage"
-      ],
-      "cta": "brand",
-      "slides": [
-        {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-02/slide-1.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-02/slide-1.jpg",
-          "source_asset": "20260627_165651.jpg",
-          "source_file": "renders/posts/_sources/20260627_165651.jpg",
-          "crop": {
-            "focus_x": 0.15,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "full chrome grille teeth + emblem + headlight"
-          }
-        }
-      ],
-      "target_slot": "2026-07-08 18:30 America/Los_Angeles",
-      "platforms": [
-        "instagram",
-        "facebook"
-      ],
-      "flags": [],
-      "fix_note": null,
-      "kill_reason": null,
-      "slot_why": "Mon 15:00 - Sprout/Hootsuite Mon window (cold-start table 2026-07-05)",
       "scheduled_slot": "2026-07-27T15:00 America/Los_Angeles",
-      "publish_targets": {
-        "instagram": "auto_when_armed",
-        "tiktok": "native_scheduler_manual"
-      }
-    },
-    {
-      "id": "wgpost-20260703-03",
-      "created": "2026-07-03",
-      "status": "fix",
-      "format": "carousel",
-      "angle": "show details - kneel-down stuff",
-      "hook": "TWENTY MINUTES TO WALK IT. ALL DAY TO SEE IT.",
-      "caption": "The best stuff at any show is at knee height. Everybody shoots the paint. The Roadmen pinstriping is on the valve covers, down where you have to crouch. Get back in the garage.",
-      "hashtags": [
-        "#wolfsgarage",
-        "#hotrod",
-        "#kustomkulture",
-        "#showseason",
-        "#getbackinthegarage"
-      ],
-      "cta": "brand",
       "slides": [
         {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-03/slide-1.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-1.jpg",
-          "source_asset": "20260627_130008.jpg",
-          "source_file": "renders/posts/_sources/20260627_130008.jpg",
-          "crop": {
-            "focus_x": 0.8,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "nose + open engine bay + whitewall; whole car cannot fit the strip"
-          }
-        },
-        {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-03/slide-2.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-2.jpg",
-          "source_asset": "20260627_130014.jpg",
-          "source_file": "renders/posts/_sources/20260627_130014.jpg",
-          "crop": {
-            "focus_x": 0.3,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "Boxdmen cover, coils, headers, pinstriped firewall"
-          }
-        },
-        {
-          "kind": "end_card",
-          "file": "renders/posts/wgpost-20260703-03/slide-4.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-03/slide-4.jpg",
-          "source_asset": "assets/wolf-logo.png"
+          "file": "x.jpg"
         }
-      ],
-      "target_slot": "2026-07-09 15:00 America/Los_Angeles",
-      "platforms": [
-        "instagram",
-        "facebook"
-      ],
-      "flags": [
-        "The content pack's Sun Jul 5 post is the pinstriping-craft angle and its planned photo was never recorded (pack file truncated). If Sunday's post uses this same Roadmen engine, kill this or push the slot back a week.",
-        "Slide 3's black lead-sled may be the same car as the pack's Tue Jun 30 post (shot minutes apart). Your eye, your call."
-      ],
-      "fix_note": "lame caption",
-      "kill_reason": null,
-      "slot_why": "Thu shifted earlier: Sprout Thu 12-2p, Hootsuite Thu 4-5p; 18:30 misses both",
-      "fixed_at": "2026-07-23",
-      "fix_applied": "slide 3 cut per John's note; caption rewritten to the caption bar (one claim + stance, no inventory)"
+      ]
     },
     {
-      "id": "wgpost-20260703-04",
-      "created": "2026-07-03",
+      "id": "b",
       "status": "approved",
-      "format": "single",
-      "angle": "survivor patina",
-      "hook": null,
-      "caption": "hey remember that time it rained on you at a car show? did you die? Survivors earned their patina.",
-      "hashtags": [
-        "#wolfsgarage",
-        "#hudson",
-        "#patina",
-        "#kustomkulture",
-        "#getbackinthegarage"
-      ],
-      "cta": "brand",
+      "scheduled_slot": "2026-07-28T18:30 America/Los_Angeles",
       "slides": [
         {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-04/slide-1.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-04/slide-1.jpg",
-          "source_asset": "20260627_143658.jpg",
-          "source_file": "renders/posts/_sources/20260627_143658.jpg",
-          "crop": {
-            "focus_x": 0.1,
-            "focus_y": 0.5,
-            "zoom": 1,
-            "why": "rear 3/4: taillight, patina, Save a Hudson script"
-          }
+          "file": "y.jpg"
         }
-      ],
-      "target_slot": "2026-07-08 18:30 America/Los_Angeles",
-      "platforms": [
-        "instagram",
-        "facebook"
-      ],
-      "flags": [],
-      "fix_note": null,
-      "kill_reason": null,
-      "scheduled_slot": "2026-07-28T18:30 America/Los_Angeles",
-      "slot_why": "Tue 18:30 - prime slot (Sprout Tue 1-7p, Hootsuite 3-7p)",
-      "publish_targets": {
-        "instagram": "auto_when_armed",
-        "tiktok": "native_scheduler_manual"
-      }
+      ]
     },
     {
-      "id": "wgpost-20260703-05",
-      "created": "2026-07-03",
-      "status": "killed",
-      "format": "single",
-      "angle": "craft - metal shaping",
-      "hook": null,
-      "caption": "Cardboard template, pencil lines, torch-colored steel. This is how a fender gets its shape back. No kit for it, just checking the curve until the curve is right. Slow hands, straight metal. Get back in the garage.",
-      "hashtags": [
-        "#wolfsgarage",
-        "#metalshaping",
-        "#fabrication",
-        "#handmade",
-        "#getbackinthegarage"
-      ],
-      "cta": "brand",
+      "id": "c",
+      "status": "approved",
+      "scheduled_slot": "2026-07-29T18:30 America/Los_Angeles",
       "slides": [
         {
-          "kind": "photo",
-          "file": "renders/posts/wgpost-20260703-05/slide-1.jpg",
-          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260703-05/slide-1.jpg",
-          "source_asset": "20250723_172941.jpg",
-          "source_file": "renders/posts/_sources/20250723_172941.jpg",
-          "crop": {
-            "focus_x": 0.5,
-            "focus_y": 0.18,
-            "zoom": 1,
-            "why": "torch-blued metal + template + hand; fy 0.18 puts the ashtray just below the frame edge"
-          }
+          "file": "z.jpg"
+        }
+      ]
+    },
+    {
+      "id": "d",
+      "status": "killed",
+      "scheduled_slot": "2026-07-27T15:00 America/Los_Angeles",
+      "slides": []
+    },
+    {
+      "id": "e",
+      "status": "approved",
+      "slides": [
+        {
+          "file": "w.jpg"
         }
       ],
-      "target_slot": "2026-07-14 18:30 America/Los_Angeles",
-      "platforms": [
-        "instagram",
-        "facebook"
-      ],
-      "flags": [
-        "Ashtray with cigarette butts visible bottom-left, in frame. Keep it or I re-crop it out, one word.",
-        "FIX APPLIED 2026-07-05: 'pull out the butts and ashtray' - ashtray cropped out of slide 1 (fy 0.18). Re-check and approve or kill."
-      ],
-      "fix_note": null,
-      "kill_reason": "other",
-      "slot_why": "moved off Fri (no significant peaks, Buffer/Sprout worst weekday) to next Tue prime slot; keeps cadence at 4/wk with the Mon recap"
+      "scheduled_slot": "2026-07-30T15:00 America/Los_Angeles",
+      "slot_why": "auto-assigned next open slot from the timing table on approval"
+    },
+    {
+      "id": "f",
+      "status": "approved",
+      "scheduled_slot": "2026-07-27T15:00 America/Los_Angeles",
+      "published_at": "2026-07-27T15:01:00",
+      "slides": [
+        {
+          "file": "v.jpg"
+        }
+      ]
     }
-  ]
+  ],
+  "updated": "2026-07-25T03:21:54.787721+00:00"
 }
