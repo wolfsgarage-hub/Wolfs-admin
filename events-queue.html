@@ -71,6 +71,11 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     return (k || '').trim();
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  // Audit item 7c: candidate URLs come from auto-discovered third-party sources. esc()
+  // stops attribute breakout but not a javascript: scheme, so a hostile listing could
+  // put a script link on this admin page. Only http(s) survives; anything else renders
+  // as plain text instead of a link.
+  function safeUrl(u) { return /^https?:\/\//i.test(String(u == null ? '' : u).trim()) ? String(u).trim() : ''; }
   function toast(t) { var m = document.getElementById('msg'); m.textContent = t; m.style.display = 'block'; setTimeout(function () { m.style.display = 'none'; }, 2600); }
   function rpc(name, args) {
     args.p_key = key();
@@ -108,8 +113,8 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
     return '<div class="card" id="c-' + c.id + '">' +
       '<div class="ct">' + esc(c.title) + '</div>' +
       '<div class="cm">' + esc(c.event_date || 'no date') + ' · ' + esc([c.city, c.state].filter(Boolean).join(', ')) + (c.venue_text ? ' · ' + esc(c.venue_text) : '') + ' · conf ' + (c.confidence != null ? Math.round(c.confidence * 100) + '%' : '?') + '</div>' +
-      '<div class="row">Source: ' + (c.source_url ? '<a href="' + esc(c.source_url) + '" target="_blank" rel="noopener">' + esc(c.source_name || c.source_url) + '</a>' : 'submission') + (c.source_trust ? ' <span class="chip">' + esc(c.source_trust) + '</span>' : '') +
-      (c.canonical_url ? ' · <a href="' + esc(c.canonical_url) + '" target="_blank" rel="noopener">event page</a>' : '') + '</div>' +
+      '<div class="row">Source: ' + (safeUrl(c.source_url) ? '<a href="' + esc(safeUrl(c.source_url)) + '" target="_blank" rel="noopener">' + esc(c.source_name || c.source_url) + '</a>' : esc(c.source_name || 'submission')) + (c.source_trust ? ' <span class="chip">' + esc(c.source_trust) + '</span>' : '') +
+      (safeUrl(c.canonical_url) ? ' · <a href="' + esc(safeUrl(c.canonical_url)) + '" target="_blank" rel="noopener">event page</a>' : '') + '</div>' +
       (gate ? '<div class="row">' + gate + '</div>' : '<div class="row"><span class="chip">GATE CLEAN — WOULD AUTO-PUBLISH</span></div>') +
       dupes +
       '<details><summary>Extracted data</summary><pre>' + esc(JSON.stringify(c.normalized || {}, null, 1)) + '</pre></details>' +

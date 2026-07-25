@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.3">
-<title>WG Post Queue v1.3</title>
+<meta name="wg-version" content="1.4">
+<title>WG Post Queue v1.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -93,7 +93,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.3");
+console.log("WG post-queue v1.4");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -686,11 +686,29 @@ console.log("WG post-queue v1.3");
     document.fonts.load("500 12px 'Oswald'")
   ]).catch(function () { /* draw anyway */ });
 
-  fetch(QUEUE_PATH + "?v=" + Date.now())
-    .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
+  var staleWarning = null;
+  // Audit item 13: read the queue through the proxy, not the CDN. raw.githack ignores
+  // the cache-buster and served a stale queue minutes after a push on 2026-07-25 - John
+  // would have been approving a draft that no longer matched main. The proxy 'get' is
+  // the same fresh path the publisher uses. CDN stays the fallback if the proxy is down.
+  callProxy("get", { repo: "Wolfs-admin", branch: "main", path: QUEUE_PATH })
+    .then(function (g) {
+      if (!g || !g.contentBase64) { throw new Error("proxy returned no content"); }
+      return JSON.parse(decodeURIComponent(escape(atob(String(g.contentBase64).replace(/\n/g, "")))));
+    })
+    .catch(function (e) {
+      staleWarning = "Loaded from the CDN, which can lag a minute behind main. Re-check before approving. (" + String(e.message || e).slice(0, 60) + ")";
+      return fetch(QUEUE_PATH + "?v=" + Date.now())
+        .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); });
+    })
     .then(function (doc) {
       queueDoc = doc;
-      statusEl.style.display = "none";
+      if (staleWarning) {
+        statusEl.textContent = staleWarning;
+        statusEl.style.color = "#C8922A";
+      } else {
+        statusEl.style.display = "none";
+      }
       (doc.drafts || []).forEach(function (draft) {
         draft.slides = draft.slides || [];   // text drafts from the admin app have no slides
         var m = makeModel(draft);

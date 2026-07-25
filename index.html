@@ -651,7 +651,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v34</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v35</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -2540,12 +2540,16 @@ async function loadComments() {
 
 function renderCommentCard(c) {
   const esc = s => (s || '').replace(/[<>&"]/g, x => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[x]));
+  // Audit item 7d: these IDs land inside an inline onclick, which is a JS string inside
+  // an HTML attribute - two layers. HTML-escaping alone is not enough (an escaped quote
+  // decodes right back into a string terminator), so quote for JS first, then for HTML.
+  const jsArg = s => esc(JSON.stringify(String(s == null ? '' : s)));
   const when = c.createdAt && c.createdAt.toMillis ? new Date(c.createdAt.toMillis()).toLocaleString() : '';
   const where = c.collection === 'wolf_photos' ? 'Wolf photo' : 'Pack photo';
   return '<div style="margin-bottom:10px;padding:10px;border:1px solid rgba(245,241,232,0.2);">'
     + '<div style="color:var(--copper);font-family:\'Oswald\',sans-serif;font-size:11px;letter-spacing:1.5px;margin-bottom:4px;">' + esc(c.authorEmail || 'anon') + ' · ' + where + ' · ' + esc(when) + '</div>'
     + '<div style="color:var(--bone);font-family:\'Work Sans\',sans-serif;font-size:14px;margin:4px 0;">' + esc(c.text || '') + '</div>'
-    + '<button onclick="deleteComment(\'' + c.collection + '\',\'' + c.photoId + '\',\'' + c.id + '\')" style="background:none;color:var(--red);border:1px solid rgba(204,0,0,0.5);padding:4px 10px;font-family:\'Oswald\',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;">DELETE</button>'
+    + '<button onclick="deleteComment(' + jsArg(c.collection) + ',' + jsArg(c.photoId) + ',' + jsArg(c.id) + ')" style="background:none;color:var(--red);border:1px solid rgba(204,0,0,0.5);padding:4px 10px;font-family:\'Oswald\',sans-serif;font-size:11px;letter-spacing:1.5px;cursor:pointer;">DELETE</button>'
     + '</div>';
 }
 
