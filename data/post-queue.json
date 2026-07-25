@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-07-25T02:21:15.579Z",
+  "updated": "2026-07-25T02:22:12.324Z",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
   "drafts": [
     {
