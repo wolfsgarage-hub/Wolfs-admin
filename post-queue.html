@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.4">
-<title>WG Post Queue v1.4</title>
+<meta name="wg-version" content="1.5">
+<title>WG Post Queue v1.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -93,7 +93,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.4");
+console.log("WG post-queue v1.5");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -426,22 +426,46 @@ console.log("WG post-queue v1.4");
   }
 
   function saveQueueDoc(m) {
-    /* No CDN refetch on the write path - the CDN lags commits by ~60s and sequential
-       saves would clobber each other. queueDoc is this session's source of truth:
-       the saving draft serializes fresh, every other draft contributes its LAST-SAVED
-       state, so a save never resurrects stale data or leaks unsaved edits. */
+    /* Audit item 14: re-read through the PROXY right before writing, then merge ONLY the
+       saving draft into that fresh doc. The old note here was right that the CDN lags and
+       must not be refetched on the write path - but it then wrote every OTHER draft from
+       this session's last-saved copy, so a save on the phone silently reverted edits made
+       on the desktop (or in a second tab). Same clobber class as the 07-24 fixture
+       incident, triggered by normal two-device use. The proxy read is fresh, not CDN. */
     var mine = serializeDraft(m);
-    queueDoc.drafts = queueDoc.drafts.map(function (d) {
-      if (d.id === mine.id) { return mine; }
-      var other = modelById(d.id);
-      return other ? other.savedDraft : d;
-    });
-    queueDoc.updated = new Date().toISOString();
-    return callProxy("upload", {
-      path: QUEUE_PATH,
-      contentBase64: b64utf8(JSON.stringify(queueDoc, null, 2)),
-      message: "queue update: " + mine.id + " -> " + mine.status
-    }).then(function () { m.savedDraft = mine; });
+    m._mergeWarn = null;
+    return callProxy("get", { repo: "Wolfs-admin", branch: "main", path: QUEUE_PATH })
+      .then(function (g) {
+        if (!g || !g.contentBase64) { throw new Error("no content"); }
+        return JSON.parse(decodeURIComponent(escape(atob(String(g.contentBase64).replace(/\n/g, "")))));
+      })
+      .catch(function () {
+        // Proxy read failed: fall back to this session's doc rather than blocking the
+        // approval entirely, but say so - the write may revert another device's edits.
+        m._mergeWarn = " (could not re-read the queue first, so another device's unsaved edits may be lost)";
+        var fallback = { version: queueDoc.version, note: queueDoc.note, drafts: (queueDoc.drafts || []).map(function (d) {
+          var other = modelById(d.id);
+          return (other && d.id !== mine.id) ? other.savedDraft : d;
+        }) };
+        return fallback;
+      })
+      .then(function (doc) {
+        if (!doc || !Array.isArray(doc.drafts)) { throw new Error("queue shape unreadable - refusing to write"); }
+        var found = false;
+        doc.drafts = doc.drafts.map(function (d) {
+          if (d && d.id === mine.id) { found = true; return mine; }
+          return d;
+        });
+        if (!found) { doc.drafts.push(mine); }
+        doc.updated = new Date().toISOString();
+        queueDoc = doc;
+        return callProxy("upload", {
+          path: QUEUE_PATH,
+          contentBase64: b64utf8(JSON.stringify(doc, null, 2)),
+          message: "queue update: " + mine.id + " -> " + mine.status
+        });
+      })
+      .then(function () { m.savedDraft = mine; });
   }
 
   function persist(m, busyMsg, okMsg) {
@@ -457,7 +481,7 @@ console.log("WG post-queue v1.4");
       .then(function () {
         m.dirtyDoc = false;
         m.els.save.textContent = "SAVED";
-        setStat(m, okMsg + " (repo updates in ~60s on the CDN)", "ok");
+        setStat(m, okMsg + (m._mergeWarn || "") + " (repo updates in ~60s on the CDN)", m._mergeWarn ? "err" : "ok");
       })
       .catch(function (e) {
         m.draft.status = prev.status;
