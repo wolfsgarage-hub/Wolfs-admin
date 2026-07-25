@@ -116,11 +116,11 @@
     {
       "id": "wgpost-20260703-03",
       "created": "2026-07-03",
-      "status": "fix",
+      "status": "pending_approval",
       "format": "carousel",
       "angle": "show details - kneel-down stuff",
       "hook": "TWENTY MINUTES TO WALK IT. ALL DAY TO SEE IT.",
-      "caption": "The best stuff at any show is at knee height. Everybody shoots the paint. The Roadmen pinstriping is on the valve covers, down where you have to crouch. Get back in the garage.",
+      "caption": "Roadmen striped those valve covers for the five people who bother to kneel. Everybody else gets the paint job. The best work on this car hides at knee height on purpose. Get back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#hotrod",
@@ -172,11 +172,11 @@
         "The content pack's Sun Jul 5 post is the pinstriping-craft angle and its planned photo was never recorded (pack file truncated). If Sunday's post uses this same Roadmen engine, kill this or push the slot back a week.",
         "Slide 3's black lead-sled may be the same car as the pack's Tue Jun 30 post (shot minutes apart). Your eye, your call."
       ],
-      "fix_note": "lame caption",
+      "fix_note": null,
       "kill_reason": null,
       "slot_why": "Thu shifted earlier: Sprout Thu 12-2p, Hootsuite Thu 4-5p; 18:30 misses both",
-      "fixed_at": "2026-07-23",
-      "fix_applied": "slide 3 cut per John's note; caption rewritten to the caption bar (one claim + stance, no inventory)"
+      "fixed_at": "2026-07-24",
+      "fix_applied": "caption rewritten to the caption bar per fix note 'lame caption'; one claim with stance, eval 10/10, wg-brand-reviewer PASS; slides untouched"
     },
     {
       "id": "wgpost-20260703-04",
