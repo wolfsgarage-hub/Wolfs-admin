@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-07-25T02:27:58.372528+00:00",
+  "updated": "2026-07-25T08:22:41.852Z",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
   "drafts": [
     {
@@ -116,7 +116,7 @@
     {
       "id": "wgpost-20260703-03",
       "created": "2026-07-03",
-      "status": "pending_approval",
+      "status": "killed",
       "format": "carousel",
       "angle": "show details - kneel-down stuff",
       "hook": "TWENTY MINUTES TO WALK IT. ALL DAY TO SEE IT.",
@@ -173,7 +173,7 @@
         "Slide 3's black lead-sled may be the same car as the pack's Tue Jun 30 post (shot minutes apart). Your eye, your call."
       ],
       "fix_note": null,
-      "kill_reason": null,
+      "kill_reason": "weak caption",
       "slot_why": "Thu shifted earlier: Sprout Thu 12-2p, Hootsuite Thu 4-5p; 18:30 misses both",
       "fixed_at": "2026-07-24",
       "fix_applied": "caption rewritten to the caption bar per fix note 'lame caption'; one claim with stance, eval 10/10, wg-brand-reviewer PASS; slides untouched"
