@@ -119,11 +119,28 @@ console.log("WG post-queue v1.2");
     if (dirty) { e.preventDefault(); e.returnValue = ""; }
   });
 
+  // Proxy v9 (audit item 1): writes need the x-wg-token header. Token lives in the vault
+  // at _secrets\wg-proxy-token.txt; paste once per device, it sticks in localStorage.
+  function getWriteTok() {
+    var t = null;
+    try { t = localStorage.getItem("wg:proxytok"); } catch (e) {}
+    if (!t) {
+      t = (window.prompt("One-time setup: paste the WG proxy write token (vault _secrets\\wg-proxy-token.txt)") || "").trim();
+      if (t) { try { localStorage.setItem("wg:proxytok", t); } catch (e) {} }
+    }
+    return t || "";
+  }
+
   function callProxy(action, extraBody) {
     var body = Object.assign({ action: action }, extraBody || {});
+    var headers = { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY };
+    if (action === "upload" || action === "dispatch") {
+      var wtok = getWriteTok();
+      if (wtok) { headers["x-wg-token"] = wtok; }
+    }
     return fetch(SUPABASE_PROXY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY },
+      headers: headers,
       body: JSON.stringify(body)
     }).then(function (r) {
       return r.json().catch(function () { return null; }).then(function (data) {

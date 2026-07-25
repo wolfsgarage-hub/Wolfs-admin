@@ -651,7 +651,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v30</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v34</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -3218,7 +3218,17 @@ async function pushToApprovalQueue(entry) {
     doc.drafts = doc.drafts || [];
     doc.drafts.push(entry);
     doc.updated = new Date().toISOString();
-    const up = await fetch(WG_GITHUB_PROXY, { method: "POST", headers: { "Content-Type": "application/json" },
+    // Proxy v9 (audit item 1): writes need x-wg-token. Same per-device token as the
+    // queue page, shared localStorage key on this origin; vault _secrets\wg-proxy-token.txt.
+    let wtok = null;
+    try { wtok = localStorage.getItem("wg:proxytok"); } catch (e) {}
+    if (!wtok) {
+      wtok = (window.prompt("One-time setup: paste the WG proxy write token (vault _secrets\\wg-proxy-token.txt)") || "").trim();
+      if (wtok) { try { localStorage.setItem("wg:proxytok", wtok); } catch (e) {} }
+    }
+    const upHeaders = { "Content-Type": "application/json" };
+    if (wtok) { upHeaders["x-wg-token"] = wtok; }
+    const up = await fetch(WG_GITHUB_PROXY, { method: "POST", headers: upHeaders,
       body: JSON.stringify({ action: "upload", path: "data/post-queue.json",
         contentBase64: btoa(unescape(encodeURIComponent(JSON.stringify(doc, null, 2)))),
         message: "queue: " + entry.id + " pending_approval (admin app)" }) }).then(r => r.json());
