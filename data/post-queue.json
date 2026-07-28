@@ -273,6 +273,85 @@
       "fix_note": null,
       "kill_reason": "other",
       "slot_why": "moved off Fri (no significant peaks, Buffer/Sprout worst weekday) to next Tue prime slot; keeps cadence at 4/wk with the Mon recap"
+    },
+    {
+      "id": "wgpost-20260727-01",
+      "created": "2026-07-27",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Rose City Round-Up 2026 recap (event, one weekend)",
+      "hook": "ROSE CITY ROUND-UP",
+      "caption": "Rose City Round-Up. 16 years in and Driven Dead still runs it right. Friday golden hour in the Jubitz lot, Hard Money Saints on the stage, pre-64 iron everywhere you looked. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio 🐺",
+      "hashtags": [
+        "#wolfsgarage",
+        "#rosecityroundup",
+        "#drivendeadcc",
+        "#hotrod",
+        "#getbackinthegarage"
+      ],
+      "cta": "directory",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260727-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260727-01/slide-1.jpg",
+          "source_asset": "20260626_200418.jpg",
+          "source_file": "renders/posts/_sources/20260626_200418.jpg",
+          "crop": {
+            "focus_x": 0.81,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "16320px pano - whole car cannot fit 4:5, so commit to the hero detail: Seneca tailfin, bullet taillight, script and chrome bumper in golden light"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260727-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260727-01/slide-2.jpg",
+          "source_asset": "20260626_201205.jpg",
+          "source_file": "renders/posts/_sources/20260626_201205.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "craft beat: hand-painted cherries and Von Dutch-style pinstriping on the chopped maroon sled's decklid"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260727-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260727-01/slide-3.jpg",
+          "source_asset": "20260626_214010.jpg",
+          "source_file": "renders/posts/_sources/20260626_214010.jpg",
+          "crop": {
+            "focus_x": 0.68,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "the night: full LED screen in frame - Hard Money Saints, 6-26-26, Ponderosa, and the Round-Up logo, which names the show for anyone who wasn't there"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260727-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260727-01/slide-4.jpg",
+          "source_asset": "assets/wolf-logo.png"
+        }
+      ],
+      "target_slot": "2026-07-30 15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "STARTER SET, NOT FINISHED - 3 slides of a planned 10. Use ADD A PICTURE to pull the rest from the pool; all distinct Rose City Round-Up shots are now loaded.",
+        "Rain deliberately left out of the caption: the approved Tue 7/28 draft is already the rain-at-a-car-show line. Two rain posts two days apart would collide.",
+        "Caption uses an exclamation mark and the wolf emoji per John's 2026-07-27 call to write the way the feed actually works. The ops skill and post-assembler SKILL.md still carry the old absolute ban and will revert this unless edited.",
+        "No @ tags per John's call. Hashtags #drivendeadcc and #rosecityroundup are John's own prior usage - confirm the no-tag rule does not extend to hashtags."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "Thu 15:00 PT is the next empty slot in the timing table; the queue runs dry after Wed 7/29.",
+      "scheduled_slot": null
     }
   ]
 }
