@@ -1,390 +1,998 @@
 {
- "version": 1,
- "updated": "2026-07-03",
- "images": [
-  {
-   "id": "20260627_165714.jpg",
-   "source_file": "renders/posts/_sources/20260627_165714.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_165714.jpg",
-   "tag": "vehicle",
-   "caption": "Mint-green '50s cruiser with bullet bumper guards, Jubitz lot",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_165712.jpg",
-   "source_file": "renders/posts/_sources/20260627_165712.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_165712.jpg",
-   "tag": "vehicle",
-   "caption": "Mint-green '50s Olds, front three-quarter in the Jubitz lot",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_165709.jpg",
-   "source_file": "renders/posts/_sources/20260627_165709.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_165709.jpg",
-   "tag": "vehicle",
-   "caption": "Mint-green '50s Olds, low front angle, Jubitz lot",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_165655.jpg",
-   "source_file": "renders/posts/_sources/20260627_165655.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_165655.jpg",
-   "tag": "vehicle",
-   "caption": "Jade-green '52 Chevy front end, toothy grille and wide whites",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_164829.jpg",
-   "source_file": "renders/posts/_sources/20260627_164829.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_164829.jpg",
-   "tag": "vehicle",
-   "caption": "Grey-primer Chevy pickup, bedside profile at Jubitz",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_164822.jpg",
-   "source_file": "renders/posts/_sources/20260627_164822.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_164822.jpg",
-   "tag": "vehicle",
-   "caption": "Slammed vintage pickup hauling a hot-rod front clip, Jubitz lot (Rose City Round-Up)",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_164813.jpg",
-   "source_file": "renders/posts/_sources/20260627_164813.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_164813.jpg",
-   "tag": "vehicle",
-   "caption": "Primer Chevy pickup hauling a hot-rod front clip, Jubitz sign behind",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_143759.jpg",
-   "source_file": "renders/posts/_sources/20260627_143759.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_143759.jpg",
-   "tag": "vehicle",
-   "caption": "Black chopped lead-sled side profile, wide whites, wet show",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_143425.jpg",
-   "source_file": "renders/posts/_sources/20260627_143425.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_143425.jpg",
-   "tag": "event",
-   "caption": "Crowd under the canopy at Rose City Round-Up, club jackets, rainy show",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_143422.jpg",
-   "source_file": "renders/posts/_sources/20260627_143422.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_143422.jpg",
-   "tag": "event",
-   "caption": "Club crowd under the canopy, Rose City Round-Up",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_143416.jpg",
-   "source_file": "renders/posts/_sources/20260627_143416.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_143416.jpg",
-   "tag": "event",
-   "caption": "Club crowd gathered for the Round-Up raffle, rainy",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_143413.jpg",
-   "source_file": "renders/posts/_sources/20260627_143413.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_143413.jpg",
-   "tag": "event",
-   "caption": "Round-Up crowd from the stage, club jackets, speakers out",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_131112.jpg",
-   "source_file": "renders/posts/_sources/20260627_131112.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_131112.jpg",
-   "tag": "event",
-   "caption": "Classic sedan and a black hearse in a downpour at the show",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_104411.jpg",
-   "source_file": "renders/posts/_sources/20260627_104411.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_104411.jpg",
-   "tag": "event",
-   "caption": "Wide Round-Up scene at Ponderosa - brown Chrysler, black hearse, Cherry City club",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_103141.jpg",
-   "source_file": "renders/posts/_sources/20260627_103141.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_103141.jpg",
-   "tag": "event",
-   "caption": "Shooter lining up a brown Chrysler lowrider beside the hearse",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260627_103121.jpg",
-   "source_file": "renders/posts/_sources/20260627_103121.jpg",
-   "thumb": "renders/posts/_thumbs/20260627_103121.jpg",
-   "tag": "event",
-   "caption": "Couple strolling the field - brown Imperial, hearse, and an army jeep",
-   "date": "2026-06-27"
-  },
-  {
-   "id": "20260515_163654.jpg",
-   "source_file": "renders/posts/_sources/20260515_163654.jpg",
-   "thumb": "renders/posts/_thumbs/20260515_163654.jpg",
-   "tag": "tools",
-   "caption": "Floor full of blue organizer bins sorted with end mills, drills, taps and reamers, a large machine-shop cutting-tool collection overview.",
-   "date": "2026-05-15"
-  },
-  {
-   "id": "20260425_130441.jpg",
-   "source_file": "renders/posts/_sources/20260425_130441.jpg",
-   "thumb": "renders/posts/_thumbs/20260425_130441.jpg",
-   "tag": "scenery",
-   "caption": "Rusted iron ribs of the Peter Iredale shipwreck on Oregon beach sand under blue sky, wide scenic view.",
-   "date": "2026-04-25"
-  },
-  {
-   "id": "20260423_185111.jpg",
-   "source_file": "renders/posts/_sources/20260423_185111.jpg",
-   "thumb": "renders/posts/_thumbs/20260423_185111.jpg",
-   "tag": "shop",
-   "caption": "Workshop interior with yellow DeWalt power tools, workbench and engine, home garage bay.",
-   "date": "2026-04-23"
-  },
-  {
-   "id": "20260412_120610.jpg",
-   "source_file": "renders/posts/_sources/20260412_120610.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_120610.jpg",
-   "tag": "tools",
-   "caption": "Sheet-metal box-and-pan bending brake with plywood sheet loaded, sitting in shop against shelving and bins, indoor.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260412_120324.jpg",
-   "source_file": "renders/posts/_sources/20260412_120324.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_120324.jpg",
-   "tag": "tools",
-   "caption": "Slip-roll rounding machine (sheet-metal roller) with steel rollers and crank, on shop bench indoor.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260412_120311.jpg",
-   "source_file": "renders/posts/_sources/20260412_120311.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_120311.jpg",
-   "tag": "tools",
-   "caption": "Box-and-pan sheet-metal brake on rolling stand in shop, cardboard boxes behind, indoor fabrication area.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260412_101222.jpg",
-   "source_file": "renders/posts/_sources/20260412_101222.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_101222.jpg",
-   "tag": "tools",
-   "caption": "Small steel anvil/swage fixture clamped on a perforated welding table with layout ruler, shop indoor.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260412_101144.jpg",
-   "source_file": "renders/posts/_sources/20260412_101144.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_101144.jpg",
-   "tag": "tools",
-   "caption": "Blue Record-style bench vise mounted on perforated steel welding table, shop window behind, indoor.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260412_101138.jpg",
-   "source_file": "renders/posts/_sources/20260412_101138.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_101138.jpg",
-   "tag": "tools",
-   "caption": "Blue bench vise bolted to perforated fabrication welding table, shop interior daylight.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260412_091750.jpg",
-   "source_file": "renders/posts/_sources/20260412_091750.jpg",
-   "thumb": "renders/posts/_thumbs/20260412_091750.jpg",
-   "tag": "tools",
-   "caption": "Open red rolling tool cart/chest with canvas bag inside, on shop floor indoor.",
-   "date": "2026-04-12"
-  },
-  {
-   "id": "20260321_103053.jpg",
-   "source_file": "renders/posts/_sources/20260321_103053.jpg",
-   "thumb": "renders/posts/_thumbs/20260321_103053.jpg",
-   "tag": "build",
-   "caption": "Rolling chassis with engine on display, car show build",
-   "date": "2026-03-21"
-  },
-  {
-   "id": "20260321_103046.jpg",
-   "source_file": "renders/posts/_sources/20260321_103046.jpg",
-   "thumb": "renders/posts/_thumbs/20260321_103046.jpg",
-   "tag": "build",
-   "caption": "Chassis and engine display, car show build",
-   "date": "2026-03-21"
-  },
-  {
-   "id": "20260315_204705.jpg",
-   "source_file": "renders/posts/_sources/20260315_204705.jpg",
-   "thumb": "renders/posts/_thumbs/20260315_204705.jpg",
-   "tag": "build",
-   "caption": "Hands bending brake/fuel-line tubing over a brake rotor, fabrication",
-   "date": "2026-03-15"
-  },
-  {
-   "id": "20260315_204704.jpg",
-   "source_file": "renders/posts/_sources/20260315_204704.jpg",
-   "thumb": "renders/posts/_thumbs/20260315_204704.jpg",
-   "tag": "build",
-   "caption": "Hands using a tubing bender on a brake rotor, fabrication",
-   "date": "2026-03-15"
-  },
-  {
-   "id": "20260315_144550.jpg",
-   "source_file": "renders/posts/_sources/20260315_144550.jpg",
-   "thumb": "renders/posts/_thumbs/20260315_144550.jpg",
-   "tag": "build",
-   "caption": "Hands working on a brake drum/rotor with a tool, fabrication",
-   "date": "2026-03-15"
-  },
-  {
-   "id": "20260315_144544.jpg",
-   "source_file": "renders/posts/_sources/20260315_144544.jpg",
-   "thumb": "renders/posts/_thumbs/20260315_144544.jpg",
-   "tag": "build",
-   "caption": "Hands working on a wheel/brake assembly, fabrication",
-   "date": "2026-03-15"
-  },
-  {
-   "id": "20260315_144541.jpg",
-   "source_file": "renders/posts/_sources/20260315_144541.jpg",
-   "thumb": "renders/posts/_thumbs/20260315_144541.jpg",
-   "tag": "build",
-   "caption": "Hands on brake/wheel hub work, fabrication",
-   "date": "2026-03-15"
-  },
-  {
-   "id": "20260307_192251.jpg",
-   "source_file": "renders/posts/_sources/20260307_192251.jpg",
-   "thumb": "renders/posts/_thumbs/20260307_192251.jpg",
-   "tag": "hype",
-   "caption": "Black embroidered morale patch with a skull reading 'THIS WARRANTY ISN'T GOING TO VOID ITSELF' resting on a mat, close-up indoor.",
-   "date": "2026-03-07"
-  },
-  {
-   "id": "20260307_192249.jpg",
-   "source_file": "renders/posts/_sources/20260307_192249.jpg",
-   "thumb": "renders/posts/_thumbs/20260307_192249.jpg",
-   "tag": "hype",
-   "caption": "Black skull morale patch reading 'THIS WARRANTY ISN'T GOING TO VOID ITSELF' on a mat, garage-humor graphic, close-up indoor.",
-   "date": "2026-03-07"
-  },
-  {
-   "id": "20260305_141930.jpg",
-   "source_file": "renders/posts/_sources/20260305_141930.jpg",
-   "thumb": "renders/posts/_thumbs/20260305_141930.jpg",
-   "tag": "hype",
-   "caption": "Wolf's Garage 'Tummy Time' baby onesie promo graphic - black onesie with cartoon wolf cub, 'Introducing our first onesie / Destined to grow up / from Wolf's Garage Project Truck', brand merch announcement.",
-   "date": "2026-03-05"
-  },
-  {
-   "id": "20260201_131507.jpg",
-   "source_file": "renders/posts/_sources/20260201_131507.jpg",
-   "thumb": "renders/posts/_thumbs/20260201_131507.jpg",
-   "tag": "shop",
-   "caption": "Home garage shop with red rolling tool chests, workbench and window, tidy shop interior.",
-   "date": "2026-02-01"
-  },
-  {
-   "id": "20260117_133441.jpg",
-   "source_file": "renders/posts/_sources/20260117_133441.jpg",
-   "thumb": "renders/posts/_thumbs/20260117_133441.jpg",
-   "tag": "build",
-   "caption": "Bare hot-rod body and chassis up on stands mid-build inside the shop, rotisserie restoration in progress, indoor.",
-   "date": "2026-01-17"
-  },
-  {
-   "id": "20251018_094655.jpg",
-   "source_file": "renders/posts/_sources/20251018_094655.jpg",
-   "thumb": "renders/posts/_thumbs/20251018_094655.jpg",
-   "tag": "scenery",
-   "caption": "Windshield POV driving a tree-lined mountain highway with a car ahead, guardrail and evergreens, sunny.",
-   "date": "2025-10-18"
-  },
-  {
-   "id": "20251018_094650.jpg",
-   "source_file": "renders/posts/_sources/20251018_094650.jpg",
-   "thumb": "renders/posts/_thumbs/20251018_094650.jpg",
-   "tag": "scenery",
-   "caption": "Driving POV on a two-lane road under a dramatic cloud-streaked sky with tall firs and a blue truck ahead.",
-   "date": "2025-10-18"
-  },
-  {
-   "id": "20251005_125211.jpg",
-   "source_file": "renders/posts/_sources/20251005_125211.jpg",
-   "thumb": "renders/posts/_thumbs/20251005_125211.jpg",
-   "tag": "scenery",
-   "caption": "Baltimore Inner Harbor skyline at night, illuminated high-rises reflecting on the harbor water, panoramic cityscape.",
-   "date": "2025-10-05"
-  },
-  {
-   "id": "20250913_123800.jpg",
-   "source_file": "renders/posts/_sources/20250913_123800.jpg",
-   "thumb": "renders/posts/_thumbs/20250913_123800.jpg",
-   "tag": "scenery",
-   "caption": "Driving across the green Gothic St. Johns Bridge, Portland, clear blue sky.",
-   "date": "2025-09-13"
-  },
-  {
-   "id": "20250913_123753.jpg",
-   "source_file": "renders/posts/_sources/20250913_123753.jpg",
-   "thumb": "renders/posts/_thumbs/20250913_123753.jpg",
-   "tag": "scenery",
-   "caption": "St. Johns Bridge green Gothic towers with a Speed Limit 30 sign, Portland Oregon.",
-   "date": "2025-09-13"
-  },
-  {
-   "id": "20250913_113913.jpg",
-   "source_file": "renders/posts/_sources/20250913_113913.jpg",
-   "thumb": "renders/posts/_thumbs/20250913_113913.jpg",
-   "tag": "scenery",
-   "caption": "River and St. Johns Bridge view from a car window, Portland.",
-   "date": "2025-09-13"
-  },
-  {
-   "id": "20250913_113907.jpg",
-   "source_file": "renders/posts/_sources/20250913_113907.jpg",
-   "thumb": "renders/posts/_thumbs/20250913_113907.jpg",
-   "tag": "scenery",
-   "caption": "Landscape and river view from a moving car window.",
-   "date": "2025-09-13"
-  },
-  {
-   "id": "20250906_181725.jpg",
-   "source_file": "renders/posts/_sources/20250906_181725.jpg",
-   "thumb": "renders/posts/_thumbs/20250906_181725.jpg",
-   "tag": "drone",
-   "caption": "Overhead aerial top-down of a dark car parked on asphalt roadway with painted yellow lane line.",
-   "date": "2025-09-06"
-  },
-  {
-   "id": "20250608_134944.jpg",
-   "source_file": "renders/posts/_sources/20250608_134944.jpg",
-   "thumb": "renders/posts/_thumbs/20250608_134944.jpg",
-   "tag": "shop",
-   "caption": "Fabrication workbench with sheet metal, tape measure, angle grinder and hand tools mid-project.",
-   "date": "2025-06-08"
-  },
-  {
-   "id": "20250608_134320.jpg",
-   "source_file": "renders/posts/_sources/20250608_134320.jpg",
-   "thumb": "renders/posts/_thumbs/20250608_134320.jpg",
-   "tag": "shop",
-   "caption": "Workbench covered with cut sheet-metal pieces, angle grinder and clamps during fabrication.",
-   "date": "2025-06-08"
-  }
- ]
+    "version": 2,
+    "updated": "2026-07-27",
+    "images": [
+        {
+            "id": "20260627_165714.jpg",
+            "source_file": "renders/posts/_sources/20260627_165714.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_165714.jpg",
+            "tag": "vehicle",
+            "caption": "Mint-green '50s cruiser with bullet bumper guards, Jubitz lot",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_165712.jpg",
+            "source_file": "renders/posts/_sources/20260627_165712.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_165712.jpg",
+            "tag": "vehicle",
+            "caption": "Mint-green '50s Olds, front three-quarter in the Jubitz lot",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_165709.jpg",
+            "source_file": "renders/posts/_sources/20260627_165709.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_165709.jpg",
+            "tag": "vehicle",
+            "caption": "Mint-green '50s Olds, low front angle, Jubitz lot",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_165655.jpg",
+            "source_file": "renders/posts/_sources/20260627_165655.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_165655.jpg",
+            "tag": "vehicle",
+            "caption": "Jade-green '52 Chevy front end, toothy grille and wide whites",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_164829.jpg",
+            "source_file": "renders/posts/_sources/20260627_164829.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_164829.jpg",
+            "tag": "vehicle",
+            "caption": "Grey-primer Chevy pickup, bedside profile at Jubitz",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_164822.jpg",
+            "source_file": "renders/posts/_sources/20260627_164822.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_164822.jpg",
+            "tag": "vehicle",
+            "caption": "Slammed vintage pickup hauling a hot-rod front clip, Jubitz lot (Rose City Round-Up)",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_164813.jpg",
+            "source_file": "renders/posts/_sources/20260627_164813.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_164813.jpg",
+            "tag": "vehicle",
+            "caption": "Primer Chevy pickup hauling a hot-rod front clip, Jubitz sign behind",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143759.jpg",
+            "source_file": "renders/posts/_sources/20260627_143759.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143759.jpg",
+            "tag": "vehicle",
+            "caption": "Black chopped lead-sled side profile, wide whites, wet show",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143425.jpg",
+            "source_file": "renders/posts/_sources/20260627_143425.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143425.jpg",
+            "tag": "event",
+            "caption": "Crowd under the canopy at Rose City Round-Up, club jackets, rainy show",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143422.jpg",
+            "source_file": "renders/posts/_sources/20260627_143422.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143422.jpg",
+            "tag": "event",
+            "caption": "Club crowd under the canopy, Rose City Round-Up",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143416.jpg",
+            "source_file": "renders/posts/_sources/20260627_143416.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143416.jpg",
+            "tag": "event",
+            "caption": "Club crowd gathered for the Round-Up raffle, rainy",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143413.jpg",
+            "source_file": "renders/posts/_sources/20260627_143413.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143413.jpg",
+            "tag": "event",
+            "caption": "Round-Up crowd from the stage, club jackets, speakers out",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_131112.jpg",
+            "source_file": "renders/posts/_sources/20260627_131112.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_131112.jpg",
+            "tag": "event",
+            "caption": "Classic sedan and a black hearse in a downpour at the show",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_104411.jpg",
+            "source_file": "renders/posts/_sources/20260627_104411.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_104411.jpg",
+            "tag": "event",
+            "caption": "Wide Round-Up scene at Ponderosa - brown Chrysler, black hearse, Cherry City club",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_103141.jpg",
+            "source_file": "renders/posts/_sources/20260627_103141.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_103141.jpg",
+            "tag": "event",
+            "caption": "Shooter lining up a brown Chrysler lowrider beside the hearse",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_103121.jpg",
+            "source_file": "renders/posts/_sources/20260627_103121.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_103121.jpg",
+            "tag": "event",
+            "caption": "Couple strolling the field - brown Imperial, hearse, and an army jeep",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260515_163654.jpg",
+            "source_file": "renders/posts/_sources/20260515_163654.jpg",
+            "thumb": "renders/posts/_thumbs/20260515_163654.jpg",
+            "tag": "tools",
+            "caption": "Floor full of blue organizer bins sorted with end mills, drills, taps and reamers, a large machine-shop cutting-tool collection overview.",
+            "date": "2026-05-15"
+        },
+        {
+            "id": "20260425_130441.jpg",
+            "source_file": "renders/posts/_sources/20260425_130441.jpg",
+            "thumb": "renders/posts/_thumbs/20260425_130441.jpg",
+            "tag": "scenery",
+            "caption": "Rusted iron ribs of the Peter Iredale shipwreck on Oregon beach sand under blue sky, wide scenic view.",
+            "date": "2026-04-25"
+        },
+        {
+            "id": "20260423_185111.jpg",
+            "source_file": "renders/posts/_sources/20260423_185111.jpg",
+            "thumb": "renders/posts/_thumbs/20260423_185111.jpg",
+            "tag": "shop",
+            "caption": "Workshop interior with yellow DeWalt power tools, workbench and engine, home garage bay.",
+            "date": "2026-04-23"
+        },
+        {
+            "id": "20260412_120610.jpg",
+            "source_file": "renders/posts/_sources/20260412_120610.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_120610.jpg",
+            "tag": "tools",
+            "caption": "Sheet-metal box-and-pan bending brake with plywood sheet loaded, sitting in shop against shelving and bins, indoor.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260412_120324.jpg",
+            "source_file": "renders/posts/_sources/20260412_120324.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_120324.jpg",
+            "tag": "tools",
+            "caption": "Slip-roll rounding machine (sheet-metal roller) with steel rollers and crank, on shop bench indoor.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260412_120311.jpg",
+            "source_file": "renders/posts/_sources/20260412_120311.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_120311.jpg",
+            "tag": "tools",
+            "caption": "Box-and-pan sheet-metal brake on rolling stand in shop, cardboard boxes behind, indoor fabrication area.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260412_101222.jpg",
+            "source_file": "renders/posts/_sources/20260412_101222.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_101222.jpg",
+            "tag": "tools",
+            "caption": "Small steel anvil/swage fixture clamped on a perforated welding table with layout ruler, shop indoor.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260412_101144.jpg",
+            "source_file": "renders/posts/_sources/20260412_101144.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_101144.jpg",
+            "tag": "tools",
+            "caption": "Blue Record-style bench vise mounted on perforated steel welding table, shop window behind, indoor.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260412_101138.jpg",
+            "source_file": "renders/posts/_sources/20260412_101138.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_101138.jpg",
+            "tag": "tools",
+            "caption": "Blue bench vise bolted to perforated fabrication welding table, shop interior daylight.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260412_091750.jpg",
+            "source_file": "renders/posts/_sources/20260412_091750.jpg",
+            "thumb": "renders/posts/_thumbs/20260412_091750.jpg",
+            "tag": "tools",
+            "caption": "Open red rolling tool cart/chest with canvas bag inside, on shop floor indoor.",
+            "date": "2026-04-12"
+        },
+        {
+            "id": "20260321_103053.jpg",
+            "source_file": "renders/posts/_sources/20260321_103053.jpg",
+            "thumb": "renders/posts/_thumbs/20260321_103053.jpg",
+            "tag": "build",
+            "caption": "Rolling chassis with engine on display, car show build",
+            "date": "2026-03-21"
+        },
+        {
+            "id": "20260321_103046.jpg",
+            "source_file": "renders/posts/_sources/20260321_103046.jpg",
+            "thumb": "renders/posts/_thumbs/20260321_103046.jpg",
+            "tag": "build",
+            "caption": "Chassis and engine display, car show build",
+            "date": "2026-03-21"
+        },
+        {
+            "id": "20260315_204705.jpg",
+            "source_file": "renders/posts/_sources/20260315_204705.jpg",
+            "thumb": "renders/posts/_thumbs/20260315_204705.jpg",
+            "tag": "build",
+            "caption": "Hands bending brake/fuel-line tubing over a brake rotor, fabrication",
+            "date": "2026-03-15"
+        },
+        {
+            "id": "20260315_204704.jpg",
+            "source_file": "renders/posts/_sources/20260315_204704.jpg",
+            "thumb": "renders/posts/_thumbs/20260315_204704.jpg",
+            "tag": "build",
+            "caption": "Hands using a tubing bender on a brake rotor, fabrication",
+            "date": "2026-03-15"
+        },
+        {
+            "id": "20260315_144550.jpg",
+            "source_file": "renders/posts/_sources/20260315_144550.jpg",
+            "thumb": "renders/posts/_thumbs/20260315_144550.jpg",
+            "tag": "build",
+            "caption": "Hands working on a brake drum/rotor with a tool, fabrication",
+            "date": "2026-03-15"
+        },
+        {
+            "id": "20260315_144544.jpg",
+            "source_file": "renders/posts/_sources/20260315_144544.jpg",
+            "thumb": "renders/posts/_thumbs/20260315_144544.jpg",
+            "tag": "build",
+            "caption": "Hands working on a wheel/brake assembly, fabrication",
+            "date": "2026-03-15"
+        },
+        {
+            "id": "20260315_144541.jpg",
+            "source_file": "renders/posts/_sources/20260315_144541.jpg",
+            "thumb": "renders/posts/_thumbs/20260315_144541.jpg",
+            "tag": "build",
+            "caption": "Hands on brake/wheel hub work, fabrication",
+            "date": "2026-03-15"
+        },
+        {
+            "id": "20260307_192251.jpg",
+            "source_file": "renders/posts/_sources/20260307_192251.jpg",
+            "thumb": "renders/posts/_thumbs/20260307_192251.jpg",
+            "tag": "hype",
+            "caption": "Black embroidered morale patch with a skull reading 'THIS WARRANTY ISN'T GOING TO VOID ITSELF' resting on a mat, close-up indoor.",
+            "date": "2026-03-07"
+        },
+        {
+            "id": "20260307_192249.jpg",
+            "source_file": "renders/posts/_sources/20260307_192249.jpg",
+            "thumb": "renders/posts/_thumbs/20260307_192249.jpg",
+            "tag": "hype",
+            "caption": "Black skull morale patch reading 'THIS WARRANTY ISN'T GOING TO VOID ITSELF' on a mat, garage-humor graphic, close-up indoor.",
+            "date": "2026-03-07"
+        },
+        {
+            "id": "20260305_141930.jpg",
+            "source_file": "renders/posts/_sources/20260305_141930.jpg",
+            "thumb": "renders/posts/_thumbs/20260305_141930.jpg",
+            "tag": "hype",
+            "caption": "Wolf's Garage 'Tummy Time' baby onesie promo graphic - black onesie with cartoon wolf cub, 'Introducing our first onesie / Destined to grow up / from Wolf's Garage Project Truck', brand merch announcement.",
+            "date": "2026-03-05"
+        },
+        {
+            "id": "20260201_131507.jpg",
+            "source_file": "renders/posts/_sources/20260201_131507.jpg",
+            "thumb": "renders/posts/_thumbs/20260201_131507.jpg",
+            "tag": "shop",
+            "caption": "Home garage shop with red rolling tool chests, workbench and window, tidy shop interior.",
+            "date": "2026-02-01"
+        },
+        {
+            "id": "20260117_133441.jpg",
+            "source_file": "renders/posts/_sources/20260117_133441.jpg",
+            "thumb": "renders/posts/_thumbs/20260117_133441.jpg",
+            "tag": "build",
+            "caption": "Bare hot-rod body and chassis up on stands mid-build inside the shop, rotisserie restoration in progress, indoor.",
+            "date": "2026-01-17"
+        },
+        {
+            "id": "20251018_094655.jpg",
+            "source_file": "renders/posts/_sources/20251018_094655.jpg",
+            "thumb": "renders/posts/_thumbs/20251018_094655.jpg",
+            "tag": "scenery",
+            "caption": "Windshield POV driving a tree-lined mountain highway with a car ahead, guardrail and evergreens, sunny.",
+            "date": "2025-10-18"
+        },
+        {
+            "id": "20251018_094650.jpg",
+            "source_file": "renders/posts/_sources/20251018_094650.jpg",
+            "thumb": "renders/posts/_thumbs/20251018_094650.jpg",
+            "tag": "scenery",
+            "caption": "Driving POV on a two-lane road under a dramatic cloud-streaked sky with tall firs and a blue truck ahead.",
+            "date": "2025-10-18"
+        },
+        {
+            "id": "20251005_125211.jpg",
+            "source_file": "renders/posts/_sources/20251005_125211.jpg",
+            "thumb": "renders/posts/_thumbs/20251005_125211.jpg",
+            "tag": "scenery",
+            "caption": "Baltimore Inner Harbor skyline at night, illuminated high-rises reflecting on the harbor water, panoramic cityscape.",
+            "date": "2025-10-05"
+        },
+        {
+            "id": "20250913_123800.jpg",
+            "source_file": "renders/posts/_sources/20250913_123800.jpg",
+            "thumb": "renders/posts/_thumbs/20250913_123800.jpg",
+            "tag": "scenery",
+            "caption": "Driving across the green Gothic St. Johns Bridge, Portland, clear blue sky.",
+            "date": "2025-09-13"
+        },
+        {
+            "id": "20250913_123753.jpg",
+            "source_file": "renders/posts/_sources/20250913_123753.jpg",
+            "thumb": "renders/posts/_thumbs/20250913_123753.jpg",
+            "tag": "scenery",
+            "caption": "St. Johns Bridge green Gothic towers with a Speed Limit 30 sign, Portland Oregon.",
+            "date": "2025-09-13"
+        },
+        {
+            "id": "20250913_113913.jpg",
+            "source_file": "renders/posts/_sources/20250913_113913.jpg",
+            "thumb": "renders/posts/_thumbs/20250913_113913.jpg",
+            "tag": "scenery",
+            "caption": "River and St. Johns Bridge view from a car window, Portland.",
+            "date": "2025-09-13"
+        },
+        {
+            "id": "20250913_113907.jpg",
+            "source_file": "renders/posts/_sources/20250913_113907.jpg",
+            "thumb": "renders/posts/_thumbs/20250913_113907.jpg",
+            "tag": "scenery",
+            "caption": "Landscape and river view from a moving car window.",
+            "date": "2025-09-13"
+        },
+        {
+            "id": "20250906_181725.jpg",
+            "source_file": "renders/posts/_sources/20250906_181725.jpg",
+            "thumb": "renders/posts/_thumbs/20250906_181725.jpg",
+            "tag": "drone",
+            "caption": "Overhead aerial top-down of a dark car parked on asphalt roadway with painted yellow lane line.",
+            "date": "2025-09-06"
+        },
+        {
+            "id": "20250608_134944.jpg",
+            "source_file": "renders/posts/_sources/20250608_134944.jpg",
+            "thumb": "renders/posts/_thumbs/20250608_134944.jpg",
+            "tag": "shop",
+            "caption": "Fabrication workbench with sheet metal, tape measure, angle grinder and hand tools mid-project.",
+            "date": "2025-06-08"
+        },
+        {
+            "id": "20250608_134320.jpg",
+            "source_file": "renders/posts/_sources/20250608_134320.jpg",
+            "thumb": "renders/posts/_thumbs/20250608_134320.jpg",
+            "tag": "shop",
+            "caption": "Workbench covered with cut sheet-metal pieces, angle grinder and clamps during fabrication.",
+            "date": "2025-06-08"
+        },
+        {
+            "id": "20260626_194619.jpg",
+            "source_file": "renders/posts/_sources/20260626_194619.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194619.jpg",
+            "tag": "event",
+            "caption": "Silver 1958 Ford Ranch Wagon rear three-quarter with sun flare, red wheels; green Mini Cooper (plate CCC4180) parked alongside. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_194642.jpg",
+            "source_file": "renders/posts/_sources/20260626_194642.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194642.jpg",
+            "tag": "vehicle",
+            "caption": "Side profile of a sage-green-over-white early-'50s Chevrolet sedan with a lace-painted roof, wide whitewalls. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_194648.jpg",
+            "source_file": "renders/posts/_sources/20260626_194648.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194648.jpg",
+            "tag": "vehicle",
+            "caption": "Tight lace-paint roof detail with twin pinstripe lines running back, golden-hour lot reflected. Unique post-worthy detail.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_194656.jpg",
+            "source_file": "renders/posts/_sources/20260626_194656.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194656.jpg",
+            "tag": "event",
+            "caption": "Golden-hour overview of the cruise-in lot shot across a lace-painted car roof; JUBITZ sign, yellow pickup, rows of classics. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_194709.jpg",
+            "source_file": "renders/posts/_sources/20260626_194709.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194709.jpg",
+            "tag": "vehicle",
+            "caption": "Close-up of a white kustom's roof done in classic lace paint (lace-pattern overspray) with pinstripe borders, cars behind. Unique post-worthy detail.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_194724.jpg",
+            "source_file": "renders/posts/_sources/20260626_194724.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194724.jpg",
+            "tag": "vehicle",
+            "caption": "Silver/primer bagged GMC custom pickup, front three-quarter, wide whitewalls on black steelies, laid on the ground. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_194729.jpg",
+            "source_file": "renders/posts/_sources/20260626_194729.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_194729.jpg",
+            "tag": "event",
+            "caption": "Low detail shot: grey primered GMC custom pickup grille facing the chromed tailfin/bullet taillight of a '57-era classic; deep blue sky. Post-worthy detail.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_195840.jpg",
+            "source_file": "renders/posts/_sources/20260626_195840.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_195840.jpg",
+            "tag": "vehicle",
+            "caption": "Aqua 1951 Ford custom rear three-quarter, whitewalls and skirts, plate 530213; row of customs and Jubitz canopy behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_195852.jpg",
+            "source_file": "renders/posts/_sources/20260626_195852.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_195852.jpg",
+            "tag": "vehicle",
+            "caption": "Rear view lineup under the Jubitz canopy: white Chevy pickup tailgate ('CHEVROLET'), aqua 1951 Ford, black custom, coral car. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_195916.jpg",
+            "source_file": "renders/posts/_sources/20260626_195916.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_195916.jpg",
+            "tag": "vehicle",
+            "caption": "Tight low-angle on the aqua custom and the white Chevrolet 3100 pickup grille, coral Chrysler at left. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_195936.jpg",
+            "source_file": "renders/posts/_sources/20260626_195936.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_195936.jpg",
+            "tag": "vehicle",
+            "caption": "Low-angle row of classics at Ponderosa Lounge/Jubitz: coral Chrysler (hood up), aqua custom, white Chevy 3100 pickup; building marked 10310. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200000.jpg",
+            "source_file": "renders/posts/_sources/20260626_200000.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200000.jpg",
+            "tag": "vehicle",
+            "caption": "Low front-angle of a coral/salmon 1956 Chrysler Windsor leading a row (black custom with hood up, aqua) in front of the Ponderosa Lounge at Jubitz. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200039.jpg",
+            "source_file": "renders/posts/_sources/20260626_200039.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200039.jpg",
+            "tag": "vehicle",
+            "caption": "Bright yellow late-'40s Ford F1 hot rod pickup beside the aqua Mercury Comet, white show tents and golden-hour sky behind. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200100.jpg",
+            "source_file": "renders/posts/_sources/20260626_200100.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200100.jpg",
+            "tag": "vehicle",
+            "caption": "Mint/aqua early-'60s Mercury Comet convertible, top down, wire wheels, parked among classics at Jubitz. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200115.jpg",
+            "source_file": "renders/posts/_sources/20260626_200115.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200115.jpg",
+            "tag": "vehicle",
+            "caption": "Maroon 1963 Ford Galaxie 500 four-door, whitewalls and full chrome, ROADMEN plate, in a row of customs at Jubitz. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200124.jpg",
+            "source_file": "renders/posts/_sources/20260626_200124.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200124.jpg",
+            "tag": "vehicle",
+            "caption": "Black '50s Nash Rambler American two-door with wide whitewalls next to the maroon chopped custom; tanker truck in the background. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200143.jpg",
+            "source_file": "renders/posts/_sources/20260626_200143.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200143.jpg",
+            "tag": "vehicle",
+            "caption": "Slammed maroon chopped custom, front three-quarter low angle, wide whitewalls, frenched headlights, ROADMEN CAR CLUB plate. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200158.jpg",
+            "source_file": "renders/posts/_sources/20260626_200158.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200158.jpg",
+            "tag": "vehicle",
+            "caption": "Front view of a maroon chopped custom lead sled with pinstriped louvered hood and a ROADMEN CAR CLUB plaque; grey wagon and other classics alongside. Post-worthy.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200216.jpg",
+            "source_file": "renders/posts/_sources/20260626_200216.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200216.jpg",
+            "tag": "vehicle",
+            "caption": "Aqua/turquoise-over-white mid-'50s Oldsmobile Super 88 four-door, wide whitewalls and chrome, parked at the Jubitz lot (JUBITZ sign behind). Clean keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200412.jpg",
+            "source_file": "renders/posts/_sources/20260626_200412.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200412.jpg",
+            "tag": "vehicle",
+            "caption": "Side-rear of the copper-gold/brown two-tone Dodge Seneca, fins and chrome bumper, parked in the lot near the Grill at golden hour. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200418.jpg",
+            "source_file": "renders/posts/_sources/20260626_200418.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200418.jpg",
+            "tag": "vehicle",
+            "caption": "Full side profile of the copper-gold Dodge Seneca on chrome wheels, two-tone roof, Cascade Grill behind at golden hour. Strong keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200440.jpg",
+            "source_file": "renders/posts/_sources/20260626_200440.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200440.jpg",
+            "tag": "vehicle",
+            "caption": "Side view of the copper-gold Dodge Seneca, fin and chrome glowing, white Ford wagon and cone behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200502.jpg",
+            "source_file": "renders/posts/_sources/20260626_200502.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200502.jpg",
+            "tag": "vehicle",
+            "caption": "Copper-gold 1960 Dodge Seneca low rear-quarter showing the big fins and bullet taillight, white wagon and traffic cone behind, golden hour. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200523.jpg",
+            "source_file": "renders/posts/_sources/20260626_200523.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200523.jpg",
+            "tag": "vehicle",
+            "caption": "Brown '60 Dodge rear three-quarter at golden hour, a man in a hat walking past, Jubitz sign behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200527.jpg",
+            "source_file": "renders/posts/_sources/20260626_200527.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200527.jpg",
+            "tag": "vehicle",
+            "caption": "Rear view of the brown '60 Dodge with the lit JUBITZ sign and sunburst behind at golden hour. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200531.jpg",
+            "source_file": "renders/posts/_sources/20260626_200531.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200531.jpg",
+            "tag": "vehicle",
+            "caption": "Brown 1960 Dodge (Seneca/Dart) with sweeping tailfins, lowered on chrome wheels, Oregon plate 2W852, rear three-quarter at golden hour with Repair/Jubitz signs behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200604.jpg",
+            "source_file": "renders/posts/_sources/20260626_200604.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200604.jpg",
+            "tag": "vehicle",
+            "caption": "Turquoise-and-white 1954 Oldsmobile 88 sedan with whitewalls, Oregon 1954 plate 9-225, rear three-quarter at golden hour, Toyota truck behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200627.jpg",
+            "source_file": "renders/posts/_sources/20260626_200627.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200627.jpg",
+            "tag": "vehicle",
+            "caption": "Rear three-quarter of the maroon '53 Chevy sled, pinstriped trunk and chrome bumper glowing at golden hour, green wagon and red car nearby. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200636.jpg",
+            "source_file": "renders/posts/_sources/20260626_200636.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200636.jpg",
+            "tag": "vehicle",
+            "caption": "Maroon-over-white chopped 1953 Chevy lead-sled with 'ROADMEN' window banner, silver pinstriping on the decklid, fender skirts and Washington plate C-61-357, golden hour. Strong kee",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200653.jpg",
+            "source_file": "renders/posts/_sources/20260626_200653.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200653.jpg",
+            "tag": "vehicle",
+            "caption": "Low rear angle of the Nash 'Super' beside a red Ford Galaxie's round taillight and a maroon custom, dramatic golden-hour clouds. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200701.jpg",
+            "source_file": "renders/posts/_sources/20260626_200701.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200701.jpg",
+            "tag": "vehicle",
+            "caption": "Rear view of the Nash 'Super' custom, ROADMEN banner and whitewalls, golden sky, lineup flanking. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200703.jpg",
+            "source_file": "renders/posts/_sources/20260626_200703.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200703.jpg",
+            "tag": "vehicle",
+            "caption": "Dark maroon/black Nash (AMC) 'Super' custom with 'ROADMEN' window banner and Washington plate 0016E, golden-hour clouds, maroon sled and red Ford in the row. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200715.jpg",
+            "source_file": "renders/posts/_sources/20260626_200715.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200715.jpg",
+            "tag": "vehicle",
+            "caption": "Rear three-quarter of the brown '63 Galaxie 500 and the Roadmen lineup at golden hour, JUBITZ sign behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200721.jpg",
+            "source_file": "renders/posts/_sources/20260626_200721.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200721.jpg",
+            "tag": "vehicle",
+            "caption": "Brown 1963 Ford Galaxie 500 laid out low with 'ROADMEN' window banner, big round taillights glowing at golden hour, a row of customs receding behind. Strong keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200750.jpg",
+            "source_file": "renders/posts/_sources/20260626_200750.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200750.jpg",
+            "tag": "vehicle",
+            "caption": "Light-blue early-'60s Mercury Comet convertible, black top up, wire wheels, full profile at golden hour with the JUBITZ sign and sunburst behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200752.jpg",
+            "source_file": "renders/posts/_sources/20260626_200752.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200752.jpg",
+            "tag": "vehicle",
+            "caption": "Profile of the light-blue Comet convertible at sunset with the lit JUBITZ sign behind and sun flaring through the trees. Strong keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200757.jpg",
+            "source_file": "renders/posts/_sources/20260626_200757.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200757.jpg",
+            "tag": "vehicle",
+            "caption": "Light-blue early-1960s Mercury Comet/Meteor convertible with black top and wire wheels, profile at golden hour, yellow truck fender in foreground. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200818.jpg",
+            "source_file": "renders/posts/_sources/20260626_200818.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200818.jpg",
+            "tag": "vehicle",
+            "caption": "Straight rear of the black Ford F1 with sun flaring over the building, yellow stepside at left, Missouri plate 668-073. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200824.jpg",
+            "source_file": "renders/posts/_sources/20260626_200824.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200824.jpg",
+            "tag": "vehicle",
+            "caption": "Side-rear of the black Ford F1 and yellow stepside, sunburst sky behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200835.jpg",
+            "source_file": "renders/posts/_sources/20260626_200835.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200835.jpg",
+            "tag": "vehicle",
+            "caption": "Low rear angle of the black Ford F1, dramatic cloud-and-sun sky, 'Ford' tailgate and Missouri plate centered. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200837.jpg",
+            "source_file": "renders/posts/_sources/20260626_200837.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200837.jpg",
+            "tag": "vehicle",
+            "caption": "Rear three-quarter of the satin-black Ford F1 pickup at golden hour, whitewalls and chrome bumper glowing, yellow truck alongside. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_200838.jpg",
+            "source_file": "renders/posts/_sources/20260626_200838.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_200838.jpg",
+            "tag": "vehicle",
+            "caption": "Satin-black 1948-50 Ford F1 pickup laid out low on black steelies with wide whitewalls, 'Ford' tailgate, Missouri plate 668-073, beside a yellow stepside at golden hour. Beautiful ",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201115.jpg",
+            "source_file": "renders/posts/_sources/20260626_201115.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201115.jpg",
+            "tag": "vehicle",
+            "caption": "Close detail of a teal early-'60s Chevrolet's chrome grille with red '283' V8 emblem and quad headlights, chrome bumper; a white modern SUV beside it. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201142.jpg",
+            "source_file": "renders/posts/_sources/20260626_201142.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201142.jpg",
+            "tag": "vehicle",
+            "caption": "Second low-angle of the maroon lead-sled, chrome grille teeth and white fenders prominent, Roadmen plate, lineup behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201144.jpg",
+            "source_file": "renders/posts/_sources/20260626_201144.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201144.jpg",
+            "tag": "vehicle",
+            "caption": "Low front-three-quarter of a maroon-over-white chopped lead-sled (DeSoto/Mercury style) with toothy chrome grille and Roadmen Car Club front plate, dusk sky. Strong keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201203.jpg",
+            "source_file": "renders/posts/_sources/20260626_201203.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201203.jpg",
+            "tag": "vehicle",
+            "caption": "Second angle of the maroon custom's cherry-and-pinstripe deck and windshield, green Pontiac and teal car in the lineup behind. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201205.jpg",
+            "source_file": "renders/posts/_sources/20260626_201205.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201205.jpg",
+            "tag": "vehicle",
+            "caption": "Close shot over the maroon custom's chopped roof and chrome-framed split windshield, hand-painted cherries and pinstriping on the deck, club plaque on the A-pillar; a green Pontiac",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201231.jpg",
+            "source_file": "renders/posts/_sources/20260626_201231.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201231.jpg",
+            "tag": "vehicle",
+            "caption": "Low front-end of the brown 1960 Pontiac on chrome wheels with whitewalls at dusk, classics and an SUV around. Keeper (similar to 079).",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_201234.jpg",
+            "source_file": "renders/posts/_sources/20260626_201234.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_201234.jpg",
+            "tag": "vehicle",
+            "caption": "Low front-end shot of a brown 1960 Pontiac (quad headlights, wide chrome grille) on chrome wheels with whitewalls, dusk sky and other classics around. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_202018.jpg",
+            "source_file": "renders/posts/_sources/20260626_202018.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_202018.jpg",
+            "tag": "vehicle",
+            "caption": "Satin-black 1949-50 Plymouth/Dodge custom, trunk lettered 'Daisy' with a painted daisy, Washington 1949 plate B-860 and a 'TRAMPS' club plate frame; teal '50 Chevy, black truck and",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_213631.jpg",
+            "source_file": "renders/posts/_sources/20260626_213631.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_213631.jpg",
+            "tag": "event",
+            "caption": "The Driven Dead C.C. coffin box on a table beside a mocktail menu and a grilled-cheese plate at Ponderosa. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_213638.jpg",
+            "source_file": "renders/posts/_sources/20260626_213638.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_213638.jpg",
+            "tag": "event",
+            "caption": "Black coffin-shaped wooden box with white outline, bat-wing skull and Maltese/iron cross, lettered 'DRIVEN DEAD C.C.' \u2014 the host car club's branding/donation box on a red-lit table",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_214006.jpg",
+            "source_file": "renders/posts/_sources/20260626_214006.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_214006.jpg",
+            "tag": "event",
+            "caption": "Wide of Hard Money Saints performing at Ponderosa, upright bass at left, full Rose City Round-Up LED graphic at right. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_214010.jpg",
+            "source_file": "renders/posts/_sources/20260626_214010.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_214010.jpg",
+            "tag": "event",
+            "caption": "Wide stage shot of Hard Money Saints playing, full LED screen with band name, date and Rose City Round-Up car-show logo visible. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_214033.jpg",
+            "source_file": "renders/posts/_sources/20260626_214033.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_214033.jpg",
+            "tag": "event",
+            "caption": "Band 'Hard Money Saints' performing on the Ponderosa stage under stage lights, LED screen with their name and '6-26-26' and the Rose City Round-Up logo at right. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_221145.jpg",
+            "source_file": "renders/posts/_sources/20260626_221145.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_221145.jpg",
+            "tag": "event",
+            "caption": "Close shot of the stage LED screen: 'Big Sandy and His Fly-Rite Boys 6-26-26' beside the 'Rose City Annual 16th Round-Up Car Show' logo with a chopped coupe graphic; guitarist on t",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260626_221207.jpg",
+            "source_file": "renders/posts/_sources/20260626_221207.jpg",
+            "thumb": "renders/posts/_thumbs/20260626_221207.jpg",
+            "tag": "event",
+            "caption": "Interior panorama: swing/rockabilly dancers on the floor while a band plays the Ponderosa stage under the 'Rose City Annual 16th Round-Up Car Show' LED screen. Keeper.",
+            "date": "2026-06-26"
+        },
+        {
+            "id": "20260627_093110.jpg",
+            "source_file": "renders/posts/_sources/20260627_093110.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_093110.jpg",
+            "tag": "event",
+            "caption": "Wider shot of the lowrider-bike riders alongside the stretched black hearse and brown Chrysler in the show lot, Ponderosa and tents behind. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_093116.jpg",
+            "source_file": "renders/posts/_sources/20260627_093116.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_093116.jpg",
+            "tag": "people",
+            "caption": "Second frame of the family on lowrider bicycles between the hearse and brown Chrysler, all smiling at camera. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_093117.jpg",
+            "source_file": "renders/posts/_sources/20260627_093117.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_093117.jpg",
+            "tag": "people",
+            "caption": "A man, woman and boy posing on chromed/whitewall lowrider bicycles between a black 1950s hearse and a brown Chrysler hardtop, Ponderosa behind. Warm family/lifestyle shot. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125546.jpg",
+            "source_file": "renders/posts/_sources/20260627_125546.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125546.jpg",
+            "tag": "vehicle",
+            "caption": "Low front-three-quarter of the grey '50 Chevy custom, moon discs and whitewalls, copper '36 Ford alongside, marquee sign behind. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125548.jpg",
+            "source_file": "renders/posts/_sources/20260627_125548.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125548.jpg",
+            "tag": "vehicle",
+            "caption": "Grey chopped/lowered 1949-50 Chevy coupe in profile with full moon hubcaps and wide whitewalls, copper '36 Ford beside it, Cinema/Cascade/Ponderosa marquee behind. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125602.jpg",
+            "source_file": "renders/posts/_sources/20260627_125602.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125602.jpg",
+            "tag": "vehicle",
+            "caption": "Second front angle of the grey '50 Chevy and copper '36 Ford coupe pair, dramatic low perspective. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125604.jpg",
+            "source_file": "renders/posts/_sources/20260627_125604.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125604.jpg",
+            "tag": "vehicle",
+            "caption": "Two customs nose-out side by side: a grey chopped '49-'50 Chevy and a copper-patina 1936 Ford coupe, both lowered on whitewalls, banner with a wolf paw ('RED 5 WOLF') behind. Stron",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125619.jpg",
+            "source_file": "renders/posts/_sources/20260627_125619.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125619.jpg",
+            "tag": "vehicle",
+            "caption": "High front-three-quarter angle of the same green Oldsmobile wagon on wet asphalt, vendor tents and classics behind. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125629.jpg",
+            "source_file": "renders/posts/_sources/20260627_125629.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125629.jpg",
+            "tag": "vehicle",
+            "caption": "Olive-green mid-1960s Oldsmobile station wagon (Vista Cruiser/Cutlass) on chrome wheels, Oregon plate 06A 343, rear-quarter view; Tires/Truck Service/Repair shops and tents behind.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125633.jpg",
+            "source_file": "renders/posts/_sources/20260627_125633.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125633.jpg",
+            "tag": "vehicle",
+            "caption": "Clean dark-blue 1946-48 Ford sedan in profile on chrome 5-spoke wheels with whitewalls, 'ROADMEN CAR CLUB' tent and classic lineup behind. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_125958.jpg",
+            "source_file": "renders/posts/_sources/20260627_125958.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_125958.jpg",
+            "tag": "vehicle",
+            "caption": "Black late-'50s Nash/Rambler American with red patina roof, hood up showing a small-block V8 swap, lined among classics; a cream Chevrolet pickup and red '60s sedan nearby. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143431.jpg",
+            "source_file": "renders/posts/_sources/20260627_143431.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143431.jpg",
+            "tag": "event",
+            "caption": "Wide shot from under the event canopy/stage: crowd of attendees in club shirts gathered in the wet lot, Ponderosa BBQ building and more tents behind. Documents the event scene. Kee",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143647.jpg",
+            "source_file": "renders/posts/_sources/20260627_143647.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143647.jpg",
+            "tag": "vehicle",
+            "caption": "Rear view of two chopped lead-sleds parked nose-out under tents: a white/purple Chevy with 'Tacoma CC' window lettering and a satin-black 'Jolene' sled with Oregon plate 277-965 an",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143705.jpg",
+            "source_file": "renders/posts/_sources/20260627_143705.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143705.jpg",
+            "tag": "vehicle",
+            "caption": "Rear-quarter of a cream mid-'50s Chevy beside a light-blue early-'60s convertible (wire wheels) outside Cascade Grill, people walking the wet lot. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143713.jpg",
+            "source_file": "renders/posts/_sources/20260627_143713.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143713.jpg",
+            "tag": "vehicle",
+            "caption": "Detail of a cream classic's chrome rear bumper, red lens taillight and dual exhaust tips exiting through the bumper, beaded with rain. Clean chrome detail shot.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143727.jpg",
+            "source_file": "renders/posts/_sources/20260627_143727.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143727.jpg",
+            "tag": "vehicle",
+            "caption": "Close-up of a satin-black custom decklid hand-lettered 'Jolene' with white and yellow Von Dutch-style pinstriping, and a 'Screamin' CC' chrome club plaque. Very on-brand kustom-kul",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143742.jpg",
+            "source_file": "renders/posts/_sources/20260627_143742.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143742.jpg",
+            "tag": "vehicle",
+            "caption": "Rear-quarter low angle of the black custom with lakes pipes; a light-blue convertible parked beyond. Keeper.",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143745.jpg",
+            "source_file": "renders/posts/_sources/20260627_143745.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143745.jpg",
+            "tag": "vehicle",
+            "caption": "Lower side shot of the chromed lakes pipes and side trim under the black lead-sled, rain on the asphalt. Detail keeper (similar framing to prior).",
+            "date": "2026-06-27"
+        },
+        {
+            "id": "20260627_143750.jpg",
+            "source_file": "renders/posts/_sources/20260627_143750.jpg",
+            "thumb": "renders/posts/_thumbs/20260627_143750.jpg",
+            "tag": "vehicle",
+            "caption": "Close detail of polished lakes-pipe side headers with bullet/spike tips running under the black custom's rocker on wet pavement. Good texture shot.",
+            "date": "2026-06-27"
+        }
+    ]
 }
