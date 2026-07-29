@@ -654,7 +654,8 @@ console.log("WG post-queue v1.6");
     };
     function refillRow() {
       var on = d.status === "killed" && d.refill_requested === true;
-      refill.style.display = on ? "" : "none";
+      /* .stat is display:none in CSS, so "" would inherit that and hide the row */
+      refill.style.display = on ? "block" : "none";
       refill.textContent = on ? "Refill queued for " + (refillDay(d) || "that day") + ". " : "";
       if (on) { refill.appendChild(noRefill); }
     }
