@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "updated": "2026-07-29T01:42:15.866Z",
+  "updated": "2026-07-30T01:45:00.285Z",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
   "drafts": [
     {
       "id": "wgpost-20260703-01",
       "created": "2026-07-03",
-      "status": "approved",
+      "status": "published",
       "format": "carousel",
       "angle": "brand truck around Portland",
       "hook": "THIS TRUCK GETS AROUND. PORTLAND KEEPS UP.",
@@ -65,7 +65,9 @@
       "fix_note": null,
       "kill_reason": null,
       "slot_why": "auto-assigned next open slot from the timing table on approval",
-      "scheduled_slot": "2026-07-29T18:30 America/Los_Angeles"
+      "scheduled_slot": "2026-07-29T18:30 America/Los_Angeles",
+      "published_at": "2026-07-29T18:45:00",
+      "ig_media_id": "17923978863394190"
     },
     {
       "id": "wgpost-20260703-02",
