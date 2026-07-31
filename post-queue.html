@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.6">
-<title>WG Post Queue v1.6</title>
+<meta name="wg-version" content="1.7">
+<title>WG Post Queue v1.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -93,7 +93,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.6");
+console.log("WG post-queue v1.7");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -233,6 +233,68 @@ console.log("WG post-queue v1.6");
   function firstPhoto(slides) {
     var i = firstPhotoIdx(slides);
     return i >= 0 ? slides[i] : null;
+  }
+
+  function isPhoto(s) { return s.kind === "photo"; }
+
+  /* ---- v1.7: photo re-roll helpers (REFRESH THIS POST) ---- */
+  function poolById(id) {
+    if (!pool || !pool.images) { return null; }
+    for (var i = 0; i < pool.images.length; i++) { if (pool.images[i].id === id) { return pool.images[i]; } }
+    return null;
+  }
+  function tagOf(d) {
+    var counts = {};
+    (d.slides || []).forEach(function (s) {
+      if (s.kind !== "photo") { return; }
+      var p = poolById(s.source_asset);
+      if (p && p.tag) { counts[p.tag] = (counts[p.tag] || 0) + 1; }
+    });
+    var best = "vehicle", bestN = 0;
+    Object.keys(counts).forEach(function (t) { if (counts[t] > bestN) { best = t; bestN = counts[t]; } });
+    return best;
+  }
+  function shootDateOf(d) {
+    var counts = {};
+    (d.slides || []).forEach(function (s) {
+      if (s.kind !== "photo") { return; }
+      var p = poolById(s.source_asset);
+      if (p && p.date) { counts[p.date] = (counts[p.date] || 0) + 1; }
+    });
+    var best = null, bestN = 0;
+    Object.keys(counts).forEach(function (dt) { if (counts[dt] > bestN) { best = dt; bestN = counts[dt]; } });
+    return best;
+  }
+  function withinDays(dateStr, centerStr, n) {
+    var a = new Date(dateStr + "T00:00:00");
+    var b = new Date(centerStr + "T00:00:00");
+    if (isNaN(a.getTime()) || isNaN(b.getTime())) { return false; }
+    return Math.abs(a.getTime() - b.getTime()) / 86400000 <= n;
+  }
+  function usedAssetIds(excludeId) {
+    var used = {};
+    models.forEach(function (mm) {
+      var dd = mm.draft;
+      if (dd.id === excludeId || dd.status === "killed") { return; }
+      (dd.slides || []).forEach(function (s) { if (s.kind === "photo" && s.source_asset) { used[s.source_asset] = true; } });
+    });
+    return used;
+  }
+  function pickFresh(m, n) {
+    var d = m.draft;
+    if (!pool || !pool.images || !pool.images.length) { return null; }
+    var banned = usedAssetIds(d.id);
+    (d.refresh_history || []).forEach(function (id) { banned[id] = true; });
+    d.slides.forEach(function (s) { if (s.kind === "photo" && s.source_asset) { banned[s.source_asset] = true; } });
+    var day = shootDateOf(d);
+    var tag = tagOf(d);
+    var candidates = day ? pool.images.filter(function (x) { return x.date === day && !banned[x.id]; }) : [];
+    if (candidates.length < n && day) {
+      candidates = pool.images.filter(function (x) { return x.tag === tag && withinDays(x.date, day, 3) && !banned[x.id]; });
+    }
+    if (candidates.length < n) { return null; } /* refuse, never pad with strangers */
+    candidates.sort(function (a, b) { return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0); });
+    return candidates.slice(0, n);
   }
 
   function normalizeFormat(m) {
@@ -407,6 +469,47 @@ console.log("WG post-queue v1.6");
     return d;
   }
 
+  function snapshotDraft(m) {
+    var imgs = {};
+    m.draft.slides.forEach(function (s) { if (s._img) { imgs[s.source_asset] = s._img; } });
+    return { doc: serializeDraft(m), imgs: imgs };
+  }
+  function restoreDraft(m, snap) {
+    var d = m.draft, fresh = JSON.parse(JSON.stringify(snap.doc));
+    Object.keys(d).forEach(function (k) { if (!(k in fresh)) { delete d[k]; } });
+    Object.keys(fresh).forEach(function (k) { d[k] = fresh[k]; });
+    d.slides.forEach(function (s) {
+      if (s.kind !== "photo") { return; }
+      if (snap.imgs[s.source_asset]) { s._img = snap.imgs[s.source_asset]; }
+      s._dirtyPixels = false; s._loadFailed = false;
+    });
+    m.sel = -1; rebuildStrip(m); buildPanel(m);
+    m.els.reworkRow(); m.els.refillRow(); m.els.tiktokShow(); m.els.tiktokLabel(); m.els.dayMode();
+  }
+  function syncFields(m) {
+    m.els.inputs[0].value = m.draft.hook || "";
+    m.els.inputs[1].value = m.draft.caption || "";
+    m.els.inputs[2].value = (m.draft.hashtags || []).join(" ");
+  }
+
+  /* v1.7 Gate B: a completed write must leave a draft in a coherent, publishable shape.
+     Runs after uploadDirtySlides has populated s.file, so a half-uploaded refresh throws
+     and the whole save rolls back rather than writing a fixture-shaped draft. */
+  function assertShape(x) {
+    if (typeof x.caption !== "string" || !x.caption.trim()) {
+      throw new Error("empty caption - refusing to write " + x.id);
+    }
+    (x.slides || []).forEach(function (s, i) {
+      if (s.kind !== "photo") { return; }
+      if (!s.file || String(s.file).indexOf("renders/posts/") !== 0) {
+        throw new Error("slide " + (i + 1) + " has no rendered file under renders/ - refusing to write " + x.id);
+      }
+      if (!s.source_file || !s.source_asset) {
+        throw new Error("slide " + (i + 1) + " lost its source - refusing to write " + x.id);
+      }
+    });
+  }
+
   function uploadDirtySlides(m) {
     var chain = Promise.resolve();
     var hookIdx = m.draft.format === "carousel" ? firstPhotoIdx(m.draft.slides) : -1;
@@ -451,6 +554,18 @@ console.log("WG post-queue v1.6");
       })
       .then(function (doc) {
         if (!doc || !Array.isArray(doc.drafts)) { throw new Error("queue shape unreadable - refusing to write"); }
+        /* Gate A: judge the FRESHLY-READ copy from main, not this tab's state - a stale tab,
+           a second device, or a stale branch cannot re-arm a post already on Instagram. */
+        var live = null;
+        doc.drafts.forEach(function (x) { if (x && x.id === mine.id) { live = x; } });
+        if (live && (live.published_at || live.ig_media_id || live.status === "published")) {
+          if (mine.status !== live.status) {
+            throw new Error(mine.id + " is already on Instagram - its status is locked.");
+          }
+          mine.published_at = live.published_at;
+          mine.ig_media_id = live.ig_media_id;
+        }
+        assertShape(mine); /* Gate B */
         var found = false;
         doc.drafts = doc.drafts.map(function (d) {
           if (d && d.id === mine.id) { found = true; return mine; }
@@ -468,7 +583,7 @@ console.log("WG post-queue v1.6");
       .then(function () { m.savedDraft = mine; });
   }
 
-  function persist(m, busyMsg, okMsg) {
+  function persist(m, busyMsg, okMsg, onFail) {
     if (blockIfNotReady(m)) { return Promise.resolve(); }
     m.busy = true;
     if (m.els.card) { m.els.card.classList.add("busy"); }
@@ -488,7 +603,8 @@ console.log("WG post-queue v1.6");
         m.draft.kill_reason = prev.kill_reason;
         m.draft.fix_note = prev.fix_note;
         m.els.save.disabled = false;
-        setStat(m, "Save failed: " + e.message + " - nothing sent, draft is back to " + prev.status + ". Try again or tell Claude.", "err");
+        if (onFail) { onFail(); } /* may fully replace m.draft (snapshot restore) - read status after */
+        setStat(m, "Save failed: " + e.message + " - nothing sent, draft is back to " + m.draft.status + ". Try again or tell Claude.", "err");
       })
       .then(function () {
         m.busy = false;
@@ -507,6 +623,11 @@ console.log("WG post-queue v1.6");
     var when = new Date(stamp);
     if (isNaN(when.getTime()) || when.getTime() <= Date.now()) { return null; }
     return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][when.getDay()];
+  }
+
+  function isLocked(x) { return !!(x && (x.published_at || x.ig_media_id || x.status === "published")); }
+  function canRework(d) {
+    return !isLocked(d) && (d.status === "pending_approval" || d.status === "fix" || d.status === "approved");
   }
 
   function refreshChip(m) {
@@ -586,10 +707,24 @@ console.log("WG post-queue v1.6");
     ft.appendChild(ti); ft.appendChild(hintT); card.appendChild(ft);
     m.els.inputs.push(ti);
 
-    (d.flags || []).forEach(function (f) {
-      var fl = document.createElement("div"); fl.className = "flag"; fl.textContent = "FLAG: " + f;
-      card.appendChild(fl);
-    });
+    var flagsWrap = document.createElement("div");
+    function rebuildFlags() {
+      flagsWrap.innerHTML = "";
+      (d.flags || []).forEach(function (f) {
+        var fl = document.createElement("div"); fl.className = "flag"; fl.textContent = "FLAG: " + f;
+        flagsWrap.appendChild(fl);
+      });
+    }
+    m.els.rebuildFlags = rebuildFlags;
+    rebuildFlags();
+    card.appendChild(flagsWrap);
+
+    var dayline = document.createElement("div"); dayline.className = "field"; dayline.style.display = "none";
+    var daylineLabel = document.createElement("label");
+    var daylineHint = document.createElement("div"); daylineHint.className = "hint";
+    daylineHint.textContent = "Killed and back on the week builder's list. The assembler fills this slot on its next run.";
+    dayline.appendChild(daylineLabel); dayline.appendChild(daylineHint);
+    card.appendChild(dayline);
 
     var actions = document.createElement("div"); actions.className = "actions";
     var save = document.createElement("button"); save.className = "btn save"; save.textContent = "SAVE EDITS"; save.disabled = true;
@@ -600,6 +735,7 @@ console.log("WG post-queue v1.6");
       if (blockIfNotReady(m)) { return; } /* never mutate status when the save cannot start */
       d.status = "approved"; d.kill_reason = null; d.fix_note = null;
       d.refill_requested = false; if (m.els.refillRow) { m.els.refillRow(); }
+      if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
       persist(m, "Approving...", "Approved. Waits for the publisher (Build 1.3).");
     };
     var fixb = document.createElement("button"); fixb.className = "btn fixit"; fixb.textContent = "FIX IT";
@@ -608,6 +744,7 @@ console.log("WG post-queue v1.6");
     // TikTok app - one tap records that it got scheduled so the daily close can stop asking.
     var tk = document.createElement("button"); tk.className = "btn fixit";
     function tkLabel() { tk.textContent = d.tiktok_scheduled_at ? "TIKTOK ✓ " + d.tiktok_scheduled_at.slice(5, 10) : "MARK TIKTOK SCHEDULED"; }
+    m.els.tiktokLabel = tkLabel;
     tkLabel();
     function tkShow() { tk.style.display = (d.status === "approved" || d.status === "published") ? "" : "none"; }
     tkShow(); m.els.tiktokShow = tkShow;
@@ -633,14 +770,124 @@ console.log("WG post-queue v1.6");
         var day = refillDay(d);
         d.refill_requested = day ? true : false;
         refillRow();
+        if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
         persist(m, "Killing...", day
           ? "Killed. " + day + " goes back on the build list."
           : "Killed. The assembler learns from the reason.");
       };
       reasons.appendChild(b);
     });
-    kill.onclick = function () { reasons.className = reasons.className === "reasons open" ? "reasons" : "reasons open"; };
+    kill.onclick = function () {
+      reasons.className = reasons.className === "reasons open" ? "reasons" : "reasons open";
+      if (reasons.className === "reasons open") { overConfirm.className = "reasons"; } /* one confirmation on screen at a time */
+    };
     card.appendChild(reasons);
+
+    var rework = document.createElement("div"); rework.className = "reasons";
+    var refreshBtn = document.createElement("button"); refreshBtn.className = "sbtn";
+    refreshBtn.style.cssText = "border-color:#C8922A;color:#C8922A";
+    refreshBtn.textContent = "REFRESH THIS POST";
+    refreshBtn.onclick = function () { doRefresh(m); };
+    var startOverBtn = document.createElement("button"); startOverBtn.className = "sbtn warn";
+    startOverBtn.textContent = "START OVER";
+    startOverBtn.onclick = function () {
+      overConfirm.className = overConfirm.className === "reasons open" ? "reasons" : "reasons open";
+      if (overConfirm.className === "reasons open") {
+        reasons.className = "reasons"; /* one confirmation on screen at a time */
+        overYes.textContent = "YES - REBUILD " + (refillDay(d) || "THIS SLOT").toUpperCase();
+      }
+    };
+    rework.appendChild(refreshBtn); rework.appendChild(startOverBtn);
+    card.appendChild(rework);
+
+    var overConfirm = document.createElement("div"); overConfirm.className = "reasons";
+    var overYes = document.createElement("button"); overYes.className = "sbtn warn";
+    overYes.textContent = "YES - REBUILD THIS SLOT";
+    overYes.onclick = function () { doStartOver(m); };
+    var overNo = document.createElement("button"); overNo.className = "sbtn";
+    overNo.textContent = "NOT YET";
+    overNo.onclick = function () { overConfirm.className = "reasons"; };
+    overConfirm.appendChild(overYes); overConfirm.appendChild(overNo);
+    card.appendChild(overConfirm);
+
+    function reworkRow() { rework.className = canRework(d) ? "reasons open" : "reasons"; }
+    m.els.reworkRow = reworkRow;
+
+    function dayMode() {
+      var on = d.status === "killed" && d.refill_requested === true;
+      [strip, add, fh, fc, ft, actions, flagsWrap].forEach(function (el) { el.style.display = on ? "none" : ""; });
+      if (on) { panel.style.display = "none"; m.sel = -1; } else { buildPanel(m); }
+      dayline.style.display = on ? "block" : "none";
+      daylineLabel.textContent = (d.refill_day || refillDay(d) || "THIS SLOT").toUpperCase() + " - REBUILDING";
+    }
+    m.els.dayMode = dayMode;
+    m.els.syncFields = function () { syncFields(m); };
+
+    function doRefresh(mm) {
+      var dd = mm.draft;
+      if (blockIfNotReady(mm)) { return; }
+      if (!canRework(dd)) { setStat(mm, "This one is locked. Published and killed posts don't re-roll.", "err"); return; }
+      var photos = dd.slides.filter(isPhoto);
+      var picks = pickFresh(mm, photos.length || 1);
+      if (!picks) { setStat(mm, "No fresh pictures left from that day. Tap + ADD A PICTURE, or run the assembler.", "err"); return; }
+
+      mm._preRefresh = snapshotDraft(mm);
+      dd.refresh_history = (dd.refresh_history || []).concat(photos.map(function (s) { return s.source_asset; }));
+      dd.refresh_count = (dd.refresh_count || 0) + 1;
+      dd.refreshed_at = new Date().toISOString().slice(0, 16);
+      dd.needs_caption = true;
+      dd.caption_prev = dd.caption;
+      dd.flags_prev = dd.flags || [];
+      dd.flags = ["REFRESHED " + dd.refreshed_at.slice(0, 10) + " - photos re-rolled from the "
+        + shootDateOf(dd) + " shoot; caption is still the old one."];
+      dd.refill_requested = false;
+      dd.tiktok_scheduled_at = null;
+      if (dd.status === "approved") { dd.status = "pending_approval"; }
+
+      var keep = dd.slides.filter(function (s) { return s.kind !== "photo"; });
+      dd.slides = picks.map(function (x) {
+        return { kind: "photo", file: null, raw_url: null, source_asset: x.id, source_file: x.source_file,
+                 crop: { focus_x: 0.5, focus_y: 0.5, zoom: 1.0 }, _dirtyPixels: false };
+      }).concat(keep);
+
+      normalizeFormat(mm); mm.sel = -1;
+      rebuildStrip(mm); buildPanel(mm); refreshChip(mm);
+      mm.els.rebuildFlags(); mm.els.reworkRow(); mm.els.refillRow(); mm.els.tiktokShow(); mm.els.tiktokLabel(); mm.els.dayMode();
+      setStat(mm, "New pictures loading...", "ok");
+
+      Promise.all(dd.slides.filter(isPhoto).map(function (s) {
+        return loadImage(s.source_file + "?v=" + poolBust())
+          .then(function (img) { s._img = img; markPixelsDirty(s); })
+          .catch(function () { s._loadFailed = true; });
+      })).then(function () {
+        if (dd.slides.some(function (s) { return s.kind === "photo" && s._loadFailed; })) {
+          restoreDraft(mm, mm._preRefresh);
+          setStat(mm, "Those pictures would not load. Nothing changed.", "err");
+          return;
+        }
+        repaint(mm); markDirty(mm);
+        persist(mm, "Re-rolling this post...",
+          "New pictures from that day. Caption is still the old one - rewrite it or leave it for the assembler.",
+          function () { restoreDraft(mm, mm._preRefresh); refreshChip(mm); mm.els.syncFields(); mm.els.rebuildFlags(); });
+      });
+    }
+
+    function doStartOver(mm) {
+      var dd = mm.draft;
+      if (blockIfNotReady(mm)) { return; }
+      if (!canRework(dd)) { setStat(mm, "This one is locked.", "err"); return; }
+      dd.status = "killed";
+      dd.kill_reason = "start over";
+      dd.fix_note = null;
+      dd.refill_requested = true;
+      dd.refill_day = refillDay(dd);
+      dd.refill_source = "start_over";
+      dd.needs_caption = true;
+      overConfirm.className = "reasons";
+      mm.els.reworkRow(); mm.els.refillRow(); mm.els.tiktokShow(); mm.els.dayMode();
+      persist(mm, "Clearing the day...",
+        (dd.refill_day || "That slot") + " is back on the build list. Nothing left to review here.");
+    }
 
     /* refill opt-out - only visible while a refill is actually pending */
     var refill = document.createElement("div"); refill.className = "stat";
@@ -650,6 +897,7 @@ console.log("WG post-queue v1.6");
       if (blockIfNotReady(m)) { return; }
       d.refill_requested = false;
       refillRow();
+      if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
       persist(m, "Clearing...", "That day stays empty until you say otherwise.");
     };
     function refillRow() {
@@ -661,6 +909,8 @@ console.log("WG post-queue v1.6");
     }
     m.els.refillRow = refillRow;
     refillRow();
+    reworkRow();
+    dayMode();
     card.appendChild(refill);
 
     var note = document.createElement("div"); note.className = "note field";
@@ -672,6 +922,7 @@ console.log("WG post-queue v1.6");
       if (!ni.value.trim()) { setStat(m, "Write the one-liner first.", "err"); return; }
       d.status = "fix"; d.fix_note = ni.value.trim(); d.kill_reason = null;
       d.refill_requested = false; if (m.els.refillRow) { m.els.refillRow(); }
+      if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
       note.className = "note field";
       persist(m, "Sending...", "In the redo pile for the next assembler run.");
     };
