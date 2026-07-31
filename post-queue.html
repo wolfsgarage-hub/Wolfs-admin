@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.8">
-<title>WG Post Queue v1.8</title>
+<meta name="wg-version" content="1.9">
+<title>WG Post Queue v1.9</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -63,6 +63,9 @@
   footer { font-family:'Special Elite',monospace; text-align:center; color:#555; font-size:11px; padding:18px 10px 8px; }
   #status { text-align:center; color:var(--bone-dim); padding:30px 16px; font-size:14px; }
   .addbtn { display:block; width:calc(100% - 24px); margin:0 12px 10px; padding:11px; min-height:44px; background:var(--bg3); color:var(--bone-dim); border:1px dashed var(--line); border-radius:4px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+  /* v1.9: MORE - REFRESH / START OVER is a direct child of .card, so .sbtn's flex:1 does
+     nothing and it rendered flush against the card border. Match .addbtn's 12px inset. */
+  .morebtn { display:block; width:calc(100% - 24px); margin:0 12px 10px; }
   #picker { display:none; position:fixed; inset:0; background:var(--bg); z-index:50; overflow-y:auto; }
   #picker.open { display:block; }
   #picker .phead { position:sticky; top:0; background:var(--bg); padding:12px; border-bottom:1px solid var(--line); }
@@ -93,7 +96,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.8");
+console.log("WG post-queue v1.9");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -106,7 +109,6 @@ console.log("WG post-queue v1.8");
   var statusEl = document.getElementById("status");
   var listEl = document.getElementById("list");
   var models = [];
-  var queueDoc = null; /* session source of truth for writes - see saveQueueDoc */
   var pool = null; /* curated library pool (data/library-pool.json), exported by the assembler */
   var pickerFor = null;
   var SHARED_END_CARD = "renders/posts/_shared/end-card.jpg";
@@ -205,7 +207,6 @@ console.log("WG post-queue v1.8");
   function makeModel(draft) {
     var m = { orig: draft, draft: JSON.parse(JSON.stringify(draft)), sel: -1, dirtyDoc: false, busy: false, els: {} };
     m.draft.slides.forEach(function (s) { if (s.kind === "photo") { s._dirtyPixels = false; } });
-    m.savedDraft = JSON.parse(JSON.stringify(draft));
     return m;
   }
 
@@ -541,7 +542,27 @@ console.log("WG post-queue v1.8");
     return chain;
   }
 
-  function saveQueueDoc(m) {
+  /* v1.9 (Medium C): a locked-entry write keeps only the small mutable fields, so John's
+     local edits to slides/caption/hook are dropped on the floor. Resync the model from what
+     actually landed, or m.draft keeps phantom edits the queue does not have. Reuses
+     restoreDraft's merge so the loaded _img objects survive and every row/chip re-renders. */
+  function resyncFromLive(m, entry) {
+    var imgs = {};
+    m.draft.slides.forEach(function (s) { if (s._img) { imgs[s.source_asset] = s._img; } });
+    var doc = JSON.parse(JSON.stringify(entry));
+    /* restoreDraft deletes any key the incoming doc lacks and then walks d.slides. Every other
+       caller feeds it a snapshot of m.draft, which boot already normalized - but a raw live
+       entry for a text-only SOCIAL draft has no slides key at all, which would strip
+       m.draft.slides and throw mid-chain, reporting "nothing sent" for a write that landed. */
+    doc.slides = doc.slides || [];
+    restoreDraft(m, { doc: doc, imgs: imgs, dirty: {} });
+  }
+
+  function saveQueueDoc(m, opts) {
+    /* v1.9 (Medium D - KNOWN GAP, deliberately not fixed here): this read-modify-write carries
+       no If-Match / SHA precondition on the proxy upload, so two cards saved from two tabs
+       inside the same read window can still lose the earlier write. Closing it needs a
+       conditional PUT on the proxy, not a change on this page. */
     /* Audit item 14: re-read through the PROXY right before writing, then merge ONLY the
        saving draft into that fresh doc - a save on the phone must not silently revert edits
        made on the desktop or in a second tab. The proxy read is fresh, not CDN.
@@ -552,7 +573,11 @@ console.log("WG post-queue v1.8");
        the publisher had since posted, re-arming it for a double post. There is no safe
        fallback for "can't see the live queue" - abort instead. */
     var mine = serializeDraft(m);
-    m._mergeWarn = null;
+    var isRework = !!(opts && opts.rework);
+    /* persist() only clears dirtyDoc AFTER this resolves, so this still reads the pre-save
+       value: true means real content edits are riding on this write. */
+    var hadLocalEdits = !!m.dirtyDoc;
+    m._saveNote = null; /* { text, replace } - consumed by persist() for the status line */
     return callProxy("get", { repo: "Wolfs-admin", branch: "main", path: QUEUE_PATH })
       .then(function (g) {
         if (!g || !g.contentBase64) { throw new Error("no content"); }
@@ -581,29 +606,50 @@ console.log("WG post-queue v1.8");
         }
         /* v1.8 (Critical #2, write-time re-verify): a rework's optimistic refill_requested
            was only checked against this tab's clock/data at tap time. Re-check against the
-           freshly-read live entry right before the write actually lands. */
+           freshly-read live entry right before the write actually lands.
+           v1.9 (Critical A - the v1.8 version of this was backwards): it used to THROW on ANY
+           write carrying refill_requested === true inside the guard band. A kill sets exactly
+           that (refill_requested = !!day), so KILL IT was REFUSED in the last 30 minutes
+           before a slot while POST IT (refill_requested false) sailed through - the guard
+           disarmed the disarm button. Killing a post must ALWAYS be possible. Only the rework
+           paths (REFRESH / START OVER) can race the publisher into a draft with no
+           ig_media_id that is still eligible to double-post, so only they still refuse. A
+           kill inside the band writes normally with the refill downgraded to false: losing
+           the refill is the acceptable cost, the post still dies. */
         if (toWrite.refill_requested === true) {
           if (liveLocked) {
             toWrite.refill_requested = false;
           } else {
             var liveWhen = live ? parseSlot(live) : null;
             if (liveWhen && (liveWhen.getTime() - Date.now()) / 60000 <= REWORK_GUARD_MIN) {
-              throw new Error(mine.id + "'s slot is imminent or already passed on the live queue - refusing to queue a refill this close.");
+              if (isRework) {
+                throw new Error(mine.id + "'s slot is imminent or already passed on the live queue - refusing to re-roll this close.");
+              }
+              toWrite.refill_requested = false;
+              m._saveNote = { text: "Its slot was too close to queue a refill, so that day was left alone.", replace: false };
             }
           }
         }
         assertShape(toWrite); /* Gate B */
         /* v1.8 (Minor #11): re-validate photo picks against the FRESH doc, not just this
            tab's session models - a tab open a while can re-pick an asset the assembler has
-           since assigned to a different draft while this tab wasn't looking. */
-        var usedElsewhere = {};
-        doc.drafts.forEach(function (x) {
-          if (!x || x.id === toWrite.id || x.status === "killed") { return; }
-          (x.slides || []).forEach(function (s) { if (s.kind === "photo" && s.source_asset) { usedElsewhere[s.source_asset] = true; } });
-        });
-        var collision = (toWrite.slides || []).filter(function (s) { return s.kind === "photo" && s.source_asset && usedElsewhere[s.source_asset]; });
-        if (collision.length) {
-          throw new Error("picture " + collision[0].source_asset + " is already used on another live draft - refusing to write " + toWrite.id + ". Refresh the page and try again.");
+           since assigned to a different draft while this tab wasn't looking.
+           v1.9 (High B): this used to THROW, sitting in front of the single write that EVERY
+           path shares - so one duplicate photo (the picker offered used assets freely) bricked
+           the whole card, KILL IT included. It is advisory only now: it never blocks a kill, a
+           fix note, or a status-only write, and on a content save it warns instead of
+           refusing. buildPickerGrid filters used assets so the collision cannot be created in
+           the first place. */
+        if (hadLocalEdits && toWrite.status !== "killed") {
+          var usedElsewhere = {};
+          doc.drafts.forEach(function (x) {
+            if (!x || x.id === toWrite.id || x.status === "killed") { return; }
+            (x.slides || []).forEach(function (s) { if (s.kind === "photo" && s.source_asset) { usedElsewhere[s.source_asset] = true; } });
+          });
+          var collision = (toWrite.slides || []).filter(function (s) { return s.kind === "photo" && s.source_asset && usedElsewhere[s.source_asset]; });
+          if (collision.length && !m._saveNote) {
+            m._saveNote = { text: "Heads up: " + collision[0].source_asset + " is also on another live draft - saved anyway.", replace: false };
+          }
         }
         var found = false;
         doc.drafts = doc.drafts.map(function (d) {
@@ -612,17 +658,30 @@ console.log("WG post-queue v1.8");
         });
         if (!found) { doc.drafts.push(toWrite); }
         doc.updated = new Date().toISOString();
-        queueDoc = doc;
         return callProxy("upload", {
           path: QUEUE_PATH,
           contentBase64: b64utf8(JSON.stringify(doc, null, 2)),
           message: "queue update: " + toWrite.id + " -> " + toWrite.status
-        }).then(function () { return toWrite; });
+        }).then(function () { return { entry: toWrite, locked: liveLocked }; });
       })
-      .then(function (toWrite) { m.savedDraft = toWrite; m.draft.status = toWrite.status; });
+      .then(function (r) {
+        if (r.locked) {
+          /* v1.9 (Medium C): only tiktok_scheduled_at / fix_note survived a locked merge, so
+             any real edit John made was silently discarded while the UI reported success and
+             m.draft went on holding the phantom edits. Resync from what actually landed, and
+             say so plainly - but only when there were edits to lose, so the ordinary "mark
+             TikTok scheduled on a published post" tap does not get a scary false alarm. */
+          resyncFromLive(m, r.entry);
+          if (hadLocalEdits) {
+            m._saveNote = { text: "This post is locked (already published) - edits were not saved.", replace: true };
+          }
+        } else {
+          m.draft.status = r.entry.status;
+        }
+      });
   }
 
-  function persist(m, busyMsg, okMsg, onFail) {
+  function persist(m, busyMsg, okMsg, onFail, opts) {
     if (blockIfNotReady(m)) { return Promise.resolve(); }
     m.busy = true;
     if (m.els.card) { m.els.card.classList.add("busy"); }
@@ -630,11 +689,16 @@ console.log("WG post-queue v1.8");
     setStat(m, busyMsg, "ok");
     m.els.save.disabled = true;
     return uploadDirtySlides(m)
-      .then(function () { return saveQueueDoc(m); })
+      .then(function () { return saveQueueDoc(m, opts); })
       .then(function () {
         m.dirtyDoc = false;
         m.els.save.textContent = "SAVED";
-        setStat(m, okMsg + (m._mergeWarn || "") + " (repo updates in ~60s on the CDN)", m._mergeWarn ? "err" : "ok");
+        /* v1.9: saveQueueDoc reports back through m._saveNote. `replace` means the write did
+           not do what the button promised (locked entry), so the caller's cheerful okMsg must
+           not be shown at all; otherwise the note is appended as a warning. */
+        var note = m._saveNote;
+        if (note && note.replace) { setStat(m, note.text, "err"); }
+        else { setStat(m, okMsg + (note ? " " + note.text : "") + " (repo updates in ~60s on the CDN)", note ? "err" : "ok"); }
       })
       .catch(function (e) {
         /* v1.8: no more partial "prev" rollback here - it used to capture status/kill_reason/
@@ -643,7 +707,13 @@ console.log("WG post-queue v1.8");
            now snapshots the FULL draft before mutating and passes onFail = restore that
            snapshot; restoreDraft() also re-runs dayMode/reworkRow/refillRow/tiktokShow/
            refreshChip/rebuildFlags/syncFields, so a failed save reverts the whole optimistic
-           UI, not three fields. */
+           UI, not three fields.
+           v1.9 (Minor E4): this used to re-enable SAVE EDITS without touching dirtyDoc or the
+           button text, so a failure landing after an earlier successful save left an ENABLED
+           button still reading "SAVED" over a dirtyDoc of false - no unload warning for work
+           that never landed. Failure state is now consistent: dirty, enabled, "SAVE EDITS". */
+        m.dirtyDoc = true;
+        m.els.save.textContent = "SAVE EDITS";
         m.els.save.disabled = false;
         if (onFail) { onFail(); }
         setStat(m, "Save failed: " + e.message + " - nothing sent, draft is back to " + m.draft.status + ". Try again or tell Claude.", "err");
@@ -686,10 +756,27 @@ console.log("WG post-queue v1.8");
     return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][when.getDay()];
   }
 
+  /* v1.9 (Minor E1): "UNKNOWN" is a WARNING, never a value. It used to leak straight through
+     `!!day` (truthy - so an unreadable slot armed a refill anyway) and into both the queue
+     JSON as refill_day and John's copy as "Refill queued for UNKNOWN". Everything that
+     persists a day or shows one to John goes through refillDayName(), which returns a real
+     weekday or null; slotUnparseable() is what earns the visible warning instead. */
+  function refillDayName(d) {
+    var r = refillDay(d);
+    return r === "UNKNOWN" ? null : r;
+  }
+  function slotUnparseable(d) { return refillDay(d) === "UNKNOWN"; }
+
   /* v1.8: refuse rework (REFRESH / START OVER) inside a guard band before the slot, or once
      it has passed - the publisher fires at the slot and a rework racing it can leave a draft
      with no ig_media_id that is still eligible to double-post. */
   var REWORK_GUARD_MIN = 30;
+  /* v1.9 (Minor E5 - accepted assumption, stated not fixed): parseSlot() strips the
+     " America/Los_Angeles" suffix and lets the DEVICE parse the rest as local time, so this
+     band is only correct while John's phone and laptop are on Pacific - which they are. On a
+     device set to another zone the guard shifts by the offset and could open or close early.
+     Doing this properly needs a real TZ conversion (Intl.DateTimeFormat with the parsed zone);
+     not worth the code until a WG device leaves Pacific. */
   function slotTooClose(d) {
     var when = parseSlot(d);
     if (!when) { return false; } /* no parseable slot - nothing to guard against yet */
@@ -846,13 +933,18 @@ console.log("WG post-queue v1.8");
            for John to carry. Opt out with DON'T REFILL below. v1.8: a draft already on
            Instagram (killed-after-published, or published) never queues a refill - the
            slot it "frees" is not actually free. */
-        var day = wasLocked ? null : refillDay(d);
+        /* v1.9 (E1): refillDayName, not refillDay - an unreadable slot must not arm a refill
+           on the strength of the truthy "UNKNOWN" sentinel. It gets said out loud instead. */
+        var day = wasLocked ? null : refillDayName(d);
+        var murky = !wasLocked && !day && slotUnparseable(d);
         d.refill_requested = !!day;
         refillRow();
         if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
         persist(m, "Killing...", day
           ? "Killed. " + day + " goes back on the build list."
-          : "Killed. The assembler learns from the reason.",
+          : (murky
+            ? "Killed. Its slot would not read, so no refill was queued - check the week builder."
+            : "Killed. The assembler learns from the reason."),
           function () { restoreDraft(m, preSnap); });
       };
       reasons.appendChild(b);
@@ -866,7 +958,7 @@ console.log("WG post-queue v1.8");
     /* v1.8 (minor): REFRESH THIS POST / START OVER used to render open-by-default on every
        workable card - two more full-width buttons permanently in the thumb path right below
        KILL IT/FIX IT. Collapse them behind a reveal tap, same as KILL IT's reasons. */
-    var moreBtn = document.createElement("button"); moreBtn.className = "sbtn";
+    var moreBtn = document.createElement("button"); moreBtn.className = "sbtn morebtn";
     moreBtn.textContent = "MORE - REFRESH / START OVER";
     var rework = document.createElement("div"); rework.className = "reasons";
     moreBtn.onclick = function () {
@@ -892,7 +984,7 @@ console.log("WG post-queue v1.8");
       overConfirm.className = overConfirm.className === "reasons open" ? "reasons" : "reasons open";
       if (overConfirm.className === "reasons open") {
         reasons.className = "reasons"; refreshConfirm.className = "reasons"; /* one confirmation on screen at a time */
-        overYes.textContent = "YES - REBUILD " + (refillDay(d) || "THIS SLOT").toUpperCase();
+        overYes.textContent = "YES - REBUILD " + (refillDayName(d) || "THIS SLOT").toUpperCase();
       }
     };
     rework.appendChild(refreshBtn); rework.appendChild(startOverBtn);
@@ -937,7 +1029,10 @@ console.log("WG post-queue v1.8");
         reasons.className = "reasons"; note.className = "note field";
       } else { buildPanel(m); }
       dayline.style.display = on ? "block" : "none";
-      daylineLabel.textContent = (d.refill_day || refillDay(d) || "THIS SLOT").toUpperCase() + " - REBUILDING";
+      /* v1.9 (E1): a doc written before this version can still carry refill_day:"UNKNOWN",
+         so filter the stored value too rather than printing "UNKNOWN - REBUILDING". */
+      var stored = (d.refill_day && d.refill_day !== "UNKNOWN") ? d.refill_day : null;
+      daylineLabel.textContent = (stored || refillDayName(d) || "THIS SLOT").toUpperCase() + " - REBUILDING";
     }
     m.els.dayMode = dayMode;
     m.els.syncFields = function () { syncFields(m); };
@@ -1002,7 +1097,7 @@ console.log("WG post-queue v1.8");
         if (mm.els.card) { mm.els.card.classList.remove("busy"); }
         persist(mm, "Re-rolling this post...",
           "New pictures from that day. Caption is still the old one - rewrite it or leave it for the assembler.",
-          function () { restoreDraft(mm, mm._preRefresh); });
+          function () { restoreDraft(mm, mm._preRefresh); }, { rework: true });
       });
     }
 
@@ -1013,7 +1108,10 @@ console.log("WG post-queue v1.8");
       var preSnap = snapshotDraft(mm);
       /* v1.8: mirror the kill-reason path's guard - never queue a refill for a slot that
          has no clear day (missing or already past), unlike the old unconditional `true`. */
-      var day = refillDay(dd);
+      /* v1.9 (E1): refillDayName keeps the "UNKNOWN" sentinel out of both refill_requested
+         and the persisted refill_day - it used to be written into the queue JSON verbatim. */
+      var day = refillDayName(dd);
+      var murky = !day && slotUnparseable(dd);
       dd.status = "killed";
       dd.kill_reason = "start over";
       dd.fix_note = null;
@@ -1023,10 +1121,14 @@ console.log("WG post-queue v1.8");
       dd.needs_caption = true;
       overConfirm.className = "reasons";
       mm.els.reworkRow(); mm.els.refillRow(); mm.els.tiktokShow(); mm.els.dayMode();
-      if (!day) { setStat(mm, "No refill queued - that slot has no clear day to rebuild for.", "err"); }
+      if (!day) {
+        setStat(mm, murky
+          ? "No refill queued - that slot's date would not read. Check the week builder."
+          : "No refill queued - that slot has no clear day to rebuild for.", "err");
+      }
       persist(mm, "Clearing the day...",
-        (dd.refill_day && dd.refill_day !== "UNKNOWN" ? dd.refill_day : "That slot") + " is back on the build list. Nothing left to review here.",
-        function () { restoreDraft(mm, preSnap); });
+        (dd.refill_day || "That slot") + " is back on the build list. Nothing left to review here.",
+        function () { restoreDraft(mm, preSnap); }, { rework: true });
     }
 
     /* refill opt-out - only visible while a refill is actually pending */
@@ -1046,7 +1148,7 @@ console.log("WG post-queue v1.8");
       var on = d.status === "killed" && d.refill_requested === true;
       /* .stat is display:none in CSS, so "" would inherit that and hide the row */
       refill.style.display = on ? "block" : "none";
-      refill.textContent = on ? "Refill queued for " + (refillDay(d) || "that day") + ". " : "";
+      refill.textContent = on ? "Refill queued for " + (refillDayName(d) || "that day") + ". " : "";
       if (on) { refill.appendChild(noRefill); }
     }
     m.els.refillRow = refillRow;
@@ -1129,8 +1231,22 @@ console.log("WG post-queue v1.8");
   }
   function buildPickerGrid() {
     pickerGrid.innerHTML = "";
+    /* v1.9 (High B): the picker used to offer every image in the pool, including ones already
+       on another live draft - one tap created a cross-draft collision the save path then had
+       to deal with (and used to refuse the whole write over). Filter them out so the collision
+       cannot be created. Pictures already on THIS draft are hidden too: adding the same photo
+       to a post twice is never what John meant. */
+    var used = usedAssetIds(pickerFor ? pickerFor.draft.id : null);
+    var onThisDraft = {};
+    if (pickerFor) {
+      (pickerFor.draft.slides || []).forEach(function (s) {
+        if (s.kind === "photo" && s.source_asset) { onThisDraft[s.source_asset] = true; }
+      });
+    }
+    var shown = 0;
     pool.images.forEach(function (x) {
       if (pickerFilter !== "all" && x.tag !== pickerFilter) { return; }
+      if (used[x.id] || onThisDraft[x.id]) { return; }
       var img = document.createElement("img");
       img.src = x.thumb + "?v=" + poolBust(); img.loading = "lazy"; img.alt = x.caption || x.id; img.title = x.caption || "";
       img.onclick = function () {
@@ -1139,7 +1255,18 @@ console.log("WG post-queue v1.8");
         if (m) { addSlide(m, x); }
       };
       pickerGrid.appendChild(img);
+      shown++;
     });
+    if (!shown) {
+      /* an empty grid with no explanation reads as a broken page */
+      var empty = document.createElement("div");
+      empty.className = "hint";
+      empty.style.cssText = "grid-column:1/-1;padding:18px 4px;text-align:center";
+      empty.textContent = pickerFilter === "all"
+        ? "Every picture in the library is already on a post. Run the assembler to pull in more."
+        : "Nothing left under " + pickerFilter.toUpperCase() + " - the rest are already on posts. Try another tag.";
+      pickerGrid.appendChild(empty);
+    }
   }
 
   /* ---- boot ---- */
@@ -1173,7 +1300,6 @@ console.log("WG post-queue v1.8");
         .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); });
     })
     .then(function (doc) {
-      queueDoc = doc;
       if (staleWarning) {
         statusEl.textContent = staleWarning;
         statusEl.style.color = "#C8922A";
