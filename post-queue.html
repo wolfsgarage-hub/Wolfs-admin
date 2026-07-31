@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.9">
-<title>WG Post Queue v1.9</title>
+<meta name="wg-version" content="2.0">
+<title>WG Post Queue v2.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -96,7 +96,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.9");
+console.log("WG post-queue v2.0");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -546,16 +546,35 @@ console.log("WG post-queue v1.9");
      local edits to slides/caption/hook are dropped on the floor. Resync the model from what
      actually landed, or m.draft keeps phantom edits the queue does not have. Reuses
      restoreDraft's merge so the loaded _img objects survive and every row/chip re-renders. */
+  /* v2.0 (Minor 4): returns true if the card was actually resynced. This runs AFTER the write
+     has landed, so anything thrown in here would surface through persist's catch as
+     "nothing sent" - a flat lie about a write that succeeded. Contain it and report instead. */
   function resyncFromLive(m, entry) {
-    var imgs = {};
-    m.draft.slides.forEach(function (s) { if (s._img) { imgs[s.source_asset] = s._img; } });
-    var doc = JSON.parse(JSON.stringify(entry));
-    /* restoreDraft deletes any key the incoming doc lacks and then walks d.slides. Every other
-       caller feeds it a snapshot of m.draft, which boot already normalized - but a raw live
-       entry for a text-only SOCIAL draft has no slides key at all, which would strip
-       m.draft.slides and throw mid-chain, reporting "nothing sent" for a write that landed. */
-    doc.slides = doc.slides || [];
-    restoreDraft(m, { doc: doc, imgs: imgs, dirty: {} });
+    try {
+      var imgs = {};
+      m.draft.slides.forEach(function (s) { if (s._img) { imgs[s.source_asset] = s._img; } });
+      var doc = JSON.parse(JSON.stringify(entry));
+      /* restoreDraft deletes any key the incoming doc lacks and then walks d.slides. Every other
+         caller feeds it a snapshot of m.draft, which boot already normalized - but a raw live
+         entry for a text-only SOCIAL draft has no slides key at all, which would strip
+         m.draft.slides and throw mid-chain, reporting "nothing sent" for a write that landed. */
+      doc.slides = doc.slides || [];
+      restoreDraft(m, { doc: doc, imgs: imgs, dirty: {} });
+      /* v2.0 (Minor 5): imgs is keyed off the CURRENT (edited) slides, so a slide that exists
+         only on the live entry - John swapped the photo locally, the queue still holds the
+         original - comes back with no _img and paints an empty canvas. Load whatever is still
+         missing the same way boot does, then repaint as each one arrives. */
+      m.draft.slides.forEach(function (s) {
+        if (s.kind !== "photo" || s._img || !s.source_file) { return; }
+        loadImage(s.source_file + "?v=" + poolBust())
+          .then(function (img) { s._img = img; repaint(m); })
+          .catch(function (e) { s._loadFailed = true; console.log("WG post-queue: resync source missing, slide stays un-editable: " + e.message); });
+      });
+      return true;
+    } catch (e) {
+      console.log("WG post-queue: resync after a locked write failed: " + ((e && e.message) || e));
+      return false;
+    }
   }
 
   function saveQueueDoc(m, opts) {
@@ -615,18 +634,36 @@ console.log("WG post-queue v1.9");
            paths (REFRESH / START OVER) can race the publisher into a draft with no
            ig_media_id that is still eligible to double-post, so only they still refuse. A
            kill inside the band writes normally with the refill downgraded to false: losing
-           the refill is the acceptable cost, the post still dies. */
+           the refill is the acceptable cost, the post still dies.
+           v2.0 (Medium 2): the rework half of this used to sit INSIDE the refill_requested
+           === true branch, which made it dead for REFRESH - doRefresh sets refill_requested
+           = false, so the {rework:true} flag was never consulted on that path. REFRESH is
+           exactly the path that stalls: photo loads plus a slide upload per picture can put
+           minutes between the tap and the write, so a canRework check that passed at tap time
+           can be stale by the time it lands. The rework re-verify is its own check now,
+           independent of refill_requested, and covers REFRESH and START OVER alike. */
+        if (isRework && !liveLocked) {
+          var reworkWhen = live ? parseSlot(live) : null;
+          if (reworkWhen && (reworkWhen.getTime() - Date.now()) / 60000 <= REWORK_GUARD_MIN) {
+            throw new Error(mine.id + "'s slot is imminent or already passed on the live queue - refusing to re-roll this close.");
+          }
+        }
         if (toWrite.refill_requested === true) {
           if (liveLocked) {
             toWrite.refill_requested = false;
           } else {
             var liveWhen = live ? parseSlot(live) : null;
             if (liveWhen && (liveWhen.getTime() - Date.now()) / 60000 <= REWORK_GUARD_MIN) {
-              if (isRework) {
-                throw new Error(mine.id + "'s slot is imminent or already passed on the live queue - refusing to re-roll this close.");
-              }
+              /* only non-rework writes reach here - a rework already threw above. The kill
+                 lands; it just does not get to book the refill. Replaces the caller's okMsg
+                 rather than appending, so John is not told the day went back on the build
+                 list in the same breath as being told it did not. */
               toWrite.refill_requested = false;
-              m._saveNote = { text: "Its slot was too close to queue a refill, so that day was left alone.", replace: false };
+              m._saveNote = {
+                text: (toWrite.status === "killed" ? "Killed. " : "Saved. ")
+                  + "Its slot was too close to queue a refill, so that day was left alone.",
+                replace: true
+              };
             }
           }
         }
@@ -671,12 +708,24 @@ console.log("WG post-queue v1.9");
              m.draft went on holding the phantom edits. Resync from what actually landed, and
              say so plainly - but only when there were edits to lose, so the ordinary "mark
              TikTok scheduled on a published post" tap does not get a scary false alarm. */
-          resyncFromLive(m, r.entry);
-          if (hadLocalEdits) {
-            m._saveNote = { text: "This post is locked (already published) - edits were not saved.", replace: true };
+          var resynced = resyncFromLive(m, r.entry);
+          if (hadLocalEdits || !resynced) {
+            m._saveNote = {
+              text: "This post is locked (already published) - edits were not saved."
+                + (resynced ? "" : " Reload the page - this card may still be showing them."),
+              replace: true
+            };
           }
         } else {
+          /* v2.0 (Medium 1): this copied status only, so a band-kill left
+             m.draft.refill_requested true from tap time while the write had downgraded it to
+             false - the refill row went on promising a refill that was never queued, and
+             DON'T REFILL sat there offering to cancel nothing. Take refill_requested from
+             what actually landed and re-run the two rows that read it. */
           m.draft.status = r.entry.status;
+          m.draft.refill_requested = r.entry.refill_requested;
+          if (m.els.refillRow) { m.els.refillRow(); }
+          if (m.els.dayMode) { m.els.dayMode(); }
         }
       });
   }
@@ -711,10 +760,15 @@ console.log("WG post-queue v1.9");
            v1.9 (Minor E4): this used to re-enable SAVE EDITS without touching dirtyDoc or the
            button text, so a failure landing after an earlier successful save left an ENABLED
            button still reading "SAVED" over a dirtyDoc of false - no unload warning for work
-           that never landed. Failure state is now consistent: dirty, enabled, "SAVE EDITS". */
-        m.dirtyDoc = true;
-        m.els.save.textContent = "SAVE EDITS";
-        m.els.save.disabled = false;
+           that never landed.
+           v2.0 (Minor 3): but v1.9 forced dirtyDoc = true, which marked drafts dirty that had
+           no edits at all - a KILL IT bounced by Gate A armed a beforeunload prompt over
+           nothing, and made the retry's hadLocalEdits read true, mis-firing both the collision
+           warning and the locked-edits notice. Nothing in persist clears dirtyDoc before
+           success, so it still holds the pre-save truth: leave it be and make the button agree
+           with it instead of overriding it. */
+        m.els.save.disabled = !m.dirtyDoc;
+        if (m.dirtyDoc) { m.els.save.textContent = "SAVE EDITS"; }
         if (onFail) { onFail(); }
         setStat(m, "Save failed: " + e.message + " - nothing sent, draft is back to " + m.draft.status + ". Try again or tell Claude.", "err");
       })
