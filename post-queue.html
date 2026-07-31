@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="1.7">
-<title>WG Post Queue v1.7</title>
+<meta name="wg-version" content="1.8">
+<title>WG Post Queue v1.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -93,7 +93,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v1.7");
+console.log("WG post-queue v1.8");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -388,7 +388,7 @@ console.log("WG post-queue v1.7");
         el.src = s.file; el.loading = "lazy"; el.alt = "brand card";
       }
       el.className = (m.sel === i && s.kind === "photo") ? "sel" : "";
-      el.onclick = function () { m.sel = (m.sel === i ? -1 : i); rebuildStrip(m); buildPanel(m); };
+      el.onclick = function () { if (blockIfNotReady(m)) { return; } m.sel = (m.sel === i ? -1 : i); rebuildStrip(m); buildPanel(m); };
       strip.appendChild(el);
     });
     repaint(m);
@@ -407,7 +407,7 @@ console.log("WG post-queue v1.7");
       var lab = document.createElement("div"); lab.className = "rowlab"; lab.textContent = label;
       var r = document.createElement("input");
       r.type = "range"; r.min = min; r.max = max; r.value = val;
-      r.oninput = function () { if (m.busy) { return; } oninput(Number(r.value)); markPixelsDirty(s); markDirty(m); repaint(m); };
+      r.oninput = function () { if (m.busy || isLocked(m.draft)) { return; } oninput(Number(r.value)); markPixelsDirty(s); markDirty(m); repaint(m); };
       p.appendChild(lab); p.appendChild(r);
     }
     if (s._img) {
@@ -435,7 +435,7 @@ console.log("WG post-queue v1.7");
   }
 
   function moveSlide(m, i, dir) {
-    if (m.busy) { return; }
+    if (blockIfNotReady(m) || isLocked(m.draft)) { return; }
     var j = i + dir, arr = m.draft.slides;
     if (j < 0 || j >= arr.length) { return; }
     if (arr[j].kind !== "photo") { return; } /* brand end card stays last */
@@ -447,7 +447,7 @@ console.log("WG post-queue v1.7");
     markDirty(m); rebuildStrip(m); buildPanel(m);
   }
   function removeSlide(m, i) {
-    if (m.busy) { return; }
+    if (blockIfNotReady(m) || isLocked(m.draft)) { return; }
     var photos = m.draft.slides.filter(function (s) { return s.kind === "photo"; }).length;
     if (m.draft.slides[i].kind === "photo" && photos <= 1) {
       setStat(m, "Last photo slide stays. KILL IT if the whole post is wrong.", "err"); return;
@@ -470,21 +470,30 @@ console.log("WG post-queue v1.7");
   }
 
   function snapshotDraft(m) {
-    var imgs = {};
-    m.draft.slides.forEach(function (s) { if (s._img) { imgs[s.source_asset] = s._img; } });
-    return { doc: serializeDraft(m), imgs: imgs };
+    var imgs = {}, dirty = {};
+    m.draft.slides.forEach(function (s, i) {
+      if (s._img) { imgs[s.source_asset] = s._img; }
+      if (s.kind === "photo") { dirty[i] = !!s._dirtyPixels; } /* v1.8: carry per-slide dirty flags */
+    });
+    return { doc: serializeDraft(m), imgs: imgs, dirty: dirty };
   }
   function restoreDraft(m, snap) {
     var d = m.draft, fresh = JSON.parse(JSON.stringify(snap.doc));
     Object.keys(d).forEach(function (k) { if (!(k in fresh)) { delete d[k]; } });
     Object.keys(fresh).forEach(function (k) { d[k] = fresh[k]; });
-    d.slides.forEach(function (s) {
+    d.slides.forEach(function (s, i) {
       if (s.kind !== "photo") { return; }
       if (snap.imgs[s.source_asset]) { s._img = snap.imgs[s.source_asset]; }
-      s._dirtyPixels = false; s._loadFailed = false;
+      /* v1.8: restore whatever dirty state this slide had at snapshot time instead of
+         force-clearing it - an unsaved crop edit made before the action that failed must
+         still read dirty, or a later SAVE EDITS writes new crop numbers without re-rendering
+         and the queue's crop metadata stops matching the file in renders/. */
+      s._dirtyPixels = !!(snap.dirty && snap.dirty[i]);
+      s._loadFailed = false;
     });
     m.sel = -1; rebuildStrip(m); buildPanel(m);
     m.els.reworkRow(); m.els.refillRow(); m.els.tiktokShow(); m.els.tiktokLabel(); m.els.dayMode();
+    refreshChip(m); m.els.rebuildFlags(); syncFields(m); /* v1.8: fold in for every caller, not just doRefresh */
   }
   function syncFields(m) {
     m.els.inputs[0].value = m.draft.hook || "";
@@ -496,8 +505,12 @@ console.log("WG post-queue v1.7");
      Runs after uploadDirtySlides has populated s.file, so a half-uploaded refresh throws
      and the whole save rolls back rather than writing a fixture-shaped draft. */
   function assertShape(x) {
-    if (typeof x.caption !== "string" || !x.caption.trim()) {
-      throw new Error("empty caption - refusing to write " + x.id);
+    /* v1.8: only the approve path needs a caption. KILL IT and FIX IT must stay reachable on
+       a captionless draft - rebuildStrip renders "(no content)" for exactly that case, and
+       doRefresh itself produces one via needs_caption - or John loses the only control that
+       stops a bad post before the publisher sees it. */
+    if ((x.status === "approved" || x.status === "published") && (typeof x.caption !== "string" || !x.caption.trim())) {
+      throw new Error("empty caption - refusing to approve " + x.id);
     }
     (x.slides || []).forEach(function (s, i) {
       if (s.kind !== "photo") { return; }
@@ -530,11 +543,14 @@ console.log("WG post-queue v1.7");
 
   function saveQueueDoc(m) {
     /* Audit item 14: re-read through the PROXY right before writing, then merge ONLY the
-       saving draft into that fresh doc. The old note here was right that the CDN lags and
-       must not be refetched on the write path - but it then wrote every OTHER draft from
-       this session's last-saved copy, so a save on the phone silently reverted edits made
-       on the desktop (or in a second tab). Same clobber class as the 07-24 fixture
-       incident, triggered by normal two-device use. The proxy read is fresh, not CDN. */
+       saving draft into that fresh doc - a save on the phone must not silently revert edits
+       made on the desktop or in a second tab. The proxy read is fresh, not CDN.
+       v1.8 (Critical #1): a failed fresh-read used to fall back to rebuilding the WHOLE doc
+       from this session's stale copies of every OTHER draft, and Gate A below only ever
+       judged `mine` - never the other drafts about to be overwritten. A tab open since before
+       a publisher run could silently write back a stale, not-yet-published copy of a draft
+       the publisher had since posted, re-arming it for a double post. There is no safe
+       fallback for "can't see the live queue" - abort instead. */
     var mine = serializeDraft(m);
     m._mergeWarn = null;
     return callProxy("get", { repo: "Wolfs-admin", branch: "main", path: QUEUE_PATH })
@@ -542,45 +558,68 @@ console.log("WG post-queue v1.7");
         if (!g || !g.contentBase64) { throw new Error("no content"); }
         return JSON.parse(decodeURIComponent(escape(atob(String(g.contentBase64).replace(/\n/g, "")))));
       })
-      .catch(function () {
-        // Proxy read failed: fall back to this session's doc rather than blocking the
-        // approval entirely, but say so - the write may revert another device's edits.
-        m._mergeWarn = " (could not re-read the queue first, so another device's unsaved edits may be lost)";
-        var fallback = { version: queueDoc.version, note: queueDoc.note, drafts: (queueDoc.drafts || []).map(function (d) {
-          var other = modelById(d.id);
-          return (other && d.id !== mine.id) ? other.savedDraft : d;
-        }) };
-        return fallback;
-      })
       .then(function (doc) {
         if (!doc || !Array.isArray(doc.drafts)) { throw new Error("queue shape unreadable - refusing to write"); }
         /* Gate A: judge the FRESHLY-READ copy from main, not this tab's state - a stale tab,
            a second device, or a stale branch cannot re-arm a post already on Instagram. */
         var live = null;
         doc.drafts.forEach(function (x) { if (x && x.id === mine.id) { live = x; } });
-        if (live && (live.published_at || live.ig_media_id || live.status === "published")) {
-          if (mine.status !== live.status) {
-            throw new Error(mine.id + " is already on Instagram - its status is locked.");
-          }
-          mine.published_at = live.published_at;
-          mine.ig_media_id = live.ig_media_id;
+        var liveLocked = isLocked(live);
+        if (liveLocked && mine.status !== live.status) {
+          throw new Error(mine.id + " is already on Instagram - its status is locked.");
         }
-        assertShape(mine); /* Gate B */
+        /* v1.8 (Important #8): a locked-but-status-unchanged write (a TikTok mark, or a kill
+           tap that lands on an entry already killed+published) must not carry this tab's copy
+           of slides/caption/hook over what actually went to Instagram - only the small
+           mutable fields are allowed through; everything else comes from `live`. */
+        var toWrite = mine;
+        if (liveLocked) {
+          toWrite = JSON.parse(JSON.stringify(live));
+          toWrite.tiktok_scheduled_at = mine.tiktok_scheduled_at;
+          toWrite.fix_note = mine.fix_note;
+          toWrite.refill_requested = false; /* never re-arm a slot for a post already on Instagram */
+        }
+        /* v1.8 (Critical #2, write-time re-verify): a rework's optimistic refill_requested
+           was only checked against this tab's clock/data at tap time. Re-check against the
+           freshly-read live entry right before the write actually lands. */
+        if (toWrite.refill_requested === true) {
+          if (liveLocked) {
+            toWrite.refill_requested = false;
+          } else {
+            var liveWhen = live ? parseSlot(live) : null;
+            if (liveWhen && (liveWhen.getTime() - Date.now()) / 60000 <= REWORK_GUARD_MIN) {
+              throw new Error(mine.id + "'s slot is imminent or already passed on the live queue - refusing to queue a refill this close.");
+            }
+          }
+        }
+        assertShape(toWrite); /* Gate B */
+        /* v1.8 (Minor #11): re-validate photo picks against the FRESH doc, not just this
+           tab's session models - a tab open a while can re-pick an asset the assembler has
+           since assigned to a different draft while this tab wasn't looking. */
+        var usedElsewhere = {};
+        doc.drafts.forEach(function (x) {
+          if (!x || x.id === toWrite.id || x.status === "killed") { return; }
+          (x.slides || []).forEach(function (s) { if (s.kind === "photo" && s.source_asset) { usedElsewhere[s.source_asset] = true; } });
+        });
+        var collision = (toWrite.slides || []).filter(function (s) { return s.kind === "photo" && s.source_asset && usedElsewhere[s.source_asset]; });
+        if (collision.length) {
+          throw new Error("picture " + collision[0].source_asset + " is already used on another live draft - refusing to write " + toWrite.id + ". Refresh the page and try again.");
+        }
         var found = false;
         doc.drafts = doc.drafts.map(function (d) {
-          if (d && d.id === mine.id) { found = true; return mine; }
+          if (d && d.id === toWrite.id) { found = true; return toWrite; }
           return d;
         });
-        if (!found) { doc.drafts.push(mine); }
+        if (!found) { doc.drafts.push(toWrite); }
         doc.updated = new Date().toISOString();
         queueDoc = doc;
         return callProxy("upload", {
           path: QUEUE_PATH,
           contentBase64: b64utf8(JSON.stringify(doc, null, 2)),
-          message: "queue update: " + mine.id + " -> " + mine.status
-        });
+          message: "queue update: " + toWrite.id + " -> " + toWrite.status
+        }).then(function () { return toWrite; });
       })
-      .then(function () { m.savedDraft = mine; });
+      .then(function (toWrite) { m.savedDraft = toWrite; m.draft.status = toWrite.status; });
   }
 
   function persist(m, busyMsg, okMsg, onFail) {
@@ -588,7 +627,6 @@ console.log("WG post-queue v1.7");
     m.busy = true;
     if (m.els.card) { m.els.card.classList.add("busy"); }
     (m.els.inputs || []).forEach(function (el) { el.disabled = true; });
-    var prev = { status: m.draft.status, kill_reason: m.draft.kill_reason, fix_note: m.draft.fix_note };
     setStat(m, busyMsg, "ok");
     m.els.save.disabled = true;
     return uploadDirtySlides(m)
@@ -599,11 +637,15 @@ console.log("WG post-queue v1.7");
         setStat(m, okMsg + (m._mergeWarn || "") + " (repo updates in ~60s on the CDN)", m._mergeWarn ? "err" : "ok");
       })
       .catch(function (e) {
-        m.draft.status = prev.status;
-        m.draft.kill_reason = prev.kill_reason;
-        m.draft.fix_note = prev.fix_note;
+        /* v1.8: no more partial "prev" rollback here - it used to capture status/kill_reason/
+           fix_note AFTER the caller had already mutated them, so it just reassigned the same
+           mutated values to themselves and reverted nothing. Every caller that flips status
+           now snapshots the FULL draft before mutating and passes onFail = restore that
+           snapshot; restoreDraft() also re-runs dayMode/reworkRow/refillRow/tiktokShow/
+           refreshChip/rebuildFlags/syncFields, so a failed save reverts the whole optimistic
+           UI, not three fields. */
         m.els.save.disabled = false;
-        if (onFail) { onFail(); } /* may fully replace m.draft (snapshot restore) - read status after */
+        if (onFail) { onFail(); }
         setStat(m, "Save failed: " + e.message + " - nothing sent, draft is back to " + m.draft.status + ". Try again or tell Claude.", "err");
       })
       .then(function () {
@@ -614,20 +656,49 @@ console.log("WG post-queue v1.7");
       });
   }
 
-  /* The day a killed draft frees up, or null if the slot is missing or already gone by.
-     Refilling a slot in the past would just build a post that can never publish. */
-  function refillDay(d) {
-    var raw = d.scheduled_slot || d.target_slot || "";
-    var stamp = raw.split(" America/")[0].split(" US/")[0].trim().replace(" ", "T");
-    if (!stamp) { return null; }
+  /* v1.8: parses scheduled_slot/target_slot into a Date. Two formats seen live: a full
+     "YYYY-MM-DDTHH:MM America/Los_Angeles" and a spaced "YYYY-MM-DD HH:MM America/..."; a
+     bare date "YYYY-MM-DD" is also plausible. new Date("YYYY-MM-DD") parses as UTC midnight,
+     which reads as the WRONG local day west of UTC (verified at this machine's TZ: "2026-08-05"
+     parsed to Tuesday, not Wednesday) - so a date-only stamp always gets "T00:00:00" appended,
+     the same fix withinDays() already applies, forcing a local-time parse. */
+  function parseSlot(d) {
+    var raw = (d.scheduled_slot || d.target_slot || "").trim();
+    if (!raw) { return null; }
+    var stamp = raw.split(" America/")[0].split(" US/")[0].trim();
+    var parts = stamp.split(" ");
+    if (parts.length > 1) { stamp = parts[0] + "T" + parts[1]; } /* "YYYY-MM-DD HH:MM" -> "...T..." */
+    if (/^\d{4}-\d{2}-\d{2}$/.test(stamp)) { stamp += "T00:00:00"; }
+    else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(stamp)) { stamp += ":00"; }
     var when = new Date(stamp);
-    if (isNaN(when.getTime()) || when.getTime() <= Date.now()) { return null; }
+    return isNaN(when.getTime()) ? null : when;
+  }
+
+  /* The day a killed draft frees up; null if there is no slot or it has already passed;
+     "UNKNOWN" if the slot exists but would not parse - an explicit warning John sees on the
+     refill button/day-line rather than a silent, wrong "no refill". */
+  function refillDay(d) {
+    var raw = (d.scheduled_slot || d.target_slot || "").trim();
+    if (!raw) { return null; }
+    var when = parseSlot(d);
+    if (!when) { console.log("WG post-queue: unparseable slot for " + d.id + ": " + raw); return "UNKNOWN"; }
+    if (when.getTime() <= Date.now()) { return null; }
     return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][when.getDay()];
+  }
+
+  /* v1.8: refuse rework (REFRESH / START OVER) inside a guard band before the slot, or once
+     it has passed - the publisher fires at the slot and a rework racing it can leave a draft
+     with no ig_media_id that is still eligible to double-post. */
+  var REWORK_GUARD_MIN = 30;
+  function slotTooClose(d) {
+    var when = parseSlot(d);
+    if (!when) { return false; } /* no parseable slot - nothing to guard against yet */
+    return (when.getTime() - Date.now()) / 60000 <= REWORK_GUARD_MIN;
   }
 
   function isLocked(x) { return !!(x && (x.published_at || x.ig_media_id || x.status === "published")); }
   function canRework(d) {
-    return !isLocked(d) && (d.status === "pending_approval" || d.status === "fix" || d.status === "approved");
+    return !isLocked(d) && !slotTooClose(d) && (d.status === "pending_approval" || d.status === "fix" || d.status === "approved");
   }
 
   function refreshChip(m) {
@@ -668,14 +739,14 @@ console.log("WG post-queue v1.7");
 
     var add = document.createElement("button"); add.className = "addbtn";
     add.textContent = "+ ADD A PICTURE FROM THE LIBRARY";
-    add.onclick = function () { if (m.busy) { return; } openPicker(m); };
+    add.onclick = function () { if (blockIfNotReady(m)) { return; } if (isLocked(d)) { setStat(m, "This post already went to Instagram - locked.", "err"); return; } openPicker(m); };
     card.appendChild(add);
 
     var fh = document.createElement("div"); fh.className = "field";
     fh.innerHTML = "<label>Hook (carousel covers - baked onto slide 1)</label>";
     var hi = document.createElement("input"); hi.type = "text"; hi.value = d.hook || "";
     hi.oninput = function () {
-      if (m.busy) { return; }
+      if (m.busy || isLocked(d)) { return; }
       d.hook = hi.value;
       markPixelsDirty(firstPhoto(d.slides));
       markDirty(m); repaint(m);
@@ -686,7 +757,7 @@ console.log("WG post-queue v1.7");
     var fc = document.createElement("div"); fc.className = "field";
     fc.innerHTML = "<label>Caption</label>";
     var ta = document.createElement("textarea"); ta.value = d.caption;
-    ta.oninput = function () { if (m.busy) { return; } d.caption = ta.value; markDirty(m); };
+    ta.oninput = function () { if (m.busy || isLocked(d)) { return; } d.caption = ta.value; markDirty(m); };
     fc.appendChild(ta); card.appendChild(fc);
     m.els.inputs.push(ta);
 
@@ -700,7 +771,7 @@ console.log("WG post-queue v1.7");
     }
     tagHint();
     ti.oninput = function () {
-      if (m.busy) { return; }
+      if (m.busy || isLocked(d)) { return; }
       d.hashtags = ti.value.split(/\s+/).filter(function (t) { return t.length; });
       tagHint(); markDirty(m);
     };
@@ -733,10 +804,12 @@ console.log("WG post-queue v1.7");
     var post = document.createElement("button"); post.className = "btn post"; post.textContent = "POST IT";
     post.onclick = function () {
       if (blockIfNotReady(m)) { return; } /* never mutate status when the save cannot start */
+      var preSnap = snapshotDraft(m);
       d.status = "approved"; d.kill_reason = null; d.fix_note = null;
       d.refill_requested = false; if (m.els.refillRow) { m.els.refillRow(); }
       if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
-      persist(m, "Approving...", "Approved. Waits for the publisher (Build 1.3).");
+      persist(m, "Approving...", "Approved. Waits for the publisher (Build 1.3).",
+        function () { restoreDraft(m, preSnap); });
     };
     var fixb = document.createElement("button"); fixb.className = "btn fixit"; fixb.textContent = "FIX IT";
     var kill = document.createElement("button"); kill.className = "btn kill"; kill.textContent = "KILL IT";
@@ -750,9 +823,11 @@ console.log("WG post-queue v1.7");
     tkShow(); m.els.tiktokShow = tkShow;
     tk.onclick = function () {
       if (blockIfNotReady(m)) { return; }
+      var preSnap = snapshotDraft(m);
       d.tiktok_scheduled_at = d.tiktok_scheduled_at ? null : new Date().toISOString().slice(0, 16);
       tkLabel();
-      persist(m, "Saving TikTok state...", d.tiktok_scheduled_at ? "TikTok leg marked scheduled." : "TikTok mark cleared.");
+      persist(m, "Saving TikTok state...", d.tiktok_scheduled_at ? "TikTok leg marked scheduled." : "TikTok mark cleared.",
+        function () { restoreDraft(m, preSnap); });
     };
     actions.appendChild(save); actions.appendChild(post); actions.appendChild(fixb); actions.appendChild(kill); actions.appendChild(tk);
     card.appendChild(actions);
@@ -762,43 +837,76 @@ console.log("WG post-queue v1.7");
       var b = document.createElement("button"); b.className = "sbtn warn"; b.textContent = rz;
       b.onclick = function () {
         if (blockIfNotReady(m)) { return; }
+        var preSnap = snapshotDraft(m);
+        var wasLocked = isLocked(d);
         d.status = "killed"; d.kill_reason = rz.toLowerCase(); d.fix_note = null;
         reasons.className = "reasons";
         /* Killing a post is rejecting the POST, not the DAY. If that day is still ahead,
            it goes straight back on the week builder's list - no second tap, no reminder
-           for John to carry. Opt out with DON'T REFILL below. */
-        var day = refillDay(d);
-        d.refill_requested = day ? true : false;
+           for John to carry. Opt out with DON'T REFILL below. v1.8: a draft already on
+           Instagram (killed-after-published, or published) never queues a refill - the
+           slot it "frees" is not actually free. */
+        var day = wasLocked ? null : refillDay(d);
+        d.refill_requested = !!day;
         refillRow();
         if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
         persist(m, "Killing...", day
           ? "Killed. " + day + " goes back on the build list."
-          : "Killed. The assembler learns from the reason.");
+          : "Killed. The assembler learns from the reason.",
+          function () { restoreDraft(m, preSnap); });
       };
       reasons.appendChild(b);
     });
     kill.onclick = function () {
       reasons.className = reasons.className === "reasons open" ? "reasons" : "reasons open";
-      if (reasons.className === "reasons open") { overConfirm.className = "reasons"; } /* one confirmation on screen at a time */
+      if (reasons.className === "reasons open") { overConfirm.className = "reasons"; refreshConfirm.className = "reasons"; } /* one confirmation on screen at a time */
     };
     card.appendChild(reasons);
 
+    /* v1.8 (minor): REFRESH THIS POST / START OVER used to render open-by-default on every
+       workable card - two more full-width buttons permanently in the thumb path right below
+       KILL IT/FIX IT. Collapse them behind a reveal tap, same as KILL IT's reasons. */
+    var moreBtn = document.createElement("button"); moreBtn.className = "sbtn";
+    moreBtn.textContent = "MORE - REFRESH / START OVER";
     var rework = document.createElement("div"); rework.className = "reasons";
+    moreBtn.onclick = function () {
+      rework.className = rework.className === "reasons open" ? "reasons" : "reasons open";
+      overConfirm.className = "reasons"; refreshConfirm.className = "reasons";
+      if (rework.className === "reasons open") { reasons.className = "reasons"; }
+    };
+    card.appendChild(moreBtn);
+
     var refreshBtn = document.createElement("button"); refreshBtn.className = "sbtn";
     refreshBtn.style.cssText = "border-color:#C8922A;color:#C8922A";
     refreshBtn.textContent = "REFRESH THIS POST";
-    refreshBtn.onclick = function () { doRefresh(m); };
+    refreshBtn.onclick = function () {
+      /* v1.8 (critical): used to fire doRefresh() immediately with no confirmation and no
+         busy-lock until persist() finally ran. Now gated behind the same two-tap confirm
+         START OVER already used. */
+      refreshConfirm.className = refreshConfirm.className === "reasons open" ? "reasons" : "reasons open";
+      if (refreshConfirm.className === "reasons open") { overConfirm.className = "reasons"; reasons.className = "reasons"; }
+    };
     var startOverBtn = document.createElement("button"); startOverBtn.className = "sbtn warn";
     startOverBtn.textContent = "START OVER";
     startOverBtn.onclick = function () {
       overConfirm.className = overConfirm.className === "reasons open" ? "reasons" : "reasons open";
       if (overConfirm.className === "reasons open") {
-        reasons.className = "reasons"; /* one confirmation on screen at a time */
+        reasons.className = "reasons"; refreshConfirm.className = "reasons"; /* one confirmation on screen at a time */
         overYes.textContent = "YES - REBUILD " + (refillDay(d) || "THIS SLOT").toUpperCase();
       }
     };
     rework.appendChild(refreshBtn); rework.appendChild(startOverBtn);
     card.appendChild(rework);
+
+    var refreshConfirm = document.createElement("div"); refreshConfirm.className = "reasons";
+    var refreshYes = document.createElement("button"); refreshYes.className = "sbtn warn";
+    refreshYes.textContent = "YES - GET NEW PHOTOS";
+    refreshYes.onclick = function () { refreshConfirm.className = "reasons"; doRefresh(m); };
+    var refreshNo = document.createElement("button"); refreshNo.className = "sbtn";
+    refreshNo.textContent = "NOT YET";
+    refreshNo.onclick = function () { refreshConfirm.className = "reasons"; };
+    refreshConfirm.appendChild(refreshYes); refreshConfirm.appendChild(refreshNo);
+    card.appendChild(refreshConfirm);
 
     var overConfirm = document.createElement("div"); overConfirm.className = "reasons";
     var overYes = document.createElement("button"); overYes.className = "sbtn warn";
@@ -810,13 +918,24 @@ console.log("WG post-queue v1.7");
     overConfirm.appendChild(overYes); overConfirm.appendChild(overNo);
     card.appendChild(overConfirm);
 
-    function reworkRow() { rework.className = canRework(d) ? "reasons open" : "reasons"; }
+    function reworkRow() {
+      var can = canRework(d);
+      moreBtn.style.display = can ? "" : "none";
+      if (!can) { rework.className = "reasons"; refreshConfirm.className = "reasons"; overConfirm.className = "reasons"; }
+    }
     m.els.reworkRow = reworkRow;
 
     function dayMode() {
       var on = d.status === "killed" && d.refill_requested === true;
-      [strip, add, fh, fc, ft, actions, flagsWrap].forEach(function (el) { el.style.display = on ? "none" : ""; });
-      if (on) { panel.style.display = "none"; m.sel = -1; } else { buildPanel(m); }
+      /* v1.8 (important): `note` used to stay visible (with its own live SEND TO REDO PILE
+         button) even in day-mode, so a note typed before START OVER could still be sent
+         afterward and silently flip the just-killed draft back to status:"fix". Hide it and
+         force-close it, along with the kill-reasons row, whenever day-mode is on. */
+      [strip, add, fh, fc, ft, actions, flagsWrap, note].forEach(function (el) { el.style.display = on ? "none" : ""; });
+      if (on) {
+        panel.style.display = "none"; m.sel = -1;
+        reasons.className = "reasons"; note.className = "note field";
+      } else { buildPanel(m); }
       dayline.style.display = on ? "block" : "none";
       daylineLabel.textContent = (d.refill_day || refillDay(d) || "THIS SLOT").toUpperCase() + " - REBUILDING";
     }
@@ -826,10 +945,16 @@ console.log("WG post-queue v1.7");
     function doRefresh(mm) {
       var dd = mm.draft;
       if (blockIfNotReady(mm)) { return; }
-      if (!canRework(dd)) { setStat(mm, "This one is locked. Published and killed posts don't re-roll.", "err"); return; }
+      if (!canRework(dd)) { setStat(mm, "This one is locked, or too close to its slot to re-roll.", "err"); return; }
       var photos = dd.slides.filter(isPhoto);
       var picks = pickFresh(mm, photos.length || 1);
       if (!picks) { setStat(mm, "No fresh pictures left from that day. Tap + ADD A PICTURE, or run the assembler.", "err"); return; }
+
+      /* v1.8: lock the card the instant the action is confirmed, not only once persist()
+         finally runs after this async image-load chain - a second tap while photos are
+         loading must not be able to race in and mutate dd.slides mid-refresh. */
+      mm.busy = true;
+      if (mm.els.card) { mm.els.card.classList.add("busy"); }
 
       mm._preRefresh = snapshotDraft(mm);
       dd.refresh_history = (dd.refresh_history || []).concat(photos.map(function (s) { return s.source_asset; }));
@@ -841,7 +966,8 @@ console.log("WG post-queue v1.7");
       dd.flags = ["REFRESHED " + dd.refreshed_at.slice(0, 10) + " - photos re-rolled from the "
         + shootDateOf(dd) + " shoot; caption is still the old one."];
       dd.refill_requested = false;
-      dd.tiktok_scheduled_at = null;
+      /* v1.8: tiktok_scheduled_at records a real action John took in the TikTok app -
+         a photo re-roll on the IG leg has no bearing on that and must not clear it. */
       if (dd.status === "approved") { dd.status = "pending_approval"; }
 
       var keep = dd.slides.filter(function (s) { return s.kind !== "photo"; });
@@ -855,38 +981,52 @@ console.log("WG post-queue v1.7");
       mm.els.rebuildFlags(); mm.els.reworkRow(); mm.els.refillRow(); mm.els.tiktokShow(); mm.els.tiktokLabel(); mm.els.dayMode();
       setStat(mm, "New pictures loading...", "ok");
 
+      function abortRefresh(msg) {
+        restoreDraft(mm, mm._preRefresh); /* v1.8: restoreDraft now folds in refreshChip/rebuildFlags/syncFields itself */
+        mm.busy = false;
+        if (mm.els.card) { mm.els.card.classList.remove("busy"); }
+        setStat(mm, msg, "err");
+      }
+
       Promise.all(dd.slides.filter(isPhoto).map(function (s) {
         return loadImage(s.source_file + "?v=" + poolBust())
           .then(function (img) { s._img = img; markPixelsDirty(s); })
           .catch(function () { s._loadFailed = true; });
       })).then(function () {
         if (dd.slides.some(function (s) { return s.kind === "photo" && s._loadFailed; })) {
-          restoreDraft(mm, mm._preRefresh);
-          setStat(mm, "Those pictures would not load. Nothing changed.", "err");
+          abortRefresh("Those pictures would not load. Nothing changed.");
           return;
         }
         repaint(mm); markDirty(mm);
+        mm.busy = false; /* hand off to persist(), which sets its own busy lock for the write */
+        if (mm.els.card) { mm.els.card.classList.remove("busy"); }
         persist(mm, "Re-rolling this post...",
           "New pictures from that day. Caption is still the old one - rewrite it or leave it for the assembler.",
-          function () { restoreDraft(mm, mm._preRefresh); refreshChip(mm); mm.els.syncFields(); mm.els.rebuildFlags(); });
+          function () { restoreDraft(mm, mm._preRefresh); });
       });
     }
 
     function doStartOver(mm) {
       var dd = mm.draft;
       if (blockIfNotReady(mm)) { return; }
-      if (!canRework(dd)) { setStat(mm, "This one is locked.", "err"); return; }
+      if (!canRework(dd)) { setStat(mm, "This one is locked, or too close to its slot to rebuild.", "err"); return; }
+      var preSnap = snapshotDraft(mm);
+      /* v1.8: mirror the kill-reason path's guard - never queue a refill for a slot that
+         has no clear day (missing or already past), unlike the old unconditional `true`. */
+      var day = refillDay(dd);
       dd.status = "killed";
       dd.kill_reason = "start over";
       dd.fix_note = null;
-      dd.refill_requested = true;
-      dd.refill_day = refillDay(dd);
+      dd.refill_requested = !!day;
+      dd.refill_day = day;
       dd.refill_source = "start_over";
       dd.needs_caption = true;
       overConfirm.className = "reasons";
       mm.els.reworkRow(); mm.els.refillRow(); mm.els.tiktokShow(); mm.els.dayMode();
+      if (!day) { setStat(mm, "No refill queued - that slot has no clear day to rebuild for.", "err"); }
       persist(mm, "Clearing the day...",
-        (dd.refill_day || "That slot") + " is back on the build list. Nothing left to review here.");
+        (dd.refill_day && dd.refill_day !== "UNKNOWN" ? dd.refill_day : "That slot") + " is back on the build list. Nothing left to review here.",
+        function () { restoreDraft(mm, preSnap); });
     }
 
     /* refill opt-out - only visible while a refill is actually pending */
@@ -895,10 +1035,12 @@ console.log("WG post-queue v1.7");
     noRefill.textContent = "DON'T REFILL";
     noRefill.onclick = function () {
       if (blockIfNotReady(m)) { return; }
+      var preSnap = snapshotDraft(m);
       d.refill_requested = false;
       refillRow();
       if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
-      persist(m, "Clearing...", "That day stays empty until you say otherwise.");
+      persist(m, "Clearing...", "That day stays empty until you say otherwise.",
+        function () { restoreDraft(m, preSnap); });
     };
     function refillRow() {
       var on = d.status === "killed" && d.refill_requested === true;
@@ -909,8 +1051,6 @@ console.log("WG post-queue v1.7");
     }
     m.els.refillRow = refillRow;
     refillRow();
-    reworkRow();
-    dayMode();
     card.appendChild(refill);
 
     var note = document.createElement("div"); note.className = "note field";
@@ -920,15 +1060,22 @@ console.log("WG post-queue v1.7");
     send.onclick = function () {
       if (blockIfNotReady(m)) { return; }
       if (!ni.value.trim()) { setStat(m, "Write the one-liner first.", "err"); return; }
+      var preSnap = snapshotDraft(m);
       d.status = "fix"; d.fix_note = ni.value.trim(); d.kill_reason = null;
       d.refill_requested = false; if (m.els.refillRow) { m.els.refillRow(); }
       if (m.els.reworkRow) { m.els.reworkRow(); } if (m.els.dayMode) { m.els.dayMode(); }
       note.className = "note field";
-      persist(m, "Sending...", "In the redo pile for the next assembler run.");
+      persist(m, "Sending...", "In the redo pile for the next assembler run.",
+        function () { restoreDraft(m, preSnap); });
     };
     note.appendChild(ni); note.appendChild(send);
     fixb.onclick = function () { note.className = note.className.indexOf("open") > -1 ? "note field" : "note field open"; };
     card.appendChild(note);
+
+    /* dayMode() references `note`, so these initial calls must run after note exists -
+       reworkRow()/dayMode() are otherwise always called together after every state change. */
+    reworkRow();
+    dayMode();
 
     var stat = document.createElement("div"); stat.className = "stat"; m.els.stat = stat;
     card.appendChild(stat);
@@ -1015,7 +1162,14 @@ console.log("WG post-queue v1.7");
     })
     .catch(function (e) {
       staleWarning = "Loaded from the CDN, which can lag a minute behind main. Re-check before approving. (" + String(e.message || e).slice(0, 60) + ")";
-      return fetch(QUEUE_PATH + "?v=" + Date.now())
+      /* v1.8 (minor): a bare relative QUEUE_PATH loads the CURRENT PAGE's own branch/host
+         data on any non-main preview (e.g. raw.githack for a feature branch), while every
+         write in this file still targets branch:"main" through the proxy. Pin the display
+         fallback to main explicitly so a branch preview can never show a different queue
+         than the one it actually writes to. (This can no longer feed a write either way -
+         saveQueueDoc always re-reads through the proxy and never uses this boot-time doc as
+         a write base.) */
+      return fetch(RAW_BASE + QUEUE_PATH + "?v=" + Date.now())
         .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); });
     })
     .then(function (doc) {
