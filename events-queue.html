@@ -240,7 +240,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   function renderPulse(d) {
     var totals = d.totals || {};
     var bySource = d.by_source || {};
-    var daily = d.last_7_days_daily || {};
+    var daily = d.last_7_days_clicks || d.last_7_days_daily || {};
     var totalsEmpty = !Object.keys(totals).length;
     var allKeys = KNOWN_PULSE_EVENTS.slice();
     Object.keys(totals).forEach(function (k) { if (allKeys.indexOf(k) === -1) allKeys.push(k); });
@@ -340,7 +340,7 @@ input,select{padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--b
   });
 
   refresh();
-  console.log('WG Events Queue v1.4');
+  console.log('WG Events Queue v1.5');
 })();
 </script>
 </body>
