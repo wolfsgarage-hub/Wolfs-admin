@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updated": "2026-07-31T04:59:22.672Z",
+  "updated": "2026-08-01T06:53:39.000Z",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
   "drafts": [
     {
@@ -352,6 +352,182 @@
       "kill_reason": null,
       "slot_why": "Thu 15:00 PT is the next empty slot in the timing table; the queue runs dry after Wed 7/29.",
       "scheduled_slot": null
+    },
+    {
+      "id": "wgpost-20260731-01",
+      "created": "2026-07-31",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "matte-black patina '29 Ford Model A sedan hot rod, surfboard roof rack",
+      "hook": null,
+      "caption": "Rat rod on the bottom, beach cruiser on the roof rack. This '29 sedan never picked a lane, and that's exactly why it works. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#ratrod",
+        "#patina",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260731-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260731-01/slide-1.jpg",
+          "source_asset": "20250726_095325.jpg",
+          "source_file": "renders/posts/_sources/20250726_095325.jpg",
+          "crop": {
+            "focus_x": 0.52,
+            "focus_y": 0.62,
+            "zoom": 1.4,
+            "why": "front 3/4 hero: patina hood, red-and-white wheel, chrome headlight, HOT29 plate, pinstriped cowl - crops out the WSP exhibit sign and most of the crowd at this Washington show"
+          }
+        }
+      ],
+      "target_slot": "2026-08-03 15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": null,
+      "slot_why": "Mon 15:00 - cold-start table, start of week"
+    },
+    {
+      "id": "wgpost-20260731-02",
+      "created": "2026-07-31",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "white '66 C10, bagged, golden hour on the grass",
+      "hook": null,
+      "caption": "Frame on the grass, sun going down. That's the whole post. A '66 that does everything right and doesn't say a word about it. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#c10",
+        "#slammed",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260731-02/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260731-02/slide-1.jpg",
+          "source_asset": "20260711_171808.jpg",
+          "source_file": "renders/posts/_sources/20260711_171808.jpg",
+          "crop": {
+            "focus_x": 0.53,
+            "focus_y": 0.5,
+            "zoom": 1.3,
+            "why": "front 3/4 low stance: chrome grille, bagged ride height, Hack Bros Truck Repair door art, tree-canopy backdrop, no people in frame"
+          }
+        }
+      ],
+      "target_slot": "2026-08-04 18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Source photo 20260711_171808.jpg is untagged in the media index (tagged=no, blank content_tag/post_worthy) - I looked at it directly and verified it's a clean camera_photo, matches Content Pack 2026-07-31's description exactly. Worth a vision-tagging pass so it stops showing up untagged."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": null,
+      "slot_why": "Tue 18:30 - cold-start table, evening"
+    },
+    {
+      "id": "wgpost-20260731-03",
+      "created": "2026-07-31",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "gold '68 C10, hood up, Pistons and Pints hype (event Sat 8/8)",
+      "hook": null,
+      "caption": "Gold paint and chrome, hood already up before anybody asked, and that's no accident. Pistons and Pints is Saturday morning. Come whatever runs, or whatever almost runs. Free to list your build in the directory, link in bio. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#pistonsandpints",
+        "#portlandcarshow",
+        "#c10",
+        "#getbackinthegarage"
+      ],
+      "cta": "directory",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260731-03/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260731-03/slide-1.jpg",
+          "source_asset": "20260711_153232.jpg",
+          "source_file": "renders/posts/_sources/20260711_153232.jpg",
+          "crop": {
+            "focus_x": 0.19,
+            "focus_y": 0.5,
+            "zoom": 1.2,
+            "why": "hood-up detail: air cleaner, chrome grille, front wheel, open hood - crops out the background truck and the bystander near the cab"
+          }
+        }
+      ],
+      "target_slot": "2026-08-05 18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Event details (venue/host for Pistons and Pints) are not in the vault - John should add the location line before this goes out, or it posts as-is naming only the event and date.",
+        "Source photo 20260711_153232.jpg is untagged in the media index (tagged=no) - I looked at it directly and verified it's clean, matches Content Pack 2026-07-31's description.",
+        "Content Pack 2026-07-31's draft caption for this slot used an em dash, had no closer, and didn't say anything about the actual photo - rewrote twice against wg-brand-reviewer: v1 (em dash removed, closer added, kept the pack's generic 'Hood up means come look' hook) was KILLed for a generic non-opinion opener and for carrying the wolf emoji on a non-directory-final line; v2 (this caption) opens on a real claim about the gold paint/chrome/open hood and drops the emoji entirely - the emoji drop was the conservative call, since post-assembler SKILL.md documents John's 2026-07-27 call allowing the wolf emoji but the brand-reviewer gate flagged it as banned outright on this pass and the two gate runs disagreed with each other on that point."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": null,
+      "slot_why": "Wed 18:30 - cold-start table, evening"
+    },
+    {
+      "id": "wgpost-20260731-04",
+      "created": "2026-07-31",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "hand-lettered 'Jolene' script and pinstripe fan on a wet matte-black decklid",
+      "hook": null,
+      "caption": "Somebody hand-lettered 'Jolene' into a decklid and framed it in pinstripe lace. That's the difference between decorating a car and telling a story on one. Look closer at the next show. The good stuff hides small. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#pinstriping",
+        "#kustomkulture",
+        "#hotrod",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260731-04/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260731-04/slide-1.jpg",
+          "source_asset": "20260627_143727.jpg",
+          "source_file": "renders/posts/_sources/20260627_143727.jpg",
+          "crop": {
+            "focus_x": 0.62,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "tight macro on the Jolene script and pinstripe swirl on wet paint - excludes the club badge and background people entirely"
+          }
+        }
+      ],
+      "target_slot": "2026-08-06 15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Content Pack 2026-07-31 described this as a 'Schwinn badge' - the actual photo shows a 'Screamin CC' club plaque, not a bicycle badge, and the chosen crop excludes the badge entirely. Rewrote the caption to match what the crop actually shows (the Jolene script + pinstripe fan) instead of the pack's inaccurate premise, per the source rule that captions must match the crop."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": null,
+      "slot_why": "Thu 15:00 - cold-start table, end of posting week"
     }
   ]
 }
