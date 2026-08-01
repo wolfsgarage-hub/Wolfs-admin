@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "updated": "2026-07-27",
+    "updated": "2026-07-31",
     "images": [
         {
             "id": "20260627_165714.jpg",
@@ -960,14 +960,6 @@
             "thumb": "renders/posts/_thumbs/20260627_143713.jpg",
             "tag": "vehicle",
             "caption": "Detail of a cream classic's chrome rear bumper, red lens taillight and dual exhaust tips exiting through the bumper, beaded with rain. Clean chrome detail shot.",
-            "date": "2026-06-27"
-        },
-        {
-            "id": "20260627_143727.jpg",
-            "source_file": "renders/posts/_sources/20260627_143727.jpg",
-            "thumb": "renders/posts/_thumbs/20260627_143727.jpg",
-            "tag": "vehicle",
-            "caption": "Close-up of a satin-black custom decklid hand-lettered 'Jolene' with white and yellow Von Dutch-style pinstriping, and a 'Screamin' CC' chrome club plaque. Very on-brand kustom-kul",
             "date": "2026-06-27"
         },
         {
