@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="2.0">
-<title>WG Post Queue v2.0</title>
+<meta name="wg-version" content="2.3">
+<title>WG Post Queue v2.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -24,6 +24,21 @@
   .chip.approved { color:var(--bone); border-color:var(--bone); }
   .chip.killed { color:var(--red); border-color:var(--red); }
   .chip.fix { color:var(--bone); border-color:var(--bone-dim); }
+  /* v2.3: a dead date has to LOOK dead. Red on black, brand palette, no new colour. */
+  .chip.stale { color:var(--red); border-color:var(--red); background:var(--bg); letter-spacing:.08em; }
+  .meta .slot.dead { text-decoration:line-through; color:#6b6b6b; }
+  /* v2.3: killed + published live down here, collapsed. John, 2026-08-02: "why are already
+     posted and rejected posts in queue? they need to fall off. those dated came and went" */
+  #histwrap { display:none; margin-top:26px; border-top:1px solid var(--line); padding-top:16px; }
+  #histtoggle { display:block; width:calc(100% - 24px); margin:0 12px; padding:13px 10px; min-height:48px; background:var(--bg2); color:var(--bone-dim); border:1px solid var(--line); border-radius:4px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.14em; text-transform:uppercase; }
+  #histtoggle:active { background:#000; }
+  #histtoggle b { color:var(--copper); font-weight:inherit; }
+  #histlist { display:none; }
+  #histlist.open { display:block; }
+  #histnote { display:none; font-size:11px; color:#666; text-align:center; padding:10px 16px 0; }
+  #histlist.open + #histnote { display:block; }
+  #emptyactive { display:none; text-align:center; color:var(--bone-dim); padding:26px 20px 10px; font-size:14px; }
+  #emptyactive.on { display:block; }
   .slides { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:8px; padding:12px; }
   .slides canvas, .slides img { width:82%; flex:0 0 82%; scroll-snap-align:center; border-radius:3px; display:block; border:2px solid transparent; }
   /* desktop only: phone-first layout stays; halve the draft photos on computer screens */
@@ -86,6 +101,12 @@
 <div class="sub">Tap a slide to edit its crop. Edit text in place. Nothing posts itself.</div>
 <div id="status">Loading queue...</div>
 <div id="list"></div>
+<div id="emptyactive">Nothing waiting on you. The week builder fills the next open slot.</div>
+<div id="histwrap">
+  <button id="histtoggle">SHOW HISTORY</button>
+  <div id="histlist"></div>
+  <div id="histnote">Already posted or killed. Kept so nothing double-posts - not waiting on you.</div>
+</div>
 <div id="picker">
   <div class="phead">
     <button class="pclose" id="pickerClose">CLOSE - NO PICK</button>
@@ -96,22 +117,63 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v2.0");
+console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/published collapsed into History; dead slots badged)");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
   var SUPABASE_ANON_KEY = "sb_publishable_6HlaADfe1rKI0qLuPLxEXg_LrpQR57u";
   var RAW_BASE = "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/";
   var QUEUE_PATH = "data/post-queue.json";
-  var W = 1080, H = 1350, INSET = 43, IW = 994, IH = 1264;
+  /* Canvas geometry mirrors _skills/post-assembler/assemble.py. A draft carries its own
+     "aspect" (and optional "frame"); carousels are single-aspect because Instagram forces it.
+     Older drafts have no aspect field and fall back to portrait, which is what they were. */
+  var ASPECTS = { portrait: [1080, 1350], landscape: [1080, 566], square: [1080, 1080] };
+  /* FRAME LAW (John's call 2026-08-02): "thin" (12px) is the standard for every new draft;
+     the 43px "pinstripe" is RETIRED and kept only so already-published drafts still re-render
+     the way they actually went out. A re-crop here must redraw the draft's OWN frame, never a
+     baked default - drawing 43px over a thin-framed render is how the two pipelines drift. */
+  var FRAMES = {
+    thin:      { m_out: 4,  s_red: 2, g1: 2, s_bone: 2, g2: 2 },   /* inset 12 - THE STANDARD */
+    pinstripe: { m_out: 26, s_red: 4, g1: 4, s_bone: 3, g2: 6 },   /* inset 43 - RETIRED, history */
+    none:      null
+  };
+  /* Legacy fallback ONLY: a draft written before schema v3 carries no frame field, and those
+     really were rendered at 43px. New drafts always carry "frame" explicitly. */
+  var LEGACY_FRAME = "pinstripe";
+  function frameInset(f) {
+    var d = FRAMES[f];
+    if (!d) { return 0; }
+    return d.m_out + d.s_red + d.g1 + d.s_bone + d.g2;
+  }
+  function geo(draft) {
+    var a = (draft && draft.aspect) || "portrait";
+    if (!ASPECTS[a]) { a = "portrait"; }
+    var f = (draft && draft.frame) || LEGACY_FRAME;
+    if (!(f in FRAMES)) { f = LEGACY_FRAME; }
+    var dim = ASPECTS[a], inset = frameInset(f);
+    return { aspect: a, frame: f, W: dim[0], H: dim[1], INSET: inset,
+             IW: dim[0] - 2 * inset, IH: dim[1] - 2 * inset };
+  }
   var BLACK = "#0A0A0A", RED = "#CC0000", BONE = "#F5F1E8";
 
   var statusEl = document.getElementById("status");
   var listEl = document.getElementById("list");
+  var emptyActiveEl = document.getElementById("emptyactive");
+  var histWrapEl = document.getElementById("histwrap");
+  var histListEl = document.getElementById("histlist");
+  var histToggleEl = document.getElementById("histtoggle");
   var models = [];
   var pool = null; /* curated library pool (data/library-pool.json), exported by the assembler */
   var pickerFor = null;
-  var SHARED_END_CARD = "renders/posts/_shared/end-card.jpg";
+  /* one shared end card per aspect - assemble.py renders all three from assets/wolf-logo.png */
+  var SHARED_END_CARDS = {
+    portrait: "renders/posts/_shared/end-card.jpg",
+    landscape: "renders/posts/_shared/end-card-landscape.jpg",
+    square: "renders/posts/_shared/end-card-square.jpg"
+  };
+  function sharedEndCard(draft) {
+    return SHARED_END_CARDS[geo(draft).aspect] || SHARED_END_CARDS.portrait;
+  }
   function modelById(id) {
     for (var i = 0; i < models.length; i++) { if (models[i].draft.id === id) { return models[i]; } }
     return null;
@@ -171,32 +233,38 @@ console.log("WG post-queue v2.0");
       y += seq[i][1];
     }
   }
-  function hookPlate(ctx, text) {
-    var x0 = INSET, y1 = H - INSET, ph = 168, y0 = y1 - ph;
-    ctx.fillStyle = "rgba(10,10,10,0.7216)"; ctx.fillRect(x0, y0, IW, ph);
-    hstripes(ctx, x0, IW, y0 + 10, true);
-    hstripes(ctx, x0, IW, y1 - 18, false);
-    var size = 84, maxW = IW * 0.84;
+  function hookPlate(ctx, text, g) {
+    var ph = Math.min(168, Math.max(96, Math.round(g.H * 0.1244)));
+    var x0 = g.INSET, y1 = g.H - g.INSET, y0 = y1 - ph;
+    ctx.fillStyle = "rgba(10,10,10,0.7216)"; ctx.fillRect(x0, y0, g.IW, ph);
+    hstripes(ctx, x0, g.IW, y0 + Math.max(6, Math.round(ph * 0.0595)), true);
+    hstripes(ctx, x0, g.IW, y1 - Math.max(10, Math.round(ph * 0.107)), false);
+    var floor = Math.max(20, Math.round(ph * 0.18));
+    var size = Math.round(ph * 0.5), maxW = g.IW * 0.84;
     ctx.font = size + "px 'Bebas Neue'";
-    while (size > 28 && ctx.measureText(text).width > maxW) { size -= 2; ctx.font = size + "px 'Bebas Neue'"; }
+    while (size > floor && ctx.measureText(text).width > maxW) { size -= 2; ctx.font = size + "px 'Bebas Neue'"; }
     ctx.fillStyle = BONE; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(text, W / 2, y0 + ph / 2 + 4);
+    ctx.fillText(text, g.W / 2, y0 + ph / 2 + 4);
     ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   }
-  function renderSlide(canvas, img, crop, hook) {
+  function renderSlide(canvas, img, crop, hook, g) {
     var ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.fillStyle = BLACK; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = BLACK; ctx.fillRect(0, 0, g.W, g.H);
     var zoom = Math.max(1, crop.zoom || 1);
-    var scale = Math.max(IW / img.naturalWidth, IH / img.naturalHeight) * zoom;
-    var sw = IW / scale, sh = IH / scale;
+    var scale = Math.max(g.IW / img.naturalWidth, g.IH / img.naturalHeight) * zoom;
+    var sw = g.IW / scale, sh = g.IH / scale;
     var sx = (img.naturalWidth - sw) * crop.focus_x;
     var sy = (img.naturalHeight - sh) * crop.focus_y;
-    ctx.drawImage(img, sx, sy, sw, sh, INSET, INSET, IW, IH);
-    if (hook) { hookPlate(ctx, hook); }
-    bandRect(ctx, 26, 26, W - 27, H - 27, 4, RED);
-    bandRect(ctx, 34, 34, W - 35, H - 35, 3, BONE);
+    ctx.drawImage(img, sx, sy, sw, sh, g.INSET, g.INSET, g.IW, g.IH);
+    if (hook) { hookPlate(ctx, hook, g); }
+    var d = FRAMES[g.frame];
+    if (d) {
+      var b = d.m_out + d.s_red + d.g1;
+      bandRect(ctx, d.m_out, d.m_out, g.W - 1 - d.m_out, g.H - 1 - d.m_out, d.s_red, RED);
+      bandRect(ctx, b, b, g.W - 1 - b, g.H - 1 - b, d.s_bone, BONE);
+    }
   }
 
   /* ---- model ---- */
@@ -307,7 +375,8 @@ console.log("WG post-queue v2.0");
       m.draft.format = "carousel";
       var hasEnd = arr.some(function (s) { return s.kind === "end_card"; });
       if (!hasEnd) {
-        arr.push({ kind: "end_card", file: SHARED_END_CARD, raw_url: RAW_BASE + SHARED_END_CARD, source_asset: "assets/wolf-logo.png" });
+        var ec = sharedEndCard(m.draft);
+        arr.push({ kind: "end_card", file: ec, raw_url: RAW_BASE + ec, source_asset: "assets/wolf-logo.png" });
       }
     } else {
       m.draft.format = "single";
@@ -356,9 +425,10 @@ console.log("WG post-queue v2.0");
 
   function repaint(m) {
     var hookIdx = m.draft.format === "carousel" ? firstPhotoIdx(m.draft.slides) : -1;
+    var g = geo(m.draft);
     m.draft.slides.forEach(function (s, i) {
       if (s.kind !== "photo" || !s._img || !s._canvas) { return; }
-      renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null);
+      renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null, g);
     });
   }
 
@@ -382,7 +452,8 @@ console.log("WG post-queue v2.0");
       var el;
       if (s.kind === "photo") {
         el = s._canvas || document.createElement("canvas");
-        el.width = W; el.height = H;
+        var g = geo(m.draft);
+        el.width = g.W; el.height = g.H;
         s._canvas = el;
       } else {
         el = document.createElement("img");
@@ -527,11 +598,13 @@ console.log("WG post-queue v2.0");
   function uploadDirtySlides(m) {
     var chain = Promise.resolve();
     var hookIdx = m.draft.format === "carousel" ? firstPhotoIdx(m.draft.slides) : -1;
+    var g = geo(m.draft);
     m.draft.slides.forEach(function (s, i) {
       if (s.kind !== "photo" || !s._dirtyPixels) { return; }
       if (!s._img) { s._dirtyPixels = false; return; } /* un-editable slide keeps its existing render */
       chain = chain.then(function () {
-        renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null);
+        s._canvas.width = g.W; s._canvas.height = g.H;
+        renderSlide(s._canvas, s._img, s.crop, i === hookIdx ? m.draft.hook : null, g);
         var b64 = s._canvas.toDataURL("image/jpeg", 0.9).split(",")[1];
         var path = "renders/posts/" + m.draft.id + "/slide-" + (i + 1) + "-" + Date.now() + ".jpg";
         return callProxy("upload", { path: path, contentBase64: b64, message: "queue edit: " + m.draft.id + " slide " + (i + 1) }).then(function () {
@@ -842,6 +915,43 @@ console.log("WG post-queue v2.0");
     return !isLocked(d) && !slotTooClose(d) && (d.status === "pending_approval" || d.status === "fix" || d.status === "approved");
   }
 
+  /* ---- v2.3: what is still John's to look at, and what is just history ----
+     John, 2026-08-02: "why are already posted and rejected posts in queue? they need to
+     fall off. those dated came and went". Both halves are VIEW problems - killed and
+     published records stay in post-queue.json exactly as they are, because the publisher
+     reads them as its double-post guard. They just stop shouting from the top of his
+     phone. Anything that is not finished business (pending_approval, fix, approved, or a
+     status this page has never seen) stays in the main list; a card only moves on RELOAD,
+     so killing a draft leaves it in place with its refill row where he just tapped. */
+  function isHistory(d) { return d.status === "killed" || d.status === "published"; }
+
+  /* A draft still waiting on him whose slot is already behind us is showing a dead date.
+     Say so rather than printing it plain. The status set here matches RESLOT_STATUSES in
+     wolfs-ops src\week_builder.py, which moves these to the next open slot on its next
+     run - "fix" is excluded from both, so the badge never promises a move that the week
+     builder will not make. */
+  function slotPassed(d) {
+    if (isLocked(d)) { return false; }
+    if (d.status !== "pending_approval" && d.status !== "approved") { return false; }
+    var when = parseSlot(d);
+    return !!when && when.getTime() <= Date.now();
+  }
+
+  var histCount = 0, histOpen = false;
+  function histLabel() {
+    return (histOpen ? "HIDE" : "SHOW") + " HISTORY (<b>" + histCount + "</b>)";
+  }
+  histToggleEl.onclick = function () {
+    histOpen = !histOpen;
+    histListEl.className = histOpen ? "open" : "";
+    histToggleEl.innerHTML = histLabel();
+  };
+  function showCounts(activeN) {
+    histWrapEl.style.display = histCount ? "block" : "none";
+    histToggleEl.innerHTML = histLabel();
+    emptyActiveEl.className = activeN ? "" : "on";
+  }
+
   function refreshChip(m) {
     var map = { pending_approval: ["PENDING", "pending"], approved: ["APPROVED", "approved"], killed: ["KILLED", "killed"], fix: ["FIX IT", "fix"], published: ["PUBLISHED", "approved"] };
     var v = map[m.draft.status] || [m.draft.status, "pending"];
@@ -862,7 +972,17 @@ console.log("WG post-queue v2.0");
     var chip = document.createElement("span"); chip.className = "chip"; m.els.chip = chip;
     var slot = document.createElement("span"); slot.className = "slot";
     slot.textContent = ((d.scheduled_slot || d.target_slot) || "").replace(" America/Los_Angeles", " PT");
-    if (d.status === "approved" && d.scheduled_slot) {
+    var dead = slotPassed(d);
+    if (dead) {
+      slot.className = "slot dead";
+      var sp = document.createElement("span"); sp.className = "chip stale";
+      sp.textContent = "SLOT PASSED - WILL BE RE-SLOTTED";
+      sp.title = "That day came and went. The week builder moves this to the next open slot on its next run. Nothing about the post changes.";
+      meta.appendChild(sp);
+    }
+    /* the auto-post chip on a dead date reads as "this is still going out on that day",
+       which is exactly the lie the badge above exists to kill */
+    if (!dead && d.status === "approved" && d.scheduled_slot) {
       var auto = document.createElement("span"); auto.className = "chip";
       auto.style.cssText = "border-color:#C8922A;color:#C8922A";
       auto.textContent = "AUTO-POSTS WHEN ARMED";
@@ -1237,7 +1357,7 @@ console.log("WG post-queue v2.0");
     card.appendChild(stat);
 
     refreshChip(m);
-    listEl.appendChild(card);
+    (isHistory(d) ? histListEl : listEl).appendChild(card);
     rebuildStrip(m);
   }
 
@@ -1360,12 +1480,16 @@ console.log("WG post-queue v2.0");
       } else {
         statusEl.style.display = "none";
       }
+      var activeN = 0;
       (doc.drafts || []).forEach(function (draft) {
         draft.slides = draft.slides || [];   // text drafts from the admin app have no slides
         var m = makeModel(draft);
         models.push(m);
         buildCard(m);
+        if (isHistory(draft)) { histCount++; } else { activeN++; }
       });
+      showCounts(activeN);
+      console.log("WG post-queue: " + activeN + " waiting, " + histCount + " in history");
       return fontsReady.then(function () {
         var loads = [];
         models.forEach(function (m) {
