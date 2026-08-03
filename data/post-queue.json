@@ -1,7 +1,7 @@
 {
-  "version": 2,
-  "updated": "2026-08-02T15:08:59.628414+00:00",
-  "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser.",
+  "version": 3,
+  "updated": "2026-08-03T00:04:09.588235+00:00",
+  "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect field are portrait/pinstripe, which is what they were rendered as. Renders now come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale.",
   "drafts": [
     {
       "id": "wgpost-20260703-01",
@@ -281,7 +281,7 @@
       "format": "carousel",
       "angle": "Rose City Round-Up 2026 recap (event, one weekend)",
       "hook": "ROSE CITY ROUND-UP",
-      "caption": "Rose City Round-Up. 16 years in and Driven Dead still runs it right. Friday golden hour in the Jubitz lot, Hard Money Saints on the stage, pre-64 iron everywhere you looked. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio \ud83d\udc3a",
+      "caption": "Driven Dead have been running the Round-Up for sixteen years and still haven't gotten lazy about it. Golden hour on a Seneca fin, Hard Money Saints on the Ponderosa stage. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio \ud83d\udc3a",
       "hashtags": [
         "#wolfsgarage",
         "#rosecityroundup",
@@ -298,10 +298,10 @@
           "source_asset": "20260626_200418.jpg",
           "source_file": "renders/posts/_sources/20260626_200418.jpg",
           "crop": {
-            "focus_x": 0.81,
-            "focus_y": 0.5,
-            "zoom": 1.0,
-            "why": "16320px pano - whole car cannot fit 4:5, so commit to the hero detail: Seneca tailfin, bullet taillight, script and chrome bumper in golden light"
+            "focus_x": 0.759,
+            "focus_y": 0.886,
+            "zoom": 1.6,
+            "why": "golden-hour hero on the Seneca rear quarter: fin, chrome Seneca script, bullet taillight, bumper cone. Old zoom-1.0 crop was ~40% dead sky with a modern white SUV across the top."
           }
         },
         {
@@ -312,9 +312,9 @@
           "source_file": "renders/posts/_sources/20260626_201205.jpg",
           "crop": {
             "focus_x": 0.5,
-            "focus_y": 0.5,
-            "zoom": 1.0,
-            "why": "craft beat: hand-painted cherries and Von Dutch-style pinstriping on the chopped maroon sled's decklid"
+            "focus_y": 0.62,
+            "zoom": 1.2,
+            "why": "hand-painted cherries and the red/white pinstripe fan on the maroon kustom's ROOF (the old why field said decklid - wrong), louvered hood in the foreground. Old crop rendered the cherries too small to read."
           }
         },
         {
@@ -324,10 +324,10 @@
           "source_asset": "20260626_214010.jpg",
           "source_file": "renders/posts/_sources/20260626_214010.jpg",
           "crop": {
-            "focus_x": 0.68,
-            "focus_y": 0.5,
-            "zoom": 1.0,
-            "why": "the night: full LED screen in frame - Hard Money Saints, 6-26-26, Ponderosa, and the Round-Up logo, which names the show for anyone who wasn't there"
+            "focus_x": 0.861,
+            "focus_y": 0.222,
+            "zoom": 1.15,
+            "why": "the WHOLE LED marquee: HARD MONEY SAINTS, 6-26-26, PONDEROSA LOUNGE & GRILL and the complete Driven Dead C.C. / 16th Annual Rose City Round-Up logo. The old crop sliced that logo in half and held no band at all."
           }
         },
         {
@@ -343,28 +343,30 @@
         "facebook"
       ],
       "flags": [
-        "STARTER SET, NOT FINISHED - 3 slides of a planned 10. Use ADD A PICTURE to pull the rest from the pool; all distinct Rose City Round-Up shots are now loaded.",
-        "Rain deliberately left out of the caption: the approved Tue 7/28 draft is already the rain-at-a-car-show line. Two rain posts two days apart would collide.",
-        "Caption uses an exclamation mark and the wolf emoji per John's 2026-07-27 call to write the way the feed actually works. The ops skill and post-assembler SKILL.md still carry the old absolute ban and will revert this unless edited.",
-        "No @ tags per John's call. Hashtags #drivendeadcc and #rosecityroundup are John's own prior usage - confirm the no-tag rule does not extend to hashtags."
+        "STARTER SET, NOT FINISHED - 3 slides of a planned 10. Use ADD A PICTURE to pull the rest from the pool; all distinct Rose City Round-Up shots are loaded.",
+        "Slide 1's chrome script reads Seneca. The caption deliberately names only the badge word, not a manufacturer: the brand gate insisted Seneca is a DeSoto trim, I read it as the 1960-61 Dodge Dart Seneca, and neither of us can prove it from the pixels. You'll know - say the word and the make goes back in.",
+        "Rain deliberately left out of the caption: the 7/28 post already used the rain-at-a-car-show line.",
+        "No @ tags per John's call. #drivendeadcc and #rosecityroundup are John's own prior usage."
       ],
       "fix_note": null,
       "kill_reason": null,
       "slot_why": "Thu 15:00 PT is the next empty slot in the timing table; the queue runs dry after Wed 7/29.",
-      "scheduled_slot": null
+      "scheduled_slot": null,
+      "aspect": "portrait",
+      "frame": "pinstripe"
     },
     {
       "id": "wgpost-20260731-01",
       "created": "2026-07-31",
       "status": "pending_approval",
       "format": "single",
-      "angle": "matte-black patina '29 Ford Model A sedan hot rod, surfboard roof rack",
+      "angle": "matte black '29 Ford Model A tudor sedan hot rod, two surfboards + flower box on the roof rack",
       "hook": null,
-      "caption": "Rat rod on the bottom, beach cruiser on the roof rack. This '29 sedan never picked a lane, and that's exactly why it works. Get back in the garage.",
+      "caption": "The roof rack on this matte black Model A is carrying two surfboards and a box of flowers. Nothing about that says trailer queen. The plate reads HOT29 and it earns it.",
       "hashtags": [
         "#wolfsgarage",
-        "#ratrod",
-        "#patina",
+        "#modela",
+        "#hotrod",
         "#kustomkulture",
         "#getbackinthegarage"
       ],
@@ -377,10 +379,10 @@
           "source_asset": "20250726_095325.jpg",
           "source_file": "renders/posts/_sources/20250726_095325.jpg",
           "crop": {
-            "focus_x": 0.52,
-            "focus_y": 0.62,
-            "zoom": 1.4,
-            "why": "front 3/4 hero: patina hood, red-and-white wheel, chrome headlight, HOT29 plate, pinstriped cowl - crops out the WSP exhibit sign and most of the crowd at this Washington show"
+            "focus_x": 0.56,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "SQUARE so the whole car fits WITH the roof rack: two wooden surfboards and a flower box, pinstriped visor, HOT29 plate, red-and-white wheels, nudge bar. The old 4:5 zoom-1.4 crop cut the rack clean off while the caption named it."
           }
         }
       ],
@@ -389,11 +391,17 @@
         "instagram",
         "facebook"
       ],
-      "flags": [],
+      "flags": [
+        "FIXED 2026-08-02: the old caption said 'beach cruiser on the roof rack' and the old crop had cut the rack off the top of the frame. It is two surfboards and a flower box, not a bicycle. Aspect moved 4:5 -> square to keep the whole car.",
+        "Two adult bystanders stand at the right edge next to a second black hot rod. Non-focal, no minors, nobody cut in half by the frame.",
+        "Media index row for 20250726_095325.jpg calls this a '1940 Ford coupe'. It is a Model A tudor (plate HOT29). That row needs correcting on the next caption-batch pass."
+      ],
       "fix_note": null,
       "kill_reason": null,
       "scheduled_slot": null,
-      "slot_why": "Mon 15:00 - cold-start table, start of week"
+      "slot_why": "Mon 15:00 - cold-start table, start of week",
+      "aspect": "square",
+      "frame": "pinstripe"
     },
     {
       "id": "wgpost-20260731-02",
@@ -402,7 +410,7 @@
       "format": "single",
       "angle": "white '66 C10, bagged, golden hour on the grass",
       "hook": null,
-      "caption": "Frame on the grass, sun going down. That's the whole post. A '66 that does everything right and doesn't say a word about it. Get back in the garage.",
+      "caption": "Nobody had to tell this '66 to lay down. Frame almost in the grass, Hack Bros on the door, last of the sun behind it. Clean beats loud. Get back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#c10",
@@ -419,10 +427,10 @@
           "source_asset": "20260711_171808.jpg",
           "source_file": "renders/posts/_sources/20260711_171808.jpg",
           "crop": {
-            "focus_x": 0.53,
-            "focus_y": 0.5,
-            "zoom": 1.3,
-            "why": "front 3/4 low stance: chrome grille, bagged ride height, Hack Bros Truck Repair door art, tree-canopy backdrop, no people in frame"
+            "focus_x": 0.513,
+            "focus_y": 0.626,
+            "zoom": 1.902,
+            "why": "LANDSCAPE keeps the whole bagged '66 C10: full CHEVROLET grille and chrome bumper (the old crop cut both mid-grille), cab lights, the complete HACK BROS TRUCK REPAIR door art (old crop sliced it), bed and rear wheel, golden light through the trees. No people in frame."
           }
         }
       ],
@@ -432,12 +440,14 @@
         "facebook"
       ],
       "flags": [
-        "Source photo 20260711_171808.jpg is untagged in the media index (tagged=no, blank content_tag/post_worthy) - I looked at it directly and verified it's a clean camera_photo, matches Content Pack 2026-07-31's description exactly. Worth a vision-tagging pass so it stops showing up untagged."
+        "Source photo 20260711_171808.jpg is still untagged in the media index (tagged=no). Verified by eye as a clean camera_photo. Worth a vision-tagging pass."
       ],
       "fix_note": null,
       "kill_reason": null,
       "scheduled_slot": null,
-      "slot_why": "Tue 18:30 - cold-start table, evening"
+      "slot_why": "Tue 18:30 - cold-start table, evening",
+      "aspect": "landscape",
+      "frame": "pinstripe"
     },
     {
       "id": "wgpost-20260731-03",
@@ -446,7 +456,7 @@
       "format": "single",
       "angle": "gold '68 C10, hood up, Pistons and Pints hype (event Sat 8/8)",
       "hook": null,
-      "caption": "Gold paint and chrome, hood already up before anybody asked, and that's no accident. Pistons and Pints is Saturday morning. Come whatever runs, or whatever almost runs. Free to list your build in the directory, link in bio. Get back in the garage.",
+      "caption": "Pistons and Pints is Saturday morning. Show up with the hood already open, because the engine is the half of the truck most people never get to see. Bring whatever runs, or whatever almost runs.\n\nFree to list your build in the directory, link in bio \ud83d\udc3a",
       "hashtags": [
         "#wolfsgarage",
         "#pistonsandpints",
@@ -463,10 +473,10 @@
           "source_asset": "20260711_153232.jpg",
           "source_file": "renders/posts/_sources/20260711_153232.jpg",
           "crop": {
-            "focus_x": 0.19,
-            "focus_y": 0.5,
-            "zoom": 1.2,
-            "why": "hood-up detail: air cleaner, chrome grille, front wheel, open hood - crops out the background truck and the bystander near the cab"
+            "focus_x": 0.462,
+            "focus_y": 0.641,
+            "zoom": 1.156,
+            "why": "LANDSCAPE keeps the whole gold '68 C10 with the hood fully up and UN-CLIPPED (the old crop cut the raised hood's leading edge), air cleaner and engine bay visible, bowtie grille, both wheels, bed."
           }
         }
       ],
@@ -476,14 +486,16 @@
         "facebook"
       ],
       "flags": [
-        "Event details (venue/host for Pistons and Pints) are not in the vault - John should add the location line before this goes out, or it posts as-is naming only the event and date.",
-        "Source photo 20260711_153232.jpg is untagged in the media index (tagged=no) - I looked at it directly and verified it's clean, matches Content Pack 2026-07-31's description.",
-        "Content Pack 2026-07-31's draft caption for this slot used an em dash, had no closer, and didn't say anything about the actual photo - rewrote twice against wg-brand-reviewer: v1 (em dash removed, closer added, kept the pack's generic 'Hood up means come look' hook) was KILLed for a generic non-opinion opener and for carrying the wolf emoji on a non-directory-final line; v2 (this caption) opens on a real claim about the gold paint/chrome/open hood and drops the emoji entirely - the emoji drop was the conservative call, since post-assembler SKILL.md documents John's 2026-07-27 call allowing the wolf emoji but the brand-reviewer gate flagged it as banned outright on this pass and the two gate runs disagreed with each other on that point."
+        "Event details (venue/host for Pistons and Pints) are still not in the vault - add the location line before this goes out, or it posts naming only the event and the day.",
+        "One bystander stands in the mid-ground behind the cab. Small, turned away, non-focal.",
+        "Source photo 20260711_153232.jpg is still untagged in the media index (tagged=no)."
       ],
       "fix_note": null,
       "kill_reason": null,
       "scheduled_slot": null,
-      "slot_why": "Wed 18:30 - cold-start table, evening"
+      "slot_why": "Wed 18:30 - cold-start table, evening",
+      "aspect": "landscape",
+      "frame": "pinstripe"
     },
     {
       "id": "wgpost-20260731-04",
@@ -492,7 +504,7 @@
       "format": "single",
       "angle": "hand-lettered 'Jolene' script and pinstripe fan on a wet matte-black decklid",
       "hook": null,
-      "caption": "Somebody hand-lettered 'Jolene' into a decklid and framed it in pinstripe lace. That's the difference between decorating a car and telling a story on one. Look closer at the next show. The good stuff hides small. Get back in the garage.",
+      "caption": "Somebody laid 'Jolene' onto this deck lid with a brush and a steady hand, then wrapped it in pinstripe lace. Rain sitting on the black makes the white lines look wet-painted. Kneel down at the next show. The best work on a car is the work you have to look for.",
       "hashtags": [
         "#wolfsgarage",
         "#pinstriping",
@@ -509,10 +521,10 @@
           "source_asset": "20260627_143727.jpg",
           "source_file": "renders/posts/_sources/20260627_143727.jpg",
           "crop": {
-            "focus_x": 0.62,
+            "focus_x": 0.585,
             "focus_y": 0.5,
             "zoom": 1.0,
-            "why": "tight macro on the Jolene script and pinstripe swirl on wet paint - excludes the club badge and background people entirely"
+            "why": "PORTRAIT is correct here - a true macro. 'Jolene' complete with its flourish, wrapped in the white/gold pinstripe fan, rain beading on black. Nudged left from 0.62 to give the J its margin back."
           }
         }
       ],
@@ -522,12 +534,14 @@
         "facebook"
       ],
       "flags": [
-        "Content Pack 2026-07-31 described this as a 'Schwinn badge' - the actual photo shows a 'Screamin CC' club plaque, not a bicycle badge, and the chosen crop excludes the badge entirely. Rewrote the caption to match what the crop actually shows (the Jolene script + pinstripe fan) instead of the pack's inaccurate premise, per the source rule that captions must match the crop."
+        "Content Pack 2026-07-31 called this a 'Schwinn badge'. The actual photo shows a 'Screamers CC' club plaque, and the crop excludes it entirely. Caption matches the crop, not the pack."
       ],
       "fix_note": null,
       "kill_reason": null,
       "scheduled_slot": null,
-      "slot_why": "Thu 15:00 - cold-start table, end of posting week"
+      "slot_why": "Thu 15:00 - cold-start table, end of posting week",
+      "aspect": "portrait",
+      "frame": "pinstripe"
     },
     {
       "id": "wgpost-20260802-01",
@@ -536,7 +550,7 @@
       "format": "single",
       "angle": "burgundy 1950 Buick Sedanet fastback custom, chrome ventiports + whitewall wire wheel, front 3/4 hero",
       "hook": null,
-      "caption": "That wire wheel throws the evening light around like the paint job earned it. The plate says SPCL. It's not lying. Get back in the garage.",
+      "caption": "A Sedanet is nothing without that roofline, and this one carries it clean from the windshield all the way down to the deck lid. The plate says SPCL. It's not lying. Get back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#1950buick",
@@ -553,10 +567,10 @@
           "source_asset": "20250924_181229.jpg",
           "source_file": "renders/posts/_sources/20250924_181229.jpg",
           "crop": {
-            "focus_x": 0.27,
-            "focus_y": 0.5,
-            "zoom": 1.0,
-            "why": "front 3/4 hero: hood, chrome ventiports, headlight, whitewall wire wheel, 50 SPCL plate - crops out the bystander and the light-colored car behind"
+            "focus_x": 0.5,
+            "focus_y": 0.251,
+            "zoom": 1.276,
+            "why": "LANDSCAPE restores the entire 1950 Buick Sedanet: the fastback roofline unbroken from windshield to deck lid (the old 4:5 crop deleted it), the full chrome waterfall grille and bumper guards (the old crop cut them mid-tooth), three ventiports, whitewall wire wheel, 50 SPCL plate."
           }
         }
       ],
@@ -566,12 +580,15 @@
         "facebook"
       ],
       "flags": [
-        "small non-focal adult bystander (ballcap) visible at top-left edge of frame - not identifiable close-up, not a minor"
+        "FIXED 2026-08-02: the old 4:5 crop deleted the fastback roofline - the entire reason that car exists - and cut the waterfall grille in half. Aspect moved to landscape.",
+        "YOUR CALL: a seated adult spectator is clearly visible at the right, and he IS identifiable (face, glasses). He is behind the car at a public show and cannot be cropped out without cutting the Buick's rear bumper off. Keep him or I re-crop, one word either way."
       ],
       "fix_note": null,
       "kill_reason": null,
       "scheduled_slot": null,
-      "slot_why": "Mon 15:00 - cold-start table, start of week"
+      "slot_why": "Mon 15:00 - cold-start table, start of week",
+      "aspect": "landscape",
+      "frame": "pinstripe"
     }
   ]
 }
