@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-08-03T04:08:07.989438+00:00",
+  "updated": "2026-08-04T15:08:28.846129+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -281,7 +281,7 @@
       "format": "carousel",
       "angle": "Rose City Round-Up 2026 recap (event, one weekend)",
       "hook": "ROSE CITY ROUND-UP",
-      "caption": "Driven Dead have been running the Round-Up for sixteen years and still haven't gotten lazy about it. Golden hour caught that Seneca fin just right, and Hard Money Saints played the Ponderosa stage after dark. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio 🐺\n\nGet back in the garage.",
+      "caption": "Driven Dead have been running the Round-Up for sixteen years and still haven't gotten lazy about it. Golden hour caught that Seneca fin just right, and Hard Money Saints played the Ponderosa stage after dark. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio \ud83d\udc3a\n\nGet back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#rosecityroundup",
@@ -337,7 +337,7 @@
           "source_asset": "assets/wolf-logo.png"
         }
       ],
-      "target_slot": "2026-07-30 15:00 America/Los_Angeles",
+      "target_slot": null,
       "platforms": [
         "instagram",
         "facebook"
@@ -350,8 +350,8 @@
       ],
       "fix_note": null,
       "kill_reason": null,
-      "slot_why": "Thu 15:00 PT is the next empty slot in the timing table; the queue runs dry after Wed 7/29.",
-      "scheduled_slot": null,
+      "slot_why": "re-slotted by the week builder: 2026-07-30T15:00 came and went",
+      "scheduled_slot": "2026-08-11T18:30 America/Los_Angeles",
       "aspect": "portrait",
       "frame": "thin"
     },
@@ -386,7 +386,7 @@
           }
         }
       ],
-      "target_slot": "2026-08-03 15:00 America/Los_Angeles",
+      "target_slot": null,
       "platforms": [
         "instagram",
         "facebook"
@@ -398,8 +398,8 @@
       ],
       "fix_note": null,
       "kill_reason": null,
-      "scheduled_slot": null,
-      "slot_why": "Mon 15:00 - cold-start table, start of week",
+      "scheduled_slot": "2026-08-12T18:30 America/Los_Angeles",
+      "slot_why": "re-slotted by the week builder: 2026-08-03T15:00 came and went",
       "aspect": "square",
       "frame": "thin"
     },
@@ -456,7 +456,7 @@
       "format": "single",
       "angle": "gold '68 C10, hood up, Pistons and Pints hype (event Sat 8/8)",
       "hook": null,
-      "caption": "Pistons and Pints is Saturday morning. Show up with the hood already open, because the engine is the half of the truck most people never get to see. Bring whatever runs, or whatever almost runs.\n\nFree to list your build in the directory, link in bio 🐺\n\nGet back in the garage.",
+      "caption": "Pistons and Pints is Saturday morning. Show up with the hood already open, because the engine is the half of the truck most people never get to see. Bring whatever runs, or whatever almost runs.\n\nFree to list your build in the directory, link in bio \ud83d\udc3a\n\nGet back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#pistonsandpints",
