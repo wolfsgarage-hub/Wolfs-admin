@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-08-05T22:10:51.138389+00:00",
+  "updated": "2026-08-06T15:03:13.351879+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -480,7 +480,7 @@
           }
         }
       ],
-      "target_slot": "2026-08-05 18:30 America/Los_Angeles",
+      "target_slot": null,
       "platforms": [
         "instagram",
         "facebook"
@@ -492,8 +492,8 @@
       ],
       "fix_note": null,
       "kill_reason": null,
-      "scheduled_slot": null,
-      "slot_why": "Wed 18:30 - cold-start table, evening",
+      "scheduled_slot": "2026-08-17T15:00 America/Los_Angeles",
+      "slot_why": "re-slotted by the week builder: 2026-08-05T18:30 came and went",
       "aspect": "landscape",
       "frame": "thin"
     },
