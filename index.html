@@ -651,7 +651,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v35</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v36</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1676,16 +1676,20 @@ async function importData(event) {
 
 // ============== CLOUD SYNC (read-only from Google Drive JSON) ==============
 async function fetchCloudData(statusEl) {
-  const proxies = [
-    { name: 'direct', wrap: u => u },
-    { name: 'allorigins', wrap: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}` },
-    { name: 'corsproxy', wrap: u => `https://corsproxy.io/?${encodeURIComponent(u)}` },
-    { name: 'codetabs', wrap: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}` }
+  // Primary source is our own endpoint: it fetches the Drive JSON server-side and
+  // returns it with CORS for this admin, so it does not depend on public proxies.
+  // The old free CORS proxies stay ONLY as a last-ditch fallback (all four were
+  // down when this was written); the endpoint is the real path.
+  const sources = [
+    { name: 'wolfsgarage', url: 'https://wolfsgarage.com/api/cloud-lists' },
+    { name: 'allorigins', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(CLOUD_DATA_URL)}` },
+    { name: 'corsproxy', url: `https://corsproxy.io/?${encodeURIComponent(CLOUD_DATA_URL)}` },
+    { name: 'codetabs', url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(CLOUD_DATA_URL)}` }
   ];
-  for (const p of proxies) {
+  for (const s of sources) {
     try {
-      if (statusEl) statusEl.textContent = `fetching via ${p.name}...`;
-      const res = await fetch(p.wrap(CLOUD_DATA_URL), { redirect: 'follow' });
+      if (statusEl) statusEl.textContent = `fetching via ${s.name}...`;
+      const res = await fetch(s.url, { redirect: 'follow' });
       if (!res.ok) continue;
       const text = await res.text();
       try { return JSON.parse(text); } catch (e) {
@@ -1701,7 +1705,7 @@ async function syncCloudData(silent) {
   const statusEl = document.getElementById('cloud-result');
   const cloud = await fetchCloudData(statusEl);
   if (!cloud || !cloud.items) {
-    if (statusEl && !silent) statusEl.textContent = '\u2717 Cloud fetch failed (all proxies). Try again.';
+    if (statusEl && !silent) statusEl.textContent = '\u2717 Cloud fetch failed. Try again.';
     return { added: 0, error: 'fetch_failed' };
   }
   const ingested = new Set(await Store.get(K.CLOUD_INGESTED) || []);
