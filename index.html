@@ -651,7 +651,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v36</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v37</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1947,8 +1947,13 @@ async function fetchAndParseCalendar(url, useCache = true) {
   };
 
   let text = null;
+  // 0. Our own endpoint: fetches the feed server-side and returns it with CORS
+  //    for this admin. Primary path - the free proxies below are a dead fallback.
+  text = await tryFetch('wolfsgarage', `https://wolfsgarage.com/api/ical-proxy?url=${encodeURIComponent(url)}`);
   // 1. Direct fetch (works only when CORS headers present)
-  text = await tryFetch('direct', url, { mode: 'cors' });
+  if (!text) {
+    text = await tryFetch('direct', url, { mode: 'cors' });
+  }
   // 2. allorigins
   if (!text) {
     text = await tryFetch('allorigins', `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
