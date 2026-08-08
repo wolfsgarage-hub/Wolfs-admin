@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="2.3">
-<title>WG Post Queue v2.3</title>
+<meta name="wg-version" content="2.5">
+<title>WG Post Queue v2.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -78,6 +78,23 @@
   footer { font-family:'Special Elite',monospace; text-align:center; color:#555; font-size:11px; padding:18px 10px 8px; }
   #status { text-align:center; color:var(--bone-dim); padding:30px 16px; font-size:14px; }
   .addbtn { display:block; width:calc(100% - 24px); margin:0 12px 10px; padding:11px; min-height:44px; background:var(--bg3); color:var(--bone-dim); border:1px dashed var(--line); border-radius:4px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+  /* v2.4: POST NOW. This is the only control on the page that can put something on a live
+     public account, so it is deliberately NOT the prettiest button on the card - black fill,
+     red hairline, its own full-width row away from the thumb path, and two taps. Copper stays
+     text and hairlines only; no new colour enters the palette.
+     v2.5: it now publishes for real, which makes the two taps load-bearing rather than
+     ceremonial. Nothing about the styling changes - the restraint was the point. */
+  .btn.now { display:block; width:calc(100% - 24px); margin:0 12px 10px; padding:14px 8px; min-height:50px; background:var(--bg); border:2px solid var(--red); border-radius:4px; color:var(--bone); font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:.14em; text-transform:uppercase; }
+  .btn.now:active { background:var(--red-dim); }
+  .nowpanel { display:none; margin:0 12px 10px; padding:12px; background:var(--bg3); border:1px solid var(--copper); border-radius:4px; }
+  .nowpanel.open { display:block; }
+  .nowpanel .nowhead { font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--copper); margin-bottom:7px; }
+  .nowpanel .nowcap { font-size:13.5px; line-height:1.5; color:var(--bone); white-space:pre-wrap; word-break:break-word; max-height:150px; overflow-y:auto; border-left:2px solid var(--red); padding-left:9px; margin-bottom:9px; }
+  .nowpanel .nowwarn { font-size:12px; line-height:1.45; color:var(--bone-dim); margin-bottom:10px; }
+  .nowpanel .nowrow { display:flex; gap:8px; flex-wrap:wrap; }
+  .nowlinks { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .nowlinks a { flex:1 1 45%; min-height:44px; padding:12px 6px; background:var(--bg2); border:1px solid var(--line); border-radius:4px; color:var(--copper); text-decoration:none; text-align:center; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
+  .nowlinks a:active { background:#000; }
   /* v1.9: MORE - REFRESH / START OVER is a direct child of .card, so .sbtn's flex:1 does
      nothing and it rendered flush against the card border. Match .addbtn's 12px inset. */
   .morebtn { display:block; width:calc(100% - 24px); margin:0 12px 10px; }
@@ -98,7 +115,7 @@
   <img src="assets/wolf-logo.png" alt="Wolf's Garage">
 </header>
 <div class="pinstripe"></div>
-<div class="sub">Tap a slide to edit its crop. Edit text in place. Nothing posts itself.</div>
+<div class="sub">Tap a slide to edit its crop. Edit text in place. POST NOW is the only button here that puts anything on Instagram.</div>
 <div id="status">Loading queue...</div>
 <div id="list"></div>
 <div id="emptyactive">Nothing waiting on you. The week builder fills the next open slot.</div>
@@ -117,10 +134,15 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/published collapsed into History; dead slots badged)");
+console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publish edge function; manual packet is now the fallback)");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
+  /* v2.5: the instant-publish leg. This URL is public on purpose and carries NO credential -
+     it is a door, not a key. The Zapier credential lives in Supabase function secrets, server
+     side, because this page is served from a PUBLIC repo over raw.githack. The function
+     authenticates callers with the same x-wg-token the proxy already uses for writes. */
+  var PUBLISH_FN_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/wg-ig-publish";
   var SUPABASE_ANON_KEY = "sb_publishable_6HlaADfe1rKI0qLuPLxEXg_LrpQR57u";
   var RAW_BASE = "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/";
   var QUEUE_PATH = "data/post-queue.json";
@@ -212,6 +234,30 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
           var e = new Error((data && (data.error || data.detail)) || ("HTTP " + r.status));
           e.status = r.status; throw e;
         }
+        return data;
+      });
+    });
+  }
+
+  /* v2.5: hand the draft id to the edge function and let IT decide. Deliberately dumb on this
+     side: the page sends an id, nothing else. Every judgement that matters - already published,
+     wrong status, clobbered queue, which pictures, which caption, and the location:"" that
+     carousels die without - is made server side against a fresh read of the live queue, because
+     a phone tab left open since yesterday cannot be trusted to know any of it. */
+  function callPublish(draftId) {
+    var wtok = getWriteTok();
+    if (!wtok) { return Promise.reject(new Error("no write token on this device")); }
+    return fetch(PUBLISH_FN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY,
+                 "Authorization": "Bearer " + SUPABASE_ANON_KEY, "x-wg-token": wtok },
+      body: JSON.stringify({ action: "publish", draft_id: draftId })
+    }).then(function (r) {
+      return r.json().catch(function () { return null; }).then(function (data) {
+        /* Every branch is decided on data.published / data.ok, never on the status code alone:
+           the one case that must not be mistaken for a plain failure (published but unmarked)
+           is deliberately returned as an HTTP 500 carrying published:true. */
+        if (!data) { throw new Error("HTTP " + r.status + " - unreadable reply from the publisher"); }
         return data;
       });
     });
@@ -682,6 +728,46 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
         var live = null;
         doc.drafts.forEach(function (x) { if (x && x.id === mine.id) { live = x; } });
         var liveLocked = isLocked(live);
+        /* v2.4 GATE P - the POST NOW double-post guard. Putting something on a live public
+           account is the one thing on this page that cannot be undone from this page, so the
+           decision is made against the FRESHLY-READ live entry and never against this tab's
+           copy. A phone left open since yesterday, a second tab, a publisher run that already
+           fired: all of them land here and are refused rather than posting twice. */
+        var isPostNow = !!(opts && opts.postNow);
+        var isMarkPosted = !!(opts && opts.markPosted);
+        if (isPostNow || isMarkPosted) {
+          if (!live) {
+            throw new Error(mine.id + " is not on the live queue any more - reload the page before posting.");
+          }
+          if (liveLocked) {
+            throw new Error(mine.id + " already went out"
+              + (live.published_at ? " at " + live.published_at : "")
+              + (live.ig_media_id ? " (ig " + live.ig_media_id + ")" : "")
+              + " - refusing to post it twice.");
+          }
+          if (live.status !== "pending_approval" && live.status !== "approved") {
+            throw new Error(mine.id + " reads \"" + live.status + "\" on the live queue, not waiting to go out. Reload the page.");
+          }
+        }
+        if (isPostNow) {
+          /* Same halt the machine publisher takes: publisher.save_queue refuses any doc with a
+             fixture_shape warning, and STEP 2.5 of both publish tasks publishes NOTHING when
+             the queue looks like test data. A clobbered queue is not a queue to post from. */
+          var badShape = queueIntegrity(doc).filter(function (wn) { return wn.indexOf("fixture_shape") === 0; });
+          if (badShape.length) {
+            throw new Error("the live queue failed its integrity check, so nothing goes out - " + badShape.join("; "));
+          }
+          var clash = [];
+          doc.drafts.forEach(function (x) {
+            if (!x || x.id === mine.id) { return; }
+            if ((x.status === "approved" || x.status === "published") && x.scheduled_slot === mine.scheduled_slot) {
+              clash.push(String(x.id));
+            }
+          });
+          if (clash.length) {
+            throw new Error("this minute is already booked by " + clash.join(", ") + " - wait a minute and tap again.");
+          }
+        }
         if (liveLocked && mine.status !== live.status) {
           throw new Error(mine.id + " is already on Instagram - its status is locked.");
         }
@@ -806,6 +892,10 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
   function persist(m, busyMsg, okMsg, onFail, opts) {
     if (blockIfNotReady(m)) { return Promise.resolve(); }
     m.busy = true;
+    /* v2.4: the only caller that needs to know whether the write actually landed is POST NOW
+       (it must not reveal the "now go post it" panel for a write Gate P refused). persist
+       swallows failures by design, so it records the outcome instead of throwing. */
+    m._lastWriteOk = false;
     if (m.els.card) { m.els.card.classList.add("busy"); }
     (m.els.inputs || []).forEach(function (el) { el.disabled = true; });
     setStat(m, busyMsg, "ok");
@@ -814,6 +904,7 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
       .then(function () { return saveQueueDoc(m, opts); })
       .then(function () {
         m.dirtyDoc = false;
+        m._lastWriteOk = true;
         m.els.save.textContent = "SAVED";
         /* v1.9: saveQueueDoc reports back through m._saveNote. `replace` means the write did
            not do what the button promised (locked entry), so the caller's cheerful okMsg must
@@ -911,6 +1002,133 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
   }
 
   function isLocked(x) { return !!(x && (x.published_at || x.ig_media_id || x.status === "published")); }
+
+  /* ---- v2.4: POST NOW ------------------------------------------------------------------
+     John, 2026-08-07: "there needs to be a post now button".
+
+     v2.4 shipped this as a queue-and-hand-off button, because at the time no publish endpoint
+     existed that a browser could reach. v2.5 built one: the `wg-ig-publish` Supabase edge
+     function in the awarewolf project. POST NOW now actually posts.
+
+     WHY IT IS SHAPED THIS WAY - read before "simplifying" it.
+     1. THE CREDENTIAL NEVER COMES HERE. This file is served from a PUBLIC GitHub repo over
+        raw.githack. A Zapier key, webhook URL, or Meta token in this page is public the
+        second it is committed. The secret lives in Supabase function secrets; this page
+        sends a draft id and the same x-wg-token the proxy writes already use.
+     2. THE FUNCTION DOES NOT TRUST THIS PAGE. It re-reads the live queue itself and refuses
+        anything already carrying published_at / ig_media_id, anything whose live status is
+        not pending_approval or approved, and any queue that fails the fixture-shape check.
+        Gate P below is a courtesy that saves a round trip - it is NOT the guard. A stale tab
+        can send whatever it likes and still gets refused.
+     3. STEP 1 IS STILL THE OLD BEHAVIOUR, ON PURPOSE. The draft is written approved + due
+        this minute BEFORE the publish is attempted, so if the publish leg fails in any way
+        the scheduled publisher still takes it. The manual packet is the third net under that.
+     4. THE TOKEN PUBLISHER IN wolfs-ops\src\publisher.py STAYS DISARMED. Zapier is the only
+        live leg. A second one is exactly how you double-post.
+
+     Nothing on this page marks a post published on a guess. The function writes published_at
+     only after Zapier hands back a real media id; MARK IT POSTED stays a separate deliberate
+     tap for the hand-posted case. A published_at written without a real post strands that
+     draft forever - every guard on this estate (isLocked here, due_posts and missed_posts in
+     publisher.py, stale_drafts in week_builder.py) keys off it. */
+  function photoSlides(d) {
+    return (d.slides || []).filter(function (s) { return s.kind === "photo"; });
+  }
+  /* the caption exactly as the publisher would build it: publisher.publish_instagram and
+     STEP 3 of both scheduled-task prompts append hashtags only when the caption has no "#" */
+  function fullCaption(d) {
+    var cap = d.caption || "", tags = d.hashtags || [];
+    if (tags.length && cap.indexOf("#") < 0) { cap = cap + "\n\n" + tags.join(" "); }
+    return cap;
+  }
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  function localParts() {
+    var t = new Date();
+    return { date: t.getFullYear() + "-" + pad2(t.getMonth() + 1) + "-" + pad2(t.getDate()),
+             hm: pad2(t.getHours()) + ":" + pad2(t.getMinutes()), s: pad2(t.getSeconds()) };
+  }
+  /* the shape publisher.parse_slot and week_builder.slot_key already read */
+  function nowSlot() { var p = localParts(); return p.date + "T" + p.hm + " America/Los_Angeles"; }
+  function localStamp() { var p = localParts(); return p.date + "T" + p.hm + ":" + p.s; }
+
+  /* JS mirror of queue_integrity in wolfs-ops\src\publisher.py (and queueIntegrity in
+     wolfs-estate-mcp\index.mjs, and STEP 2.5 of both publish tasks). Yes, that makes three
+     copies of one rule, which is a liability the ops code already calls out - it is here
+     anyway because POST NOW is the only control on this page that can reach a live account,
+     and it must refuse in the same cases the machine publisher refuses. Keep them in sync.
+     fixture_shape is the one that HALTS: it means the queue was overwritten with test data,
+     which is the 2026-07-24 clobber, and publishing it would post garbage to the real feed. */
+  function queueIntegrity(doc) {
+    var warns = [], bySlot = {};
+    (doc.drafts || []).forEach(function (d) {
+      if (!d) { return; }
+      if ((d.status === "approved" || d.status === "published") && d.scheduled_slot) {
+        (bySlot[d.scheduled_slot] = bySlot[d.scheduled_slot] || []).push(String(d.id));
+      }
+    });
+    Object.keys(bySlot).sort().forEach(function (k) {
+      if (bySlot[k].length > 1) { warns.push("slot_collision: " + k + " has " + bySlot[k].join(", ")); }
+    });
+    (doc.drafts || []).forEach(function (d) {
+      if (!d || !d.published_at) { return; }
+      var raw = String(d.published_at);
+      var t = new Date(raw.length <= 10 ? raw + "T00:00:00" : raw);
+      if (isNaN(t.getTime())) { warns.push("bad_published_at: " + d.id); }
+      else if (t.getTime() > Date.now()) { warns.push("future_published_at: " + d.id); }
+    });
+    (doc.drafts || []).forEach(function (d) {
+      if (!d || (d.status !== "approved" && d.status !== "pending_approval")) { return; }
+      var why = [];
+      if (!String(d.caption || "").trim()) { why.push("no caption"); }
+      if ((d.slides || []).some(function (s) { return String(s.file || "").indexOf("renders/") !== 0; })) {
+        why.push("slide outside renders/");
+      }
+      if (why.length) { warns.push("fixture_shape: " + d.id + " (" + why.join(" + ") + ")"); }
+    });
+    return warns;
+  }
+
+  function canPostNow(d) {
+    return !isLocked(d) && (d.status === "pending_approval" || d.status === "approved");
+  }
+
+  /* A draft sent with POST NOW is due THIS MINUTE by design, so slotPassed() would
+     immediately strike its date through and badge it "SLOT PASSED" - the opposite of the
+     truth. Inside the publisher's own miss grace (MISS_GRACE_HOURS in publisher.py, which
+     is also the band week_builder.stale_drafts waits out before it re-slots anything) that
+     date is live, not dead. Past the band it reads as passed again, because by then the
+     machine really has missed it and the week builder really will move it. */
+  var POST_NOW_GRACE_MIN = 120;
+  function postNowLive(d) {
+    if (!d.post_now_requested_at || isLocked(d)) { return false; }
+    if (d.status !== "approved" && d.status !== "pending_approval") { return false; }
+    var when = parseSlot(d);
+    if (!when) { return false; }
+    var age = (Date.now() - when.getTime()) / 60000;
+    return age >= 0 && age <= POST_NOW_GRACE_MIN;
+  }
+
+  function copyCaption(btn, text) {
+    var old = btn.textContent;
+    function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = old; }, 2000); }
+    function fallback() {
+      /* iOS Safari refuses navigator.clipboard outside a tight gesture window, and this can
+         run after an async write - so there is always a select-and-copy path underneath. */
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
+      document.body.appendChild(ta);
+      ta.select(); try { ta.setSelectionRange(0, text.length); } catch (e) {}
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e2) { ok = false; }
+      document.body.removeChild(ta);
+      done(ok ? "CAPTION COPIED" : "COPY FAILED - SELECT IT ABOVE");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done("CAPTION COPIED"); }, fallback);
+    } else { fallback(); }
+  }
+
   function canRework(d) {
     return !isLocked(d) && !slotTooClose(d) && (d.status === "pending_approval" || d.status === "fix" || d.status === "approved");
   }
@@ -932,6 +1150,7 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
      builder will not make. */
   function slotPassed(d) {
     if (isLocked(d)) { return false; }
+    if (postNowLive(d)) { return false; } /* v2.4: due-this-minute is not a dead date */
     if (d.status !== "pending_approval" && d.status !== "approved") { return false; }
     var when = parseSlot(d);
     return !!when && when.getTime() <= Date.now();
@@ -957,6 +1176,11 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
     var v = map[m.draft.status] || [m.draft.status, "pending"];
     m.els.chip.textContent = v[0];
     m.els.chip.className = "chip " + v[1];
+    /* v2.4: POST NOW changes the slot and the badges, not just the chip. refreshChip already
+       runs after every persist, every rollback and every rework, so hanging the new rows off
+       it means no caller has to remember them. */
+    if (m.els.metaBadges) { m.els.metaBadges(); }
+    if (m.els.nowRow) { m.els.nowRow(); }
   }
 
   /* ---- card build ---- */
@@ -971,25 +1195,40 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
     m.els.fmt = left;
     var chip = document.createElement("span"); chip.className = "chip"; m.els.chip = chip;
     var slot = document.createElement("span"); slot.className = "slot";
-    slot.textContent = ((d.scheduled_slot || d.target_slot) || "").replace(" America/Los_Angeles", " PT");
-    var dead = slotPassed(d);
-    if (dead) {
-      slot.className = "slot dead";
-      var sp = document.createElement("span"); sp.className = "chip stale";
-      sp.textContent = "SLOT PASSED - WILL BE RE-SLOTTED";
-      sp.title = "That day came and went. The week builder moves this to the next open slot on its next run. Nothing about the post changes.";
-      meta.appendChild(sp);
+    /* v2.4: POST NOW rewrites scheduled_slot, so the date line and the badges have to be
+       rebuildable rather than painted once at boot - otherwise the card goes on showing the
+       old day right after John sent it. left/slot/chip are kept in scope and re-appended, so
+       every element reference held elsewhere (m.els.chip) stays valid. */
+    function metaBadges() {
+      meta.innerHTML = "";
+      var dead = slotPassed(d), sentNow = postNowLive(d);
+      slot.textContent = ((d.scheduled_slot || d.target_slot) || "").replace(" America/Los_Angeles", " PT");
+      slot.className = dead ? "slot dead" : "slot";
+      if (sentNow) {
+        var pn = document.createElement("span"); pn.className = "chip stale";
+        pn.style.cssText = "border-color:#F5F1E8;color:#F5F1E8";
+        pn.textContent = "SENT WITH POST NOW - DUE THIS MINUTE";
+        pn.title = "You sent this from this page. It is approved and due now, so the next publisher run takes it. Post it by hand from the panel below if you want it up this minute.";
+        meta.appendChild(pn);
+      } else if (dead) {
+        var sp = document.createElement("span"); sp.className = "chip stale";
+        sp.textContent = "SLOT PASSED - WILL BE RE-SLOTTED";
+        sp.title = "That day came and went. The week builder moves this to the next open slot on its next run. Nothing about the post changes.";
+        meta.appendChild(sp);
+      }
+      /* the auto-post chip on a dead date reads as "this is still going out on that day",
+         which is exactly the lie the badge above exists to kill */
+      if (!dead && !sentNow && d.status === "approved" && d.scheduled_slot) {
+        var auto = document.createElement("span"); auto.className = "chip";
+        auto.style.cssText = "border-color:#C8922A;color:#C8922A";
+        auto.textContent = "AUTO-POSTS WHEN ARMED";
+        auto.title = "Publishes to Instagram at the slot once the publisher is armed. Until then the daily close nudges instead.";
+        meta.appendChild(auto);
+      }
+      meta.appendChild(left); meta.appendChild(slot); meta.appendChild(chip);
     }
-    /* the auto-post chip on a dead date reads as "this is still going out on that day",
-       which is exactly the lie the badge above exists to kill */
-    if (!dead && d.status === "approved" && d.scheduled_slot) {
-      var auto = document.createElement("span"); auto.className = "chip";
-      auto.style.cssText = "border-color:#C8922A;color:#C8922A";
-      auto.textContent = "AUTO-POSTS WHEN ARMED";
-      auto.title = "Publishes to Instagram at the slot once the publisher is armed. Until then the daily close nudges instead.";
-      meta.appendChild(auto);
-    }
-    meta.appendChild(left); meta.appendChild(slot); meta.appendChild(chip);
+    m.els.metaBadges = metaBadges;
+    metaBadges();
     card.appendChild(meta);
 
     var strip = document.createElement("div"); strip.className = "slides"; m.els.strip = strip;
@@ -1093,6 +1332,272 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
     actions.appendChild(save); actions.appendChild(post); actions.appendChild(fixb); actions.appendChild(kill); actions.appendChild(tk);
     card.appendChild(actions);
 
+    /* ---- v2.4: POST NOW - arm, confirm, then the manual packet ---- */
+    var nowBtn = document.createElement("button"); nowBtn.className = "btn now";
+    nowBtn.textContent = "POST NOW";
+    var nowConfirm = document.createElement("div"); nowConfirm.className = "nowpanel";
+    var nowPosting = document.createElement("div"); nowPosting.className = "nowpanel";
+    card.appendChild(nowBtn); card.appendChild(nowConfirm); card.appendChild(nowPosting);
+
+    /* TAP 1. Arms only - it opens the confirm and shows him what is about to go public.
+       A mis-tap here costs a second tap on NOT YET and nothing else. */
+    nowBtn.onclick = function () {
+      if (nowConfirm.className.indexOf("open") > -1) { nowConfirm.className = "nowpanel"; return; }
+      if (m.busy) { return; }
+      var photos = photoSlides(d);
+      if (!photos.length) {
+        setStat(m, "No pictures on this draft, so there is nothing to put on Instagram. Add one first.", "err");
+        return;
+      }
+      if (!String(d.caption || "").trim()) {
+        setStat(m, "No caption on this one. Write one first - a captionless post is refused further down the line anyway.", "err");
+        return;
+      }
+      if (m.dirtyDoc) {
+        setStat(m, "Unsaved edits ride along with this - the caption below is what goes out.", "ok");
+      }
+      /* one confirmation on screen at a time, same house rule as the kill/rework confirms */
+      reasons.className = "reasons"; refreshConfirm.className = "reasons"; overConfirm.className = "reasons";
+      nowConfirm.innerHTML = "";
+      var h = document.createElement("div"); h.className = "nowhead";
+      h.textContent = "POST TO INSTAGRAM - " + photos.length + (photos.length === 1 ? " PICTURE" : " PICTURES");
+      var cap = document.createElement("div"); cap.className = "nowcap";
+      cap.textContent = fullCaption(d);
+      var warn = document.createElement("div"); warn.className = "nowwarn";
+      warn.textContent = "Public and permanent. Read that caption, then tap again.";
+      var row = document.createElement("div"); row.className = "nowrow";
+      var yes = document.createElement("button"); yes.className = "sbtn";
+      yes.style.cssText = "flex:1;background:#CC0000;border-color:#CC0000;color:#F5F1E8";
+      yes.textContent = "YES - SEND IT NOW";
+      yes.onclick = function () { nowConfirm.className = "nowpanel"; doPostNow(m); };
+      var no = document.createElement("button"); no.className = "sbtn"; no.style.flex = "1";
+      no.textContent = "NOT YET";
+      no.onclick = function () { nowConfirm.className = "nowpanel"; };
+      row.appendChild(yes); row.appendChild(no);
+      nowConfirm.appendChild(h); nowConfirm.appendChild(cap); nowConfirm.appendChild(warn); nowConfirm.appendChild(row);
+      nowConfirm.className = "nowpanel open";
+    };
+
+    /* TAP 2. Approve + stamp the slot to this minute, through the same persist() every other
+       button uses - so it gets the busy lock, the dirty-slide upload, the fresh proxy re-read,
+       Gate A/B, and the full rollback on failure for free. Gate P (in saveQueueDoc) is the
+       extra double-post guard this path needs. */
+    function doPostNow(mm) {
+      var dd = mm.draft;
+      if (blockIfNotReady(mm)) { return; }
+      if (!canPostNow(dd)) {
+        setStat(mm, "This one is not waiting to go out any more - reload the page.", "err");
+        return;
+      }
+      var preSnap = snapshotDraft(mm);
+      dd.status = "approved";
+      dd.kill_reason = null; dd.fix_note = null;
+      dd.refill_requested = false;
+      dd.scheduled_slot = nowSlot();
+      dd.slot_why = "POST NOW - sent by hand from the queue page " + localStamp();
+      dd.post_now_requested_at = localStamp();
+      if (mm.els.refillRow) { mm.els.refillRow(); }
+      if (mm.els.reworkRow) { mm.els.reworkRow(); }
+      if (mm.els.dayMode) { mm.els.dayMode(); }
+      /* Step 1 stays exactly what v2.4 did: approve + stamp the slot to this minute through
+         persist(), so Gate P runs and the draft lands in a state the SCHEDULED publisher would
+         take anyway. That is the safety net - if every line below fails, the post is still
+         queued as due and nothing is lost. Step 2 then tries to do it right now. */
+      persist(mm, "Sending it now...",
+        "Queued as due this minute. Putting it on Instagram now...",
+        function () { restoreDraft(mm, preSnap); }, { postNow: true })
+        .then(function () { if (mm._lastWriteOk) { return sendToInstagram(mm); } });
+    }
+
+    /* v2.5: the real leg. Page -> wg-ig-publish edge function -> Zapier -> Instagram.
+       Four outcomes, and the difference between them matters more than anything else here:
+         published + marked   -> done, lock the card
+         published NOT marked -> IT IS PUBLIC and the queue does not know. Loudest state on
+                                 this page, because the scheduled publisher will post it AGAIN
+                                 unless MARK IT POSTED happens now.
+         refused              -> nothing went out; fall back to the v2.4 manual packet
+         no answer            -> we do not KNOW. Never assume either way: say so and send him
+                                 to look at Instagram before anything else happens. */
+    function sendToInstagram(mm) {
+      var dd = mm.draft;
+      mm.busy = true;
+      if (mm.els.card) { mm.els.card.classList.add("busy"); }
+      setStat(mm, "Putting it on Instagram...", "ok");
+      var outcome = null;
+      return callPublish(dd.id)
+        .then(function (res) {
+          if (res && res.ok && res.published) {
+            /* the function already wrote status/published_at/ig_media_id through the proxy -
+               mirror it locally so isLocked() locks this card without another round trip */
+            dd.status = "published";
+            dd.published_at = res.published_at || localStamp();
+            dd.ig_media_id = res.ig_media_id || null;
+            dd.published_via = res.published_via || "post-now-button";
+            mm.dirtyDoc = false;
+            outcome = { kind: "posted", res: res };
+            setStat(mm, "It's up on Instagram" + (res.ig_media_id ? " (id " + res.ig_media_id + ")" : "")
+              + ". Marked published, so nothing will post it again.", "ok");
+            return;
+          }
+          if (res && res.published) {
+            mm._orphan = res;               /* MARK IT POSTED will carry the real media id */
+            outcome = { kind: "orphan", res: res };
+            setStat(mm, "IT POSTED - but the queue did not update. Tap MARK IT POSTED now or it goes out twice.", "err");
+            return;
+          }
+          outcome = { kind: "refused", why: (res && res.error) || "the publisher refused it" };
+          setStat(mm, "Nothing went to Instagram: " + outcome.why, "err");
+        })
+        .catch(function (e) {
+          /* A dropped connection is NOT proof nothing posted - the request may have gone
+             through and the reply been lost. Refusing to guess is the whole point. */
+          outcome = { kind: "unknown", why: e.message };
+          setStat(mm, "Could not tell whether it posted: " + e.message, "err");
+        })
+        .then(function () {
+          mm.busy = false;
+          if (mm.els.card) { mm.els.card.classList.remove("busy"); }
+          if (mm.els.refillRow) { mm.els.refillRow(); }
+          if (mm.els.reworkRow) { mm.els.reworkRow(); }
+          if (mm.els.dayMode) { mm.els.dayMode(); }
+          if (mm.els.nowRow) { mm.els.nowRow(); }   /* clears the panels - render AFTER it */
+          refreshChip(mm);
+          if (!outcome) { return; }
+          if (outcome.kind === "posted") { showPosted(outcome.res); }
+          else if (outcome.kind === "orphan") { showOrphan(outcome.res); }
+          else if (outcome.kind === "unknown") { showUnknown(outcome.why); }
+          else { showPosting(outcome.why); }
+        });
+    }
+
+    /* It worked. Nothing left to do, so this panel only tells him and gets out of the way. */
+    function showPosted(res) {
+      nowPosting.innerHTML = "";
+      var h = document.createElement("div"); h.className = "nowhead"; h.textContent = "IT'S UP";
+      var w = document.createElement("div"); w.className = "nowwarn";
+      w.style.color = "#C8922A";
+      w.textContent = "Posted to Instagram" + (res && res.published_at ? " at " + res.published_at : "")
+        + (res && res.ig_media_id ? " (id " + res.ig_media_id + ")" : "")
+        + ". Marked published in the queue, so no publisher run will touch it again.";
+      nowPosting.appendChild(h); nowPosting.appendChild(w);
+      nowPosting.className = "nowpanel open";
+    }
+
+    /* The dangerous one. It is PUBLIC and the queue still reads approved-and-due, which is
+       exactly what the scheduled publisher looks for. Say so in the plainest words available
+       and put the one button that fixes it under his thumb. */
+    function showOrphan(res) {
+      nowPosting.innerHTML = "";
+      var h = document.createElement("div"); h.className = "nowhead";
+      h.style.color = "#CC0000";
+      h.textContent = "IT POSTED - BUT THE QUEUE DID NOT UPDATE";
+      var w = document.createElement("div"); w.className = "nowwarn";
+      w.style.cssText = "color:#CC0000;font-weight:700";
+      w.textContent = "It is on Instagram" + (res && res.ig_media_id ? " (id " + res.ig_media_id + ")" : "")
+        + ", but the queue still thinks it is waiting. Tap MARK IT POSTED right now - otherwise the"
+        + " next scheduled publisher run posts the same thing a second time. Do NOT tap POST NOW again.";
+      var row = document.createElement("div"); row.className = "nowrow";
+      var mark = document.createElement("button"); mark.className = "sbtn";
+      mark.style.cssText = "flex:1;background:#CC0000;border-color:#CC0000;color:#F5F1E8";
+      mark.textContent = "MARK IT POSTED";
+      mark.onclick = function () { doMarkPosted(m); };
+      row.appendChild(mark);
+      nowPosting.appendChild(h); nowPosting.appendChild(w); nowPosting.appendChild(row);
+      nowPosting.className = "nowpanel open";
+    }
+
+    /* We genuinely do not know. Never guess - looking takes him five seconds and guessing
+       wrong either double-posts or buries the draft alive. */
+    function showUnknown(why) {
+      nowPosting.innerHTML = "";
+      var h = document.createElement("div"); h.className = "nowhead";
+      h.style.color = "#CC0000";
+      h.textContent = "CHECK INSTAGRAM BEFORE YOU TAP ANYTHING";
+      var w = document.createElement("div"); w.className = "nowwarn";
+      w.style.cssText = "color:#CC0000;font-weight:700";
+      w.textContent = "The publisher never answered (" + why + "), so it is not known whether this went out."
+        + " Open Instagram and look. If it IS there, tap MARK IT POSTED. If it is NOT, tap POST NOW again.";
+      var row = document.createElement("div"); row.className = "nowrow";
+      var mark = document.createElement("button"); mark.className = "sbtn warn"; mark.style.flex = "1";
+      mark.textContent = "IT'S THERE - MARK IT POSTED";
+      mark.onclick = function () { doMarkPosted(m); };
+      row.appendChild(mark);
+      nowPosting.appendChild(h); nowPosting.appendChild(w); nowPosting.appendChild(row);
+      nowPosting.className = "nowpanel open";
+    }
+
+    /* The manual packet: the same thing publisher.packet() hands the daily close and the same
+       fallback both scheduled tasks use when Zapier is out of reach. Picture, caption, and the
+       one honest way to close the loop afterwards. */
+    function showPosting(why) {
+      nowPosting.innerHTML = "";
+      var photos = photoSlides(d);
+      var h = document.createElement("div"); h.className = "nowhead"; h.textContent = "PUT IT UP BY HAND";
+      var w = document.createElement("div"); w.className = "nowwarn";
+      /* v2.5: this is the FALLBACK now, not the main road. Lead with why the automatic leg
+         did not take it, because "nothing happened" with no reason is how a post quietly
+         misses its day. The draft is still queued as due, so the scheduled run is the other
+         safety net underneath this one. */
+      w.textContent = (why ? "Nothing went out automatically: " + why + " " : "")
+        + "It is still queued as due, so the next scheduled publisher run will take it. Want it up sooner? Save each picture, copy the caption, post it in the Instagram app. Then tap MARK IT POSTED so nothing posts it twice.";
+      var links = document.createElement("div"); links.className = "nowlinks";
+      photos.forEach(function (s, i) {
+        var a = document.createElement("a");
+        a.href = RAW_BASE + s.file;
+        a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.textContent = photos.length > 1 ? ("PICTURE " + (i + 1)) : "OPEN THE PICTURE";
+        links.appendChild(a);
+      });
+      var row = document.createElement("div"); row.className = "nowrow";
+      var copy = document.createElement("button"); copy.className = "sbtn";
+      copy.style.cssText = "flex:1;border-color:#C8922A;color:#C8922A";
+      copy.textContent = "COPY THE CAPTION";
+      copy.onclick = function () { copyCaption(copy, fullCaption(d)); };
+      var mark = document.createElement("button"); mark.className = "sbtn warn"; mark.style.flex = "1";
+      mark.textContent = "MARK IT POSTED";
+      mark.onclick = function () { doMarkPosted(m); };
+      row.appendChild(copy); row.appendChild(mark);
+      nowPosting.appendChild(h); nowPosting.appendChild(w); nowPosting.appendChild(links); nowPosting.appendChild(row);
+      nowPosting.className = "nowpanel open";
+    }
+
+    /* Deliberately its own tap and never automatic: published_at is the estate's universal
+       "this is on Instagram" flag, and writing it without a real post buries the draft alive. */
+    function doMarkPosted(mm) {
+      var dd = mm.draft;
+      if (blockIfNotReady(mm)) { return; }
+      if (isLocked(dd)) { setStat(mm, "Already marked posted - nothing to do.", "err"); return; }
+      var preSnap = snapshotDraft(mm);
+      dd.status = "published";
+      dd.published_at = localStamp();
+      dd.published_via = "post-now-manual"; /* no ig_media_id: this page never saw one */
+      /* v2.5: unless the publisher DID hand us one and only the queue write failed. Keeping
+         the real media id is what lets anyone later prove which post this was. */
+      if (mm._orphan) {
+        if (mm._orphan.ig_media_id) { dd.ig_media_id = mm._orphan.ig_media_id; }
+        if (mm._orphan.published_at) { dd.published_at = mm._orphan.published_at; }
+        dd.published_via = "post-now-button-unmarked";
+      }
+      if (mm.els.refillRow) { mm.els.refillRow(); }
+      if (mm.els.reworkRow) { mm.els.reworkRow(); }
+      if (mm.els.dayMode) { mm.els.dayMode(); }
+      persist(mm, "Marking it posted...",
+        "Marked posted. Nothing will post it again. It drops into History on the next reload.",
+        function () { restoreDraft(mm, preSnap); }, { markPosted: true })
+        .then(function () { if (mm._lastWriteOk) { nowPosting.className = "nowpanel"; } });
+    }
+
+    function nowRow() {
+      /* One rule for all three pieces: the moment this draft stops being something that could
+         go out - marked posted, killed, sent to the redo pile - the button and both panels go
+         with it. Leaving "MARK IT POSTED" sitting under a killed draft is how a dead post gets
+         stamped published. */
+      var can = canPostNow(d);
+      nowBtn.style.display = can ? "" : "none";
+      if (!can) { nowConfirm.className = "nowpanel"; nowPosting.className = "nowpanel"; }
+    }
+    m.els.nowRow = nowRow;
+
     var reasons = document.createElement("div"); reasons.className = "reasons";
     ["WRONG PHOTO", "WEAK CAPTION", "OFF-BRAND", "OTHER"].forEach(function (rz) {
       var b = document.createElement("button"); b.className = "sbtn warn"; b.textContent = rz;
@@ -1125,7 +1630,10 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
     });
     kill.onclick = function () {
       reasons.className = reasons.className === "reasons open" ? "reasons" : "reasons open";
-      if (reasons.className === "reasons open") { overConfirm.className = "reasons"; refreshConfirm.className = "reasons"; } /* one confirmation on screen at a time */
+      /* one confirmation on screen at a time - v2.4 adds the POST NOW confirm to that rule,
+         because leaving an armed POST NOW open underneath a kill row is the exact setup for
+         a mis-tap onto the wrong red button. */
+      if (reasons.className === "reasons open") { overConfirm.className = "reasons"; refreshConfirm.className = "reasons"; nowConfirm.className = "nowpanel"; }
     };
     card.appendChild(reasons);
 
@@ -1138,7 +1646,7 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
     moreBtn.onclick = function () {
       rework.className = rework.className === "reasons open" ? "reasons" : "reasons open";
       overConfirm.className = "reasons"; refreshConfirm.className = "reasons";
-      if (rework.className === "reasons open") { reasons.className = "reasons"; }
+      if (rework.className === "reasons open") { reasons.className = "reasons"; nowConfirm.className = "nowpanel"; }
     };
     card.appendChild(moreBtn);
 
@@ -1150,14 +1658,14 @@ console.log("WG post-queue v2.3 (aspect-aware thin-frame renders; killed/publish
          busy-lock until persist() finally ran. Now gated behind the same two-tap confirm
          START OVER already used. */
       refreshConfirm.className = refreshConfirm.className === "reasons open" ? "reasons" : "reasons open";
-      if (refreshConfirm.className === "reasons open") { overConfirm.className = "reasons"; reasons.className = "reasons"; }
+      if (refreshConfirm.className === "reasons open") { overConfirm.className = "reasons"; reasons.className = "reasons"; nowConfirm.className = "nowpanel"; }
     };
     var startOverBtn = document.createElement("button"); startOverBtn.className = "sbtn warn";
     startOverBtn.textContent = "START OVER";
     startOverBtn.onclick = function () {
       overConfirm.className = overConfirm.className === "reasons open" ? "reasons" : "reasons open";
       if (overConfirm.className === "reasons open") {
-        reasons.className = "reasons"; refreshConfirm.className = "reasons"; /* one confirmation on screen at a time */
+        reasons.className = "reasons"; refreshConfirm.className = "reasons"; nowConfirm.className = "nowpanel"; /* one confirmation on screen at a time */
         overYes.textContent = "YES - REBUILD " + (refillDayName(d) || "THIS SLOT").toUpperCase();
       }
     };
