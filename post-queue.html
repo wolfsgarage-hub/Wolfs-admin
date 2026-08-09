@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="2.5">
-<title>WG Post Queue v2.5</title>
+<meta name="wg-version" content="2.6">
+<title>WG Post Queue v2.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -134,7 +134,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publish edge function; manual packet is now the fallback)");
+console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves never taint; visible LOADING / TAP TO RETRY states instead of silent black cards; progressive paint)");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -442,7 +442,7 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
     normalizeFormat(m);
     m.sel = arr.indexOf(s);
     rebuildStrip(m); buildPanel(m);
-    loadImage(s.source_file + "?v=" + poolBust()).then(function (img) {
+    loadImage(sourceURL(s) + "?v=" + poolBust()).then(function (img) {
       s._img = img; markPixelsDirty(s); markDirty(m); repaint(m); buildPanel(m);
     }).catch(function () {
       var selObj = m.sel >= 0 ? arr[m.sel] : null;
@@ -454,13 +454,50 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
     });
   }
 
+  /* v2.6: sources load ABSOLUTE from raw.githubusercontent with crossOrigin, not relative
+     through the githack origin. Two bugs in one: (1) githack redirects the relative fetch
+     cross-origin, which TAINTED every canvas - toDataURL in the save path then throws
+     SecurityError, so crop-edit saves died silently; (2) raw.gh sends ACAO:* so with
+     crossOrigin="anonymous" the canvas stays clean and saves work. */
+  function sourceURL(s) {
+    var p = s.source_file || "";
+    return /^https?:/i.test(p) ? p : RAW_BASE + p;
+  }
   function loadImage(src) {
     return new Promise(function (resolve, reject) {
       var img = new Image();
+      img.crossOrigin = "anonymous";
       img.onload = function () { resolve(img); };
       img.onerror = function () { reject(new Error("image load failed: " + src)); };
       img.src = src;
     });
+  }
+  /* v2.6: a slow or failed load used to leave a permanently BLACK canvas with nothing but a
+     console.log - on the phone that reads as "the queue ate my picture" (John, 8/8, screenshot
+     of a black card). Load now paints its state on the canvas: LOADING while in flight, one
+     silent auto-retry with a fresh cache-buster, then TAP TO RETRY painted on the card. */
+  function paintCanvasNote(cv, lines) {
+    var ctx = cv.getContext("2d");
+    ctx.fillStyle = BLACK; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = BONE; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = Math.round(cv.width / 24) + "px Oswald, Arial, sans-serif";
+    for (var i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], cv.width / 2, cv.height / 2 + (i - (lines.length - 1) / 2) * Math.round(cv.width / 16));
+    }
+  }
+  function loadSlideImage(m, s) {
+    if (s.kind !== "photo" || s._img || s._loading || !s.source_file) { return; }
+    s._loading = true; s._loadFailed = false;
+    if (s._canvas) { paintCanvasNote(s._canvas, ["LOADING PICTURE..."]); }
+    var attempt = function (bust) { return loadImage(sourceURL(s) + "?v=" + bust); };
+    attempt(poolBust())
+      .catch(function () { return attempt("retry-" + poolBust()); })
+      .then(function (img) { s._img = img; s._loading = false; repaint(m); })
+      .catch(function (e) {
+        s._loading = false; s._loadFailed = true;
+        if (s._canvas) { paintCanvasNote(s._canvas, ["PICTURE DIDN'T LOAD", "TAP TO RETRY"]); }
+        console.log("WG post-queue: " + e.message);
+      });
   }
 
   /* ---- per-draft UI ---- */
@@ -501,12 +538,21 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
         var g = geo(m.draft);
         el.width = g.W; el.height = g.H;
         s._canvas = el;
+        /* v2.6: setting width/height just wiped the canvas - never leave it silently black.
+           repaint() at the end of this function redraws loaded slides; the rest say why. */
+        if (!s._img) {
+          paintCanvasNote(el, s._loadFailed ? ["PICTURE DIDN'T LOAD", "TAP TO RETRY"] : ["LOADING PICTURE..."]);
+        }
       } else {
         el = document.createElement("img");
         el.src = s.file; el.loading = "lazy"; el.alt = "brand card";
       }
       el.className = (m.sel === i && s.kind === "photo") ? "sel" : "";
-      el.onclick = function () { if (blockIfNotReady(m)) { return; } m.sel = (m.sel === i ? -1 : i); rebuildStrip(m); buildPanel(m); };
+      el.onclick = function () {
+        if (blockIfNotReady(m)) { return; }
+        if (s.kind === "photo" && s._loadFailed && !s._img) { loadSlideImage(m, s); return; } /* v2.6: tap = retry */
+        m.sel = (m.sel === i ? -1 : i); rebuildStrip(m); buildPanel(m);
+      };
       strip.appendChild(el);
     });
     repaint(m);
@@ -582,7 +628,7 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
   /* ---- persistence ---- */
   function serializeDraft(m) {
     var d = JSON.parse(JSON.stringify(m.draft, function (k, v) {
-      return (k === "_dirtyPixels" || k === "_img" || k === "_canvas" || k === "_loadFailed") ? undefined : v;
+      return (k === "_dirtyPixels" || k === "_img" || k === "_canvas" || k === "_loadFailed" || k === "_loading") ? undefined : v;
     }));
     return d;
   }
@@ -683,12 +729,7 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
          only on the live entry - John swapped the photo locally, the queue still holds the
          original - comes back with no _img and paints an empty canvas. Load whatever is still
          missing the same way boot does, then repaint as each one arrives. */
-      m.draft.slides.forEach(function (s) {
-        if (s.kind !== "photo" || s._img || !s.source_file) { return; }
-        loadImage(s.source_file + "?v=" + poolBust())
-          .then(function (img) { s._img = img; repaint(m); })
-          .catch(function (e) { s._loadFailed = true; console.log("WG post-queue: resync source missing, slide stays un-editable: " + e.message); });
-      });
+      m.draft.slides.forEach(function (s) { loadSlideImage(m, s); });
       return true;
     } catch (e) {
       console.log("WG post-queue: resync after a locked write failed: " + ((e && e.message) || e));
@@ -1766,7 +1807,7 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
       }
 
       Promise.all(dd.slides.filter(isPhoto).map(function (s) {
-        return loadImage(s.source_file + "?v=" + poolBust())
+        return loadImage(sourceURL(s) + "?v=" + poolBust())
           .then(function (img) { s._img = img; markPixelsDirty(s); })
           .catch(function () { s._loadFailed = true; });
       })).then(function () {
@@ -2003,7 +2044,9 @@ console.log("WG post-queue v2.5 (POST NOW publishes for real via the wg-ig-publi
         models.forEach(function (m) {
           m.draft.slides.forEach(function (s) {
             if (s.kind !== "photo") { return; }
-            loads.push(loadImage(s.source_file + "?v=1").then(function (img) { s._img = img; }).catch(function (e) { s._loadFailed = true; console.log("source missing, slide stays un-editable: " + e.message); }));
+            /* v2.6: progressive - each card paints as its picture arrives instead of the
+               whole page waiting on the slowest fetch, and failures show on the card. */
+            loadSlideImage(m, s);
           });
         });
         return Promise.all(loads);
