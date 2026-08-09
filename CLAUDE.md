@@ -42,7 +42,7 @@ Any file with `<script type="module">`: extract the module body to a `.mjs`, run
 
 - **Vercel only.** Never suggest Netlify or GitHub Pages.
 - `Wolfs-admin` serves via `raw.githack.com` — after a push give a cache-busted URL (`?v=N`) and note ~60s CDN delay.
-- Supabase function URLs are NOT reachable from the sandbox — deploy those via a standalone deployer HTML John opens in Chrome.
+- Supabase edge functions **deploy and are callable directly through the Supabase MCP** (`deploy_edge_function`) — verified 2026-08-07 deploying `wg-ig-publish` to `awarewolf` and exercising its auth, CORS and guard paths from the sandbox. The old deployer-HTML workaround is retired; do not build one. **The one exception is secrets:** the MCP has no secrets tool, so function secrets still need John in the Supabase dashboard.
 
 **Git push pattern (agent pushes; John never touches GitHub):**
 ```bash
