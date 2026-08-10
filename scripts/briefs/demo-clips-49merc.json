@@ -1,0 +1,70 @@
+{
+  "version": 2,
+  "_note": "DEMO A - clips line. Source: John's phone clip of the Staleto '49 Merc lead sled, Portland Transmission show. Every clip in temp/reel-source plays back 1920x1080 LANDSCAPE, so fit:contain with crop_to 1.0 squares it off at native resolution - a 1080x1080 window at 1:1 scale, zero upscale, sitting on the brand black field.",
+  "frame": "thin",
+  "poster_at": 1.2,
+  "segments": [
+    {
+      "kind": "clip",
+      "src": "temp/reel-source/video-1779656684930.mp4",
+      "trim": { "in": 2.6, "out": 5.6 },
+      "fit": "contain",
+      "crop_to": 1.0,
+      "backdrop": "black",
+      "place_y": 0.3,
+      "crop": { "focus_x": 0.52, "focus_y": 0.5 },
+      "overlays": [
+        {
+          "text": "A GOOD CHOP",
+          "position": "lower",
+          "start": 0.35,
+          "hold": 2.4,
+          "size": "large",
+          "style": "primary",
+          "font": "bebas"
+        }
+      ]
+    },
+    {
+      "kind": "clip",
+      "src": "temp/reel-source/video-1779656684930.mp4",
+      "trim": { "in": 6.6, "out": 9.4 },
+      "fit": "contain",
+      "crop_to": 1.0,
+      "backdrop": "black",
+      "place_y": 0.3,
+      "crop": { "focus_x": 0.2, "focus_y": 0.5 },
+      "transition_in": { "type": "whip_left", "duration": 0.22 }
+    },
+    {
+      "kind": "clip",
+      "src": "temp/reel-source/video-1779656684930.mp4",
+      "trim": { "in": 10.8, "out": 13.8 },
+      "fit": "contain",
+      "crop_to": 1.0,
+      "backdrop": "black",
+      "place_y": 0.3,
+      "crop": { "focus_x": 0.65, "focus_y": 0.5 },
+      "transition_in": { "type": "crossfade", "duration": 0.4 },
+      "overlays": [
+        {
+          "text": "DOESN'T ANNOUNCE ITSELF.",
+          "position": "lower",
+          "start": 0.5,
+          "hold": 2.3,
+          "size": "large",
+          "style": "primary",
+          "font": "bebas"
+        }
+      ]
+    }
+  ],
+  "end_card": {
+    "duration": 2.4,
+    "logo": "assets/wolf-logo.png",
+    "primary_text": "WOLF'S GARAGE",
+    "subtitle": "PORTLAND, OREGON",
+    "footer": "GET BACK IN THE GARAGE.",
+    "transition_in": { "type": "crossfade", "duration": 0.5 }
+  }
+}

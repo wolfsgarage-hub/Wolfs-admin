@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "_note": "DEMO B - motion-on-stills line. Three 16320x7532 panoramas from ONE shoot (2026-07-11, same show) pulled from the media index by asset id. Every window samples 3400-4000px of real source width to fill 1080, so nothing is upscaled. Each still declares a subject box, and the renderer refuses the motion if any keyframe would decapitate the truck or pan off it.",
+  "frame": "thin",
+  "poster_at": 1.0,
+  "segments": [
+    {
+      "kind": "still",
+      "asset": "20260711_151337.jpg",
+      "duration": 3.4,
+      "_motion_why": "lateral pan ALONG the pair - red GMC to the black one. A 9:16 window on a 16320px pano only ever holds 26% of the width, so the pan is the only way to show both trucks; a static frame here was a grille detail pretending to be an establishing shot.",
+      "motion": {
+        "from": { "zoom": 1.4, "focus_x": 0.218, "focus_y": 0.35 },
+        "to": { "zoom": 1.4, "focus_x": 0.69, "focus_y": 0.35 },
+        "easing": "ease"
+      },
+      "subject": { "x0": 0.09, "y0": 0.14, "x1": 0.86, "y1": 0.69 },
+      "overlays": [
+        {
+          "text": "A TRUCK THIS LOW",
+          "position": "lower",
+          "start": 0.4,
+          "hold": 2.4,
+          "size": "large",
+          "style": "primary",
+          "font": "bebas"
+        }
+      ]
+    },
+    {
+      "kind": "still",
+      "asset": "20260711_153341.jpg",
+      "duration": 3.6,
+      "_motion_why": "push in and drift onto the grille and the red steelie. Deliberately NOT another pan - three lateral moves in a row reads like a screensaver.",
+      "motion": {
+        "from": { "zoom": 1.05, "focus_x": 0.497, "focus_y": 0.5 },
+        "to": { "zoom": 1.35, "focus_x": 0.277, "focus_y": 0.35 },
+        "easing": "ease"
+      },
+      "subject": { "x0": 0.239, "y0": 0.157, "x1": 0.757, "y1": 0.747 },
+      "transition_in": { "type": "whip_left", "duration": 0.22 }
+    },
+    {
+      "kind": "still",
+      "asset": "20260711_171808.jpg",
+      "duration": 3.6,
+      "motion": {
+        "from": { "zoom": 1.25, "focus_x": 0.68, "focus_y": 0.55 },
+        "to": { "zoom": 1.05, "focus_x": 0.33, "focus_y": 0.5 },
+        "easing": "ease"
+      },
+      "subject": { "x0": 0.247, "y0": 0.35, "x1": 0.761, "y1": 0.79 },
+      "transition_in": { "type": "crossfade", "duration": 0.4 },
+      "overlays": [
+        {
+          "text": "HAS NOWHERE TO HIDE.",
+          "position": "lower",
+          "start": 0.6,
+          "hold": 2.6,
+          "size": "large",
+          "style": "primary",
+          "font": "bebas"
+        }
+      ]
+    }
+  ],
+  "end_card": {
+    "duration": 2.4,
+    "logo": "assets/wolf-logo.png",
+    "primary_text": "WOLF'S GARAGE",
+    "subtitle": "PORTLAND, OREGON",
+    "footer": "GET BACK IN THE GARAGE.",
+    "transition_in": { "type": "crossfade", "duration": 0.5 }
+  }
+}

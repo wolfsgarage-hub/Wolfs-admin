@@ -1,0 +1,323 @@
+{
+  "version": 3,
+  "updated": "2026-08-09T00:00:00+00:00",
+  "note": "DEMO DATA - NOT THE LIVE QUEUE. Lives only on the reels-v27 branch and is loaded only by post-queue.html?preview_queue=1, read-only. Two format:\"reel\" drafts (schema v3 + the v2.7 reel extension: aspect \"reel_9x16\", a \"video\" object instead of photo slides, and the \"segments\" spec the mp4 was rendered from) plus one real photo draft copied from main so both card types show side by side. Nothing here is slotted, approved, or publishable. Media paths are RELATIVE on purpose: preview mode resolves them against the branch serving the page, so no branch URL is baked into this file.",
+  "drafts": [
+    {
+      "id": "wgreel-20260809-01",
+      "created": "2026-08-09",
+      "status": "pending_approval",
+      "format": "reel",
+      "aspect": "reel_9x16",
+      "frame": "thin",
+      "angle": "motion-on-stills: three slammed pickups from one 2026-07-11 show",
+      "hook": "A TRUCK THIS LOW",
+      "caption": "Three trucks on the same grass and not one of them sitting up. The white one wears Hack Shop lettering and earns it. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#c10",
+        "#slammed",
+        "#pnwtrucks",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "video": {
+        "file": "renders/reels/wgreel-20260809-01/reel.mp4",
+        "poster": "renders/reels/wgreel-20260809-01/poster.jpg",
+        "duration": 11.9,
+        "w": 1080,
+        "h": 1920,
+        "fps": 30,
+        "brief": "scripts/briefs/demo-stills-patina-row.json",
+        "renderer": "scripts/render_reel.py v2"
+      },
+      "slides": [],
+      "segments": [
+        {
+          "kind": "still",
+          "asset": "20260711_151337.jpg",
+          "duration": 3.4,
+          "_motion_why": "lateral pan ALONG the pair - red GMC to the black one. A 9:16 window on a 16320px pano only ever holds 26% of the width, so the pan is the only way to show both trucks; a static frame here was a grille detail pretending to be an establishing shot.",
+          "motion": {
+            "from": {
+              "zoom": 1.4,
+              "focus_x": 0.218,
+              "focus_y": 0.35
+            },
+            "to": {
+              "zoom": 1.4,
+              "focus_x": 0.69,
+              "focus_y": 0.35
+            },
+            "easing": "ease"
+          },
+          "subject": {
+            "x0": 0.09,
+            "y0": 0.14,
+            "x1": 0.86,
+            "y1": 0.69
+          },
+          "overlays": [
+            {
+              "text": "A TRUCK THIS LOW",
+              "position": "lower",
+              "start": 0.4,
+              "hold": 2.4,
+              "size": "large",
+              "style": "primary",
+              "font": "bebas"
+            }
+          ]
+        },
+        {
+          "kind": "still",
+          "asset": "20260711_153341.jpg",
+          "duration": 3.6,
+          "_motion_why": "push in and drift onto the grille and the red steelie. Deliberately NOT another pan - three lateral moves in a row reads like a screensaver.",
+          "motion": {
+            "from": {
+              "zoom": 1.05,
+              "focus_x": 0.497,
+              "focus_y": 0.5
+            },
+            "to": {
+              "zoom": 1.35,
+              "focus_x": 0.277,
+              "focus_y": 0.35
+            },
+            "easing": "ease"
+          },
+          "subject": {
+            "x0": 0.239,
+            "y0": 0.157,
+            "x1": 0.757,
+            "y1": 0.747
+          },
+          "transition_in": {
+            "type": "whip_left",
+            "duration": 0.22
+          }
+        },
+        {
+          "kind": "still",
+          "asset": "20260711_171808.jpg",
+          "duration": 3.6,
+          "motion": {
+            "from": {
+              "zoom": 1.25,
+              "focus_x": 0.68,
+              "focus_y": 0.55
+            },
+            "to": {
+              "zoom": 1.05,
+              "focus_x": 0.33,
+              "focus_y": 0.5
+            },
+            "easing": "ease"
+          },
+          "subject": {
+            "x0": 0.247,
+            "y0": 0.35,
+            "x1": 0.761,
+            "y1": 0.79
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration": 0.4
+          },
+          "overlays": [
+            {
+              "text": "HAS NOWHERE TO HIDE.",
+              "position": "lower",
+              "start": 0.6,
+              "hold": 2.6,
+              "size": "large",
+              "style": "primary",
+              "font": "bebas"
+            }
+          ]
+        }
+      ],
+      "target_slot": "2026-08-12 18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram"
+      ],
+      "flags": [
+        "Reel publish leg is NOT wired yet - APPROVE and POST NOW are held shut on this card by design."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "demo draft - never slotted, never published"
+    },
+    {
+      "id": "wgreel-20260809-02",
+      "created": "2026-08-09",
+      "status": "pending_approval",
+      "format": "reel",
+      "aspect": "reel_9x16",
+      "frame": "thin",
+      "angle": "clips: walk-around of a chopped '49 Merc lead sled",
+      "hook": "A GOOD CHOP",
+      "caption": "A chop this clean stops looking like a modification. Stiletto Kustom's '49 Merc, shot back in the spring at Portland Transmission. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#leadsled",
+        "#kustomkulture",
+        "#49mercury",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "video": {
+        "file": "renders/reels/wgreel-20260809-02/reel.mp4",
+        "poster": "renders/reels/wgreel-20260809-02/poster.jpg",
+        "duration": 10.1,
+        "w": 1080,
+        "h": 1920,
+        "fps": 30,
+        "brief": "scripts/briefs/demo-clips-49merc.json",
+        "renderer": "scripts/render_reel.py v2"
+      },
+      "slides": [],
+      "segments": [
+        {
+          "kind": "clip",
+          "src": "temp/reel-source/video-1779656684930.mp4",
+          "trim": {
+            "in": 2.6,
+            "out": 5.6
+          },
+          "fit": "contain",
+          "crop_to": 1.0,
+          "backdrop": "black",
+          "place_y": 0.3,
+          "crop": {
+            "focus_x": 0.52,
+            "focus_y": 0.5
+          },
+          "overlays": [
+            {
+              "text": "A GOOD CHOP",
+              "position": "lower",
+              "start": 0.35,
+              "hold": 2.4,
+              "size": "large",
+              "style": "primary",
+              "font": "bebas"
+            }
+          ]
+        },
+        {
+          "kind": "clip",
+          "src": "temp/reel-source/video-1779656684930.mp4",
+          "trim": {
+            "in": 6.6,
+            "out": 9.4
+          },
+          "fit": "contain",
+          "crop_to": 1.0,
+          "backdrop": "black",
+          "place_y": 0.3,
+          "crop": {
+            "focus_x": 0.2,
+            "focus_y": 0.5
+          },
+          "transition_in": {
+            "type": "whip_left",
+            "duration": 0.22
+          }
+        },
+        {
+          "kind": "clip",
+          "src": "temp/reel-source/video-1779656684930.mp4",
+          "trim": {
+            "in": 10.8,
+            "out": 13.8
+          },
+          "fit": "contain",
+          "crop_to": 1.0,
+          "backdrop": "black",
+          "place_y": 0.3,
+          "crop": {
+            "focus_x": 0.65,
+            "focus_y": 0.5
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration": 0.4
+          },
+          "overlays": [
+            {
+              "text": "DOESN'T ANNOUNCE ITSELF.",
+              "position": "lower",
+              "start": 0.5,
+              "hold": 2.3,
+              "size": "large",
+              "style": "primary",
+              "font": "bebas"
+            }
+          ]
+        }
+      ],
+      "target_slot": "2026-08-14 15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram"
+      ],
+      "flags": [
+        "Reel publish leg is NOT wired yet - APPROVE and POST NOW are held shut on this card by design."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "demo draft - never slotted, never published"
+    },
+    {
+      "id": "wgpost-20260809-01",
+      "created": "2026-08-09",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "red 1959 Chevrolet, dual cat-eye taillights + tailfin curve + chrome beltline trim, low three-quarter rear detail",
+      "hook": null,
+      "caption": "From last fall, and those cat-eye tails are worth walking around the car for. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#59chevy",
+        "#cateyetails",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260809-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260809-01/slide-1.jpg",
+          "source_asset": "20250924_180554.jpg",
+          "source_file": "renders/posts/_sources/20250924_180554.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.762,
+            "zoom": 1.0,
+            "why": "cat-eye dual round taillights, tailfin curve, and chrome beltline trim on the red '59 Chevy, low three-quarter angle. Keeps full width and 58% height - trims the empty sky above the roofline and the toy-figure reflection at the very base of the bumper."
+          }
+        }
+      ],
+      "target_slot": "2026-08-11 18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "REFILL for Tue 8/11 18:30, replacing wgpost-20260727-01 (Rose City Round-Up recap, kill_reason: start over). Per John 2026-08-08 (\"i will not approve the roundup carosel... months late\"), this is a wholly different subject/shoot/angle, not a re-crop or re-caption of the Round-Up material.",
+        "PHOTO AGE LAW: source shot 2025-09-24, ~10.5 months before this slot (2026-08-11) - 4-12 month bucket, disclosed in-sentence (\"From last fall\").",
+        "Small non-focal bystanders visible: two distant figures near a car in the upper-right background, plus a faint reflected person in the car window upper-left. Neither close-up nor identifiable. wg-brand-reviewer PASSED and flagged this as NEEDS-EYES only.",
+        "Model not claimed as El Camino/wagon in the caption - nearby shots from the same shoot minute are tagged El Camino in the media index, but this crop alone does not show enough of the body to verify against the terminology trap, so the caption stays on the taillights/trim, not the model name."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-08-11T18:30 America/Los_Angeles",
+      "slot_why": "week builder REFILL: Tue 18:30 - cold-start table, evening (replaces wgpost-20260727-01, killed: start over)",
+      "aspect": "portrait",
+      "frame": "thin",
+      "refill_requested": false
+    }
+  ]
+}

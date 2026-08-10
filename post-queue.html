@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="2.6">
-<title>WG Post Queue v2.6</title>
+<meta name="wg-version" content="2.7">
+<title>WG Post Queue v2.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -45,6 +45,24 @@
   @media (min-width: 1024px) {
     .slides canvas, .slides img { width:41%; flex:0 0 41%; }
   }
+  /* v2.7: reels. A 9:16 video is TALL - at 41% of a desktop window it runs off the screen
+     and John has to scroll to see one draft. So the reel is sized by HEIGHT on desktop
+     (his review surface) and by width on the phone, and the strip centres it instead of
+     starting a scroll-snap row of one. */
+  .slides.reel { justify-content:center; scroll-snap-type:none; }
+  .slides video { width:82%; flex:0 0 82%; border-radius:3px; display:block; background:#000; border:2px solid transparent; }
+  @media (min-width: 1024px) {
+    .slides video { width:auto; flex:0 0 auto; height:min(70vh, 660px); }
+  }
+  .vidnote { width:82%; flex:0 0 82%; aspect-ratio:9/16; display:flex; align-items:center; justify-content:center; text-align:center; background:var(--bg); border:1px solid var(--line); border-radius:3px; color:var(--bone); font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:.1em; text-transform:uppercase; padding:16px; line-height:1.7; }
+  @media (min-width: 1024px) {
+    .vidnote { width:auto; flex:0 0 auto; height:min(70vh, 660px); }
+  }
+  .reelmeta { margin:0 12px 10px; font-size:11.5px; color:var(--bone-dim); font-family:'Oswald',sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+  /* v2.7: preview-data banner. This page can be opened against demo JSON on a branch, and
+     when it is, nothing may be saved - so it has to LOOK unmistakably not-the-real-queue. */
+  #previewbar { display:none; margin:0 12px 4px; padding:10px 12px; border:1px solid var(--copper); border-radius:4px; background:var(--bg3); color:var(--copper); font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; line-height:1.6; }
+  #previewbar.on { display:block; }
   .slides .sel { border-color:var(--copper); }
   .panel { margin:0 12px 10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--line); border-radius:4px; }
   .panel .rowlab { font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--bone-dim); margin:8px 0 2px; }
@@ -116,6 +134,7 @@
 </header>
 <div class="pinstripe"></div>
 <div class="sub">Tap a slide to edit its crop. Edit text in place. POST NOW is the only button here that puts anything on Instagram.</div>
+<div id="previewbar"></div>
 <div id="status">Loading queue...</div>
 <div id="list"></div>
 <div id="emptyactive">Nothing waiting on you. The week builder fills the next open slot.</div>
@@ -134,7 +153,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves never taint; visible LOADING / TAP TO RETRY states instead of silent black cards; progressive paint)");
+console.log("WG post-queue v2.7 (reels: format:\"reel\" drafts play an mp4 with a poster where photo drafts paint a canvas; publish leg for reels is NOT wired yet, so approve/POST NOW are held shut on them; ?preview_queue=1 loads demo JSON read-only)");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -146,10 +165,45 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
   var SUPABASE_ANON_KEY = "sb_publishable_6HlaADfe1rKI0qLuPLxEXg_LrpQR57u";
   var RAW_BASE = "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/";
   var QUEUE_PATH = "data/post-queue.json";
+  /* v2.7: preview mode. The live queue on main has no reel drafts in it and nothing on
+     this branch may write one there, so ?preview_queue=1 loads demo JSON from THIS branch
+     instead - purely so John can see what a reel card looks like on his desktop before any
+     of it goes near main. It is READ-ONLY: every write path checks READ_ONLY first, so a
+     mis-tap in preview mode cannot reach the proxy, the queue, or Instagram. */
+  var PREVIEW_QUEUE = /[?&]preview_queue=1/.test(location.search);
+  var PREVIEW_PATH = "data/post-queue-reeldemo.json";
+  var READ_ONLY = PREVIEW_QUEUE;
   /* Canvas geometry mirrors _skills/post-assembler/assemble.py. A draft carries its own
      "aspect" (and optional "frame"); carousels are single-aspect because Instagram forces it.
      Older drafts have no aspect field and fall back to portrait, which is what they were. */
-  var ASPECTS = { portrait: [1080, 1350], landscape: [1080, 566], square: [1080, 1080] };
+  var ASPECTS = { portrait: [1080, 1350], landscape: [1080, 566], square: [1080, 1080],
+                  reel_9x16: [1080, 1920] };
+  /* v2.7 REELS ------------------------------------------------------------------------
+     A reel draft carries format:"reel", aspect:"reel_9x16" and a "video" object instead of
+     photo slides. The mp4 is already rendered and burned - hook text, transitions, frame
+     and end card are baked in by scripts/render_reel.py from the "segments" spec the draft
+     also carries. That is why this page can PLAY a reel but cannot re-crop one: changing a
+     reel means re-running the renderer, not nudging a canvas.
+
+     THE PUBLISH LEG FOR REELS IS NOT BUILT. wg-ig-publish and both scheduled publish tasks
+     only know how to send images and carousels; the Zapier reel action has not been wired
+     or proven. So a reel draft here is REVIEWABLE but not APPROVABLE - APPROVE and POST NOW
+     are held shut on it. Flip this one flag when the leg is proven end to end, and the
+     buttons come back with no other change. Leaving it open would let John approve a reel
+     that the 15:00 publisher then tries to post as a photo. */
+  var REEL_PUBLISH_READY = false;
+  function isReel(d) { return !!(d && (d.format === "reel" || d.aspect === "reel_9x16")); }
+  function reelVideo(d) { return (d && d.video) || null; }
+  function videoURL(v, kind) {
+    var p = (kind === "poster" ? (v.poster_raw_url || v.poster) : (v.raw_url || v.file)) || "";
+    if (/^https?:/i.test(p)) { return p; }
+    /* The live queue always resolves media against MAIN, for the same reason the queue
+       itself is pinned there (v1.8): a branch preview must never show media that main does
+       not have. Preview mode is the deliberate exception - its demo drafts and their mp4s
+       ship together on the branch, so they resolve against whatever origin is serving this
+       page. That keeps branch URLs out of the demo JSON, where they would rot. */
+    return (PREVIEW_QUEUE ? "" : RAW_BASE) + p;
+  }
   /* FRAME LAW (John's call 2026-08-02): "thin" (12px) is the standard for every new draft;
      the 43px "pinstripe" is RETIRED and kept only so already-published drafts still re-render
      the way they actually went out. A re-crop here must redraw the draft's OWN frame, never a
@@ -350,6 +404,20 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     return i >= 0 ? slides[i] : null;
   }
 
+  /* v2.7: two more reasons a control has to refuse before it does anything, alongside
+     blockIfNotReady. Both are checked in the handler rather than by hiding the button,
+     so John gets told WHY instead of hunting for a control that quietly vanished. */
+  function blockIfPreview(m) {
+    if (!READ_ONLY) { return false; }
+    setStat(m, "This is preview data, not the live queue. Nothing on this page saves anywhere.", "err");
+    return true;
+  }
+  function blockIfReelNotPublishable(m) {
+    if (!isReel(m.draft) || REEL_PUBLISH_READY) { return false; }
+    setStat(m, "Reels can't be sent yet - the Instagram reel leg isn't wired up. Watch it, fix the words, or kill it.", "err");
+    return true;
+  }
+
   function isPhoto(s) { return s.kind === "photo"; }
 
   /* ---- v1.7: photo re-roll helpers (REFRESH THIS POST) ---- */
@@ -413,6 +481,12 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
   }
 
   function normalizeFormat(m) {
+    /* v2.7: a reel is never re-classified by slide count - it has no photo slides, and
+       letting this run would rewrite format:"reel" to "single" and strand the video. */
+    if (isReel(m.draft)) {
+      if (m.els.fmt) { m.els.fmt.textContent = m.draft.format + " · " + m.draft.id; }
+      return;
+    }
     /* 2+ photos = carousel with the brand end card last; 1 photo = clean single */
     var arr = m.draft.slides;
     var was = m.draft.format;
@@ -521,9 +595,47 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     m.els.save.textContent = "SAVE EDITS";
   }
 
+  /* v2.7: the reel card. Where a photo draft paints a canvas per slide, a reel draft gets
+     ONE <video> with the poster frame the renderer cut, so the card shows the reel's own
+     first look instead of a black rectangle waiting on a download. preload="metadata"
+     keeps the page from pulling 25MB per card on open - the mp4 only arrives when he hits
+     play. Same law as v2.6's pictures: it must never sit there silently black, so a failed
+     load paints why and offers the retry. */
+  function buildReelStrip(m) {
+    var strip = m.els.strip, d = m.draft;
+    strip.className = "slides reel";
+    var v = reelVideo(d);
+    if (!v || !v.file) {
+      var miss = document.createElement("div");
+      miss.className = "vidnote";
+      miss.textContent = "This reel draft has no video on it. Nothing to watch - kill it or send it back.";
+      strip.appendChild(miss);
+      return;
+    }
+    var vid = document.createElement("video");
+    vid.controls = true;
+    vid.preload = "metadata";
+    vid.playsInline = true;
+    vid.setAttribute("playsinline", "");
+    vid.poster = videoURL(v, "poster");
+    vid.src = videoURL(v, "video");
+    vid.onerror = function () {
+      strip.innerHTML = "";
+      var note = document.createElement("div");
+      note.className = "vidnote";
+      note.textContent = "The reel didn't load. Tap to retry.";
+      note.onclick = function () { rebuildStrip(m); };
+      strip.appendChild(note);
+    };
+    strip.appendChild(vid);
+    m.els.video = vid;
+  }
+
   function rebuildStrip(m) {
     var strip = m.els.strip;
     strip.innerHTML = "";
+    if (isReel(m.draft)) { buildReelStrip(m); return; }
+    strip.className = "slides";
     if (!m.draft.slides.length) {
       // text-only draft from the admin app SOCIAL tab: show the words, not an empty strip
       var txtCard = document.createElement("div");
@@ -675,6 +787,17 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
        stops a bad post before the publisher sees it. */
     if ((x.status === "approved" || x.status === "published") && (typeof x.caption !== "string" || !x.caption.trim())) {
       throw new Error("empty caption - refusing to approve " + x.id);
+    }
+    /* v2.7: a reel's media is its mp4, so the slide loop below would wave it through with
+       nothing attached. Hold it to the same standard: a rendered file under renders/. */
+    if (isReel(x)) {
+      var rv = x.video || {};
+      if (!rv.file || String(rv.file).indexOf("renders/") !== 0) {
+        throw new Error("reel has no rendered mp4 under renders/ - refusing to write " + x.id);
+      }
+      if (!rv.poster) {
+        throw new Error("reel has no poster frame - refusing to write " + x.id);
+      }
     }
     (x.slides || []).forEach(function (s, i) {
       if (s.kind !== "photo") { return; }
@@ -1124,6 +1247,11 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
       if ((d.slides || []).some(function (s) { return String(s.file || "").indexOf("renders/") !== 0; })) {
         why.push("slide outside renders/");
       }
+      /* v2.7: an empty slides array passes .some() trivially, so a reel with no mp4 on it
+         would sail through the fixture-shape check that exists to catch exactly that. */
+      if (isReel(d) && String((d.video || {}).file || "").indexOf("renders/") !== 0) {
+        why.push("reel with no mp4 under renders/");
+      }
       if (why.length) { warns.push("fixture_shape: " + d.id + " (" + why.join(" + ") + ")"); }
     });
     return warns;
@@ -1278,27 +1406,57 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     var panel = document.createElement("div"); panel.className = "panel"; panel.style.display = "none";
     m.els.panel = panel; card.appendChild(panel);
 
-    var add = document.createElement("button"); add.className = "addbtn";
-    add.textContent = "+ ADD A PICTURE FROM THE LIBRARY";
-    add.onclick = function () { if (blockIfNotReady(m)) { return; } if (isLocked(d)) { setStat(m, "This post already went to Instagram - locked.", "err"); return; } openPicker(m); };
-    card.appendChild(add);
+    /* v2.7: a reel says what it is made of, because nothing about the mp4 is editable here
+       and he should be able to see the shape of it without opening the renderer. */
+    if (isReel(d)) {
+      var rv = reelVideo(d) || {};
+      var bits = [];
+      if (rv.duration) { bits.push(Number(rv.duration).toFixed(1) + "s"); }
+      bits.push(((d.segments || []).length || "?") + " segments");
+      bits.push("1080x1920");
+      var rm = document.createElement("div"); rm.className = "reelmeta";
+      rm.textContent = bits.join(" · ") + " · rendered, not editable here";
+      card.appendChild(rm);
+    }
+
+    /* Adding a library photo to a reel is meaningless - the mp4 is already cut. */
+    if (!isReel(d)) {
+      var add = document.createElement("button"); add.className = "addbtn";
+      add.textContent = "+ ADD A PICTURE FROM THE LIBRARY";
+      add.onclick = function () { if (blockIfPreview(m) || blockIfNotReady(m)) { return; } if (isLocked(d)) { setStat(m, "This post already went to Instagram - locked.", "err"); return; } openPicker(m); };
+      card.appendChild(add);
+    }
 
     var fh = document.createElement("div"); fh.className = "field";
-    fh.innerHTML = "<label>Hook (carousel covers - baked onto slide 1)</label>";
+    fh.innerHTML = isReel(d)
+      ? "<label>Hook (burned into the reel)</label>"
+      : "<label>Hook (carousel covers - baked onto slide 1)</label>";
     var hi = document.createElement("input"); hi.type = "text"; hi.value = d.hook || "";
-    hi.oninput = function () {
-      if (m.busy || isLocked(d)) { return; }
-      d.hook = hi.value;
-      markPixelsDirty(firstPhoto(d.slides));
-      markDirty(m); repaint(m);
-    };
-    fh.appendChild(hi); card.appendChild(fh);
+    if (isReel(d)) {
+      /* The hook is already burned into the mp4 frame by frame. Letting him retype it here
+         would save words that do not match the video anybody actually watches - the queue
+         and the render would quietly disagree. Changing a reel's hook means re-rendering. */
+      hi.readOnly = true;
+      hi.style.opacity = ".6";
+      var hh = document.createElement("div"); hh.className = "hint";
+      hh.textContent = "Burned into the video. Changing it means re-rendering the reel, not retyping it here.";
+      fh.appendChild(hi); fh.appendChild(hh);
+    } else {
+      hi.oninput = function () {
+        if (m.busy || isLocked(d) || READ_ONLY) { return; }
+        d.hook = hi.value;
+        markPixelsDirty(firstPhoto(d.slides));
+        markDirty(m); repaint(m);
+      };
+      fh.appendChild(hi);
+    }
+    card.appendChild(fh);
     m.els.inputs = [hi];
 
     var fc = document.createElement("div"); fc.className = "field";
     fc.innerHTML = "<label>Caption</label>";
     var ta = document.createElement("textarea"); ta.value = d.caption;
-    ta.oninput = function () { if (m.busy || isLocked(d)) { return; } d.caption = ta.value; markDirty(m); };
+    ta.oninput = function () { if (m.busy || isLocked(d) || READ_ONLY) { return; } d.caption = ta.value; markDirty(m); };
     fc.appendChild(ta); card.appendChild(fc);
     m.els.inputs.push(ta);
 
@@ -1312,7 +1470,7 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     }
     tagHint();
     ti.oninput = function () {
-      if (m.busy || isLocked(d)) { return; }
+      if (m.busy || isLocked(d) || READ_ONLY) { return; }
       d.hashtags = ti.value.split(/\s+/).filter(function (t) { return t.length; });
       tagHint(); markDirty(m);
     };
@@ -1341,9 +1499,10 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     var actions = document.createElement("div"); actions.className = "actions";
     var save = document.createElement("button"); save.className = "btn save"; save.textContent = "SAVE EDITS"; save.disabled = true;
     m.els.save = save;
-    save.onclick = function () { persist(m, "Saving edits...", "Edits saved."); };
+    save.onclick = function () { if (blockIfPreview(m)) { return; } persist(m, "Saving edits...", "Edits saved."); };
     var post = document.createElement("button"); post.className = "btn post"; post.textContent = "POST IT";
     post.onclick = function () {
+      if (blockIfPreview(m) || blockIfReelNotPublishable(m)) { return; }
       if (blockIfNotReady(m)) { return; } /* never mutate status when the save cannot start */
       var preSnap = snapshotDraft(m);
       d.status = "approved"; d.kill_reason = null; d.fix_note = null;
@@ -1363,6 +1522,7 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     function tkShow() { tk.style.display = (d.status === "approved" || d.status === "published") ? "" : "none"; }
     tkShow(); m.els.tiktokShow = tkShow;
     tk.onclick = function () {
+      if (blockIfPreview(m)) { return; }
       if (blockIfNotReady(m)) { return; }
       var preSnap = snapshotDraft(m);
       d.tiktok_scheduled_at = d.tiktok_scheduled_at ? null : new Date().toISOString().slice(0, 16);
@@ -1385,6 +1545,7 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
     nowBtn.onclick = function () {
       if (nowConfirm.className.indexOf("open") > -1) { nowConfirm.className = "nowpanel"; return; }
       if (m.busy) { return; }
+      if (blockIfPreview(m) || blockIfReelNotPublishable(m)) { return; }
       var photos = photoSlides(d);
       if (!photos.length) {
         setStat(m, "No pictures on this draft, so there is nothing to put on Instagram. Add one first.", "err");
@@ -1746,7 +1907,12 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
          button) even in day-mode, so a note typed before START OVER could still be sent
          afterward and silently flip the just-killed draft back to status:"fix". Hide it and
          force-close it, along with the kill-reasons row, whenever day-mode is on. */
-      [strip, add, fh, fc, ft, actions, flagsWrap, note].forEach(function (el) { el.style.display = on ? "none" : ""; });
+      /* v2.7: filter first. A reel card never builds the ADD A PICTURE button, so `add` is
+         undefined on those and this list used to throw on the very first card, which took
+         the whole queue down with "Could not load the queue". */
+      [strip, add, fh, fc, ft, actions, flagsWrap, note]
+        .filter(function (el) { return !!el; })
+        .forEach(function (el) { el.style.display = on ? "none" : ""; });
       if (on) {
         panel.style.display = "none"; m.sel = -1;
         reasons.className = "reasons"; note.className = "note field";
@@ -2001,27 +2167,46 @@ console.log("WG post-queue v2.6 (pictures: absolute CORS-clean sources so saves 
   ]).catch(function () { /* draw anyway */ });
 
   var staleWarning = null;
+
+  /* v2.7: preview mode short-circuits the whole load path below. It reads demo JSON from
+     the branch this page is being served from - a RELATIVE fetch on purpose, so the file
+     it shows is the one sitting next to it - and never touches the proxy. Every write
+     control is already refusing via READ_ONLY, so the worst a mis-tap can do here is
+     print a sentence. */
+  function loadQueue() {
+    if (PREVIEW_QUEUE) {
+      var bar = document.getElementById("previewbar");
+      bar.className = "on";
+      bar.textContent = "PREVIEW DATA - NOT THE LIVE QUEUE. This is a sample reel draft on the "
+        + "reels-v27 branch so you can see what a reel card looks like. Nothing here saves, "
+        + "approves, or posts. The real queue is the normal link without ?preview_queue=1.";
+      return fetch(PREVIEW_PATH + "?v=" + Date.now())
+        .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); });
+    }
+    return callProxy("get", { repo: "Wolfs-admin", branch: "main", path: QUEUE_PATH })
+      .then(function (g) {
+        if (!g || !g.contentBase64) { throw new Error("proxy returned no content"); }
+        return JSON.parse(decodeURIComponent(escape(atob(String(g.contentBase64).replace(/\n/g, "")))));
+      })
+      .catch(function (e) {
+        staleWarning = "Loaded from the CDN, which can lag a minute behind main. Re-check before approving. (" + String(e.message || e).slice(0, 60) + ")";
+        /* v1.8 (minor): a bare relative QUEUE_PATH loads the CURRENT PAGE's own branch/host
+           data on any non-main preview (e.g. raw.githack for a feature branch), while every
+           write in this file still targets branch:"main" through the proxy. Pin the display
+           fallback to main explicitly so a branch preview can never show a different queue
+           than the one it actually writes to. (This can no longer feed a write either way -
+           saveQueueDoc always re-reads through the proxy and never uses this boot-time doc as
+           a write base.) */
+        return fetch(RAW_BASE + QUEUE_PATH + "?v=" + Date.now())
+          .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); });
+      });
+  }
+
   // Audit item 13: read the queue through the proxy, not the CDN. raw.githack ignores
   // the cache-buster and served a stale queue minutes after a push on 2026-07-25 - John
   // would have been approving a draft that no longer matched main. The proxy 'get' is
   // the same fresh path the publisher uses. CDN stays the fallback if the proxy is down.
-  callProxy("get", { repo: "Wolfs-admin", branch: "main", path: QUEUE_PATH })
-    .then(function (g) {
-      if (!g || !g.contentBase64) { throw new Error("proxy returned no content"); }
-      return JSON.parse(decodeURIComponent(escape(atob(String(g.contentBase64).replace(/\n/g, "")))));
-    })
-    .catch(function (e) {
-      staleWarning = "Loaded from the CDN, which can lag a minute behind main. Re-check before approving. (" + String(e.message || e).slice(0, 60) + ")";
-      /* v1.8 (minor): a bare relative QUEUE_PATH loads the CURRENT PAGE's own branch/host
-         data on any non-main preview (e.g. raw.githack for a feature branch), while every
-         write in this file still targets branch:"main" through the proxy. Pin the display
-         fallback to main explicitly so a branch preview can never show a different queue
-         than the one it actually writes to. (This can no longer feed a write either way -
-         saveQueueDoc always re-reads through the proxy and never uses this boot-time doc as
-         a write base.) */
-      return fetch(RAW_BASE + QUEUE_PATH + "?v=" + Date.now())
-        .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); });
-    })
+  loadQueue()
     .then(function (doc) {
       if (staleWarning) {
         statusEl.textContent = staleWarning;
