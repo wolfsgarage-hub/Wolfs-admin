@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-08-12T15:17:07.614674+00:00",
+  "updated": "2026-08-12T15:30:02.611713+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -700,6 +700,104 @@
       "slot_why": "re-slotted by the week builder: its date came and went",
       "aspect": "portrait",
       "frame": "thin",
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260812-01",
+      "created": "2026-08-12",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "lawn of big-finned Cadillac convertibles (1959 maroon, 1961 pale blue, 1965 champagne, black) at a 2025-09-24 show, Deviants car club plaque on the champagne car",
+      "hook": "Cadillac row.",
+      "caption": "The Deviants car club filled a whole lawn with these back in September. You could spot the fins from across the field. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#cadillac",
+        "#tailfins",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260812-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260812-01/slide-1.jpg",
+          "source_asset": "20250924_181026.jpg",
+          "source_file": "renders/posts/_sources/20250924_181026.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "champagne '65 Cadillac front 3/4 hero, Deviants club plaque and chrome grille intact, near-full width kept"
+          },
+          "hook": "Cadillac row."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260812-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260812-01/slide-2.jpg",
+          "source_asset": "20250924_174959.jpg",
+          "source_file": "renders/posts/_sources/20250924_174959.jpg",
+          "crop": {
+            "focus_x": 0.7,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "maroon '59 Cadillac shark-fin rear, trims the black Corvette edge on the left, keeps the full fin and plate"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260812-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260812-01/slide-3.jpg",
+          "source_asset": "20250924_175109.jpg",
+          "source_file": "renders/posts/_sources/20250924_175109.jpg",
+          "crop": {
+            "focus_x": 0.45,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "pale blue '61 Cadillac rear fins and whitewalls, near-full width kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260812-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260812-01/slide-4.jpg",
+          "source_asset": "20250924_174033.jpg",
+          "source_file": "renders/posts/_sources/20250924_174033.jpg",
+          "crop": {
+            "focus_x": 0.3,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "black Cadillac trunk with legible 'Cadillac' script and Oregon plate, keeps the two-tone Bel Air fin echo on the left"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260812-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260812-01/slide-5.jpg",
+          "subtitle": "WOLFSGARAGE.COM"
+        }
+      ],
+      "target_slot": "2026-08-18T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "REFILL for Tue 8/18 18:30, replacing wgpost-20260731-04 (Jolene hand-lettered decklid, kill_reason: start over). Per the same rule as the Rose City Round-Up kill, this is a wholly different subject/shoot/angle (Cadillac convertible carousel from the 2025-09-24 show), not a re-crop or re-caption of the killed material.",
+        "PHOTO AGE LAW: source shot 2025-09-24, ~10.9 months before this slot (2026-08-18) - 4-12 month bucket, disclosed in-sentence ('back in September'). wg-brand-reviewer flagged an earlier draft wording ('last summer') as a season-accuracy miss since 9/24 is two days past the equinox; fixed to 'back in September' rather than 'last fall', which is already used on two other live drafts this week (wgpost-20260802-01, wgpost-20260809-01).",
+        "'Deviants' car club named in the caption from a legible plaque/decal on the champagne Cadillac in slide 1 (rule 7) - named in words, not @-tagged, since no verifiable handle was available from the frame or the media index.",
+        "Non-focal adult bystanders visible in slide 1 (background, not close-up/identifiable) and a legible Oregon plate in slide 4 - wg-brand-reviewer flagged for awareness, not a kill, consistent with prior accepted drafts carrying the same category of background bystander.",
+        "Media index caption errors found and NOT used as source material: 20250924_181041.jpg is tagged \"Cadillac\" but is visibly a Pontiac Bonneville (script legible on the fender) - excluded from this carousel and flagged for a CSV fix. 20250924_174033.jpg (used, slide 4) is tagged \"cream\" but the car is black - caption here does not repeat the color error."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-08-18T18:30 America/Los_Angeles",
+      "slot_why": "week builder REFILL: Tue 18:30 - cold-start table, evening (replaces wgpost-20260731-04, killed: start over)",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
       "refill_requested": false
     }
   ]
