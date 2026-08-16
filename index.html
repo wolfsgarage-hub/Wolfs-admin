@@ -651,7 +651,7 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v37</span></div>
+  <div class="topbar-name">WOLF'S GARAGE<span>ADMIN</span><span class="topbar-ver">v38</span></div>
   <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
     <button class="topbar-btn" onclick="signOut()">SIGN OUT</button>
     <a href="https://wolfsgarage.com" target="_blank" rel="noopener noreferrer" aria-label="Wolf's Garage public site (opens in new tab)" style="display:inline-flex;line-height:0;text-decoration:none">
@@ -1041,6 +1041,7 @@
     </div>
     <div id="ev2-held"></div>
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-approve" onclick="ev2ApproveAll(this)" style="flex:1;min-width:130px;">APPROVE ALL</button>
       <button class="btn" onclick="loadEv2Held()" style="flex:1;min-width:130px;">REFRESH</button>
       <a class="btn" href="events-queue.html" style="flex:1;min-width:130px;text-align:center;text-decoration:none;line-height:1.9;">FULL QUEUE</a>
     </div>
@@ -2937,6 +2938,26 @@ async function ev2Decide(id, action, btn) {
     [...card.querySelectorAll('button')].forEach(b => { b.disabled = false; });
     btn.textContent = action.toUpperCase();
     alert(err.message === 'badkey' ? 'Admin key rejected. Tap ENTER KEY and try again.' : 'Failed: ' + err.message);
+  }
+}
+
+async function ev2ApproveAll(btn) {
+  if (!ev2Key(false)) { ev2Unlock(); return; }
+  const countEl = document.getElementById('ev2-held-count');
+  const n = countEl ? countEl.textContent.trim() : 'all';
+  if (!confirm('Approve all ' + n + ' events in the queue? \n\nThis publishes the ones with complete info, merges duplicates into events already on the site, and leaves anything missing a location. Bulk approve cannot be undone.')) return;
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'WORKING...';
+  try {
+    const d = await ev2Rpc('wg_admin_approve_all', { p_dry_run: false }, false);
+    btn.disabled = false; btn.textContent = orig;
+    alert('Done. \n\nPublished: ' + (d.published || 0) + '\nMerged duplicates: ' + (d.merged || 0) + '\nLeft for review (missing info): ' + (d.skipped || 0));
+    loadEv2Held();
+    if (typeof loadEv2Flags === 'function') loadEv2Flags();
+    if (typeof renderDashboard === 'function') renderDashboard();
+  } catch (err) {
+    btn.disabled = false; btn.textContent = orig;
+    alert(err.message === 'badkey' ? 'Admin key rejected. Tap ENTER KEY and try again.' : 'Bulk approve failed: ' + err.message);
   }
 }
 
