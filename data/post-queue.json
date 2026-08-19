@@ -807,6 +807,300 @@
       "refill_requested": false,
       "published_at": "2026-08-18T18:42:48",
       "ig_media_id": "18108092942151568"
+    },
+    {
+      "id": "wgpost-20260819-01",
+      "created": "2026-08-19",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "red-barn farm truck show (Pumpkin Patch Animal Barn venue), row of classic pickups with hoods up, one LS-swapped C3100 engine bay detail",
+      "hook": "WHOLE LOT, HOODS UP.",
+      "caption": "That farm lot had more hoods up than not. Good luck picking a favorite. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#truckshow",
+        "#classictrucks",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-01/slide-1.jpg",
+          "source_asset": "20260718_101345.jpg",
+          "source_file": "renders/posts/_sources/20260718_101345.jpg",
+          "crop": {
+            "focus_x": 0.48,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "wide establishing shot: red-roofed farm barn with sunflower mural, row of trucks with hoods up along the lot"
+          },
+          "hook": "WHOLE LOT, HOODS UP."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-01/slide-2.jpg",
+          "source_asset": "20260718_101234.jpg",
+          "source_file": "renders/posts/_sources/20260718_101234.jpg",
+          "crop": {
+            "focus_x": 0.48,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "teal patina slammed dually pickup, wood-plank bed, parked in front of the barn's animal-barn signage"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-01/slide-3.jpg",
+          "source_asset": "20260718_101055.jpg",
+          "source_file": "renders/posts/_sources/20260718_101055.jpg",
+          "crop": {
+            "focus_x": 0.58,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "low-angle hero on the maroon C10, chrome wheels, barn's painted American flag behind it"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-01/slide-4.jpg",
+          "source_asset": "20260718_100926.jpg",
+          "source_file": "renders/posts/_sources/20260718_100926.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "LS-swapped engine bay detail on the gray C3100, Wilwood brake components and the C3100 fender badge legible"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260819-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-01/slide-5.jpg",
+          "subtitle": "WOLFSGARAGE.COM"
+        }
+      ],
+      "target_slot": "2026-08-24T15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "wg-brand-reviewer PASS. Noted risk: original caption draft overclaimed 'every hood up at once' vs the crops (mixed hoods up/down) - softened to 'more hoods up than not' before this entered the queue.",
+        "Non-focal adult bystanders in slides 1 and 3 (walking/standing, public lot, not close-up).",
+        "Media index called this venue's barn signage generic; slide 2 clearly reads 'THE PUMPKIN PATCH Animal Barn' - caption stays generic ('that farm lot') since the show's own name is not known.",
+        "PHOTO AGE: capture 2026-07-18, slot 2026-08-24 = 37 days - inside the 90-day current window, no disclosure needed."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "Mon 15:00 - cold-start table, start of week",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260819-02",
+      "created": "2026-08-19",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "dark green/black 1930s Ford sedan delivery hot rod 'Deadwood', liveried for Chewy's Cigar Bar, gold-engraved engine, rear barn doors open",
+      "hook": "MEET DEADWOOD.",
+      "caption": "They named this one Deadwood, rear doors and all. Built to advertise a cigar bar, but nobody's looking at the sign. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#forddelivery",
+        "#hotrod",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-02/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-02/slide-1.jpg",
+          "source_asset": "20260726_132401.jpg",
+          "source_file": "renders/posts/_sources/20260726_132401.jpg",
+          "crop": {
+            "focus_x": 0.75,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "full 3/4 hero: whole green/black Ford sedan delivery, Chewy's Cigar Bar signage, hood up, gold wire wheels; crop trims the bystander and ramp at far left"
+          },
+          "hook": "MEET DEADWOOD."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-02/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-02/slide-2.jpg",
+          "source_asset": "20260726_132334.jpg",
+          "source_file": "renders/posts/_sources/20260726_132334.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "close front 3/4: engraved gold-and-chrome engine, dual headlights, fuzzy tail hanging off the mirror"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-02/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-02/slide-3.jpg",
+          "source_asset": "20260726_132503.jpg",
+          "source_file": "renders/posts/_sources/20260726_132503.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "rear barn-doors-open shot showing the gold DEADWOOD script"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-02/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-02/slide-4.jpg",
+          "source_asset": "20260726_132434.jpg",
+          "source_file": "renders/posts/_sources/20260726_132434.jpg",
+          "crop": {
+            "focus_x": 0.4,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "sidemount spare with the Ford center cap and gold pinstriping, matching pinstriped trunk case on the ground beside it"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260819-02/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-02/slide-5.jpg",
+          "subtitle": "WOLFSGARAGE.COM"
+        }
+      ],
+      "target_slot": "2026-08-25T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "wg-brand-reviewer PASS. Slide 4's sidemount top edge sits close to the frame hairline - not clipped, worth a glance.",
+        "Non-focal adult bystanders in slides 1, 3, 4 (public lot, not close-up).",
+        "'Chopped' deliberately NOT claimed despite the low stance - not verifiable from a static exterior photo (terminology trap, post-assembler SKILL.md).",
+        "PHOTO AGE: capture 2026-07-26, slot 2026-08-25 = 30 days - inside the 90-day current window, no disclosure needed.",
+        "Source day is the USO Portland Northwest show (2026-07-26) - the Content_Pack_2026-08-17.md proposed 10 OTHER photos from this same day for out-of-cadence Fri/Sat/Sun slots that were never built into the queue. None of those 10 assets were reused here."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "Tue 18:30 - cold-start table, evening",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260819-03",
+      "created": "2026-08-19",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "matte grey chopped-look pickup at a river/dam overlook on a mountain truck cruise, the Wolf's Garage mascot leaning on the fender",
+      "hook": null,
+      "caption": "Even the mascot had to stop for this one. Matte grey pickup parked with a dam roaring behind it. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#truckcruise",
+        "#classicpickup",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-03/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-03/slide-1.jpg",
+          "source_asset": "20260712_105157.jpg",
+          "source_file": "renders/posts/_sources/20260712_105157.jpg",
+          "crop": {
+            "focus_x": 0.45,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "matte grey pickup at a misty river/dam overlook, the wolf mascot leaning on the fender; crop trims the SUV roof rack at far right"
+          }
+        }
+      ],
+      "target_slot": "2026-08-26T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "wg-brand-reviewer PASS. Media index tagged this truck 'GMC' but no badge is legible in this crop, so the caption and hashtags say 'pickup' instead of naming the make (terminology trap, post-assembler SKILL.md) - dropped the original '#gmctruck' hashtag for the same reason.",
+        "The masked figure is the brand's own wolf mascot costume (full head mask + clawed gloves) - face fully covered, no real-person identifiability concern.",
+        "No specific location claimed (no 'Columbia Gorge' or dam name) - not verified from the frame.",
+        "PHOTO AGE: capture 2026-07-12, slot 2026-08-26 = 45 days - inside the 90-day current window, no disclosure needed."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "Wed 18:30 - cold-start table, evening",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260819-04",
+      "created": "2026-08-19",
+      "status": "pending_approval",
+      "format": "single",
+      "angle": "trophy shot at a July 4th show: two-tone blue/white lowered Chevy pickup with a Wolf's Garage banner draped in the bed",
+      "hook": null,
+      "caption": "That banner rides in the truck bed at every show that'll have it, trophy and all.\n\nFree to list your build in the directory, link in bio 🐺\n\nGet back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#chevypickup",
+        "#kustomkulture",
+        "#carshow",
+        "#getbackinthegarage"
+      ],
+      "cta": "directory",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260819-04/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260819-04/slide-1.jpg",
+          "source_asset": "20260704_135719.jpg",
+          "source_file": "renders/posts/_sources/20260704_135719.jpg",
+          "crop": {
+            "focus_x": 0.6,
+            "focus_y": 0.5,
+            "zoom": 1,
+            "why": "trophy shot in front of the two-tone blue/white lowered pickup with the Wolf's Garage banner draped in the bed; crop keeps the full banner text at the right edge"
+          }
+        }
+      ],
+      "target_slot": "2026-08-27T15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "wg-brand-reviewer PASS. Original caption said the trophy was won 'today' - the photo is 54 days old at this slot, so that was a literally false same-day claim. Rewritten to drop the specific timing.",
+        "NEEDS-EYES (brand gate, explicit): the man in this photo is the close-up, identifiable, focal subject - not a background bystander. He is wearing a Wolf's Garage wolf-head tee and standing at the brand's own banner, so this is very likely welcome, but a human call, not a machine one. Flagging for John before this one gets a tap.",
+        "Media index correction found and NOT carried into this draft: the media index row for a DIFFERENT photo taken minutes later at this same show (20260704_132101.jpg, a ~20-person group photo) mislabels a 'No MoMo's' car club banner (Longview, WA, est. 2005) as a 'Wolf's Garage flame-graphic banner'. That group photo was not used here (large identifiable crowd, unclear consent, and it isn't actually a Wolf's Garage banner) - worth a CSV fix on a future caption-batch pass.",
+        "Directory CTA used on this draft only this week (max 1/week) - verify nothing else in the live queue already used it for the week of 8/24.",
+        "PHOTO AGE: capture 2026-07-04, slot 2026-08-27 = 54 days - inside the 90-day current window, no disclosure needed."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "slot_why": "Thu 15:00 - cold-start table, end of posting week",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
     }
   ]
 }
