@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-02T01:30:20.287692+00:00",
+  "updated": "2026-09-02T15:26:11.776586+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -1226,6 +1226,378 @@
       "dated": false,
       "refill_requested": false,
       "scheduled_slot": "2026-09-02T18:30 America/Los_Angeles"
+    },
+    {
+      "id": "wgpost-20260902-01",
+      "created": "2026-09-02",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "open-hood show survey, 2026-07-29 - maroon Ford pickup engine bay, white/purple two-tone C10, yellow LS-swap detail, same show same day",
+      "hook": "Everybody photographs the paint.",
+      "caption": "Everybody photographs the paint. Nobody photographs what it took. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#enginebay",
+        "#hotrod",
+        "#truckshow",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-01/slide-1.jpg",
+          "source_asset": "20260729_174353.jpg",
+          "source_file": "renders/posts/_sources/20260729_174353.jpg",
+          "crop": {
+            "focus_x": 0.48,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "maroon/cream Ford pickup hood up, whole truck + grille kept, hook slide"
+          },
+          "hook": "Everybody photographs the paint."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-01/slide-2.jpg",
+          "source_asset": "20260729_174417.jpg",
+          "source_file": "renders/posts/_sources/20260729_174417.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "intake plumbing detail in the same truck's engine bay"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-01/slide-3.jpg",
+          "source_asset": "20260729_174202.jpg",
+          "source_file": "renders/posts/_sources/20260729_174202.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "white/purple two-tone C10 hood up, whole truck + grille kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-01/slide-4.jpg",
+          "source_asset": "20260729_173926.jpg",
+          "source_file": "renders/posts/_sources/20260729_173926.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "yellow truck LS-swap engine bay detail"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260902-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-01/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-04T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Photo age: capture_date 2026-07-29, slot 2026-09-04 - ordinary library post, no age disclosure needed (PHOTO AGE - NO RULE).",
+        "No verifiable club/owner handle visible in any crop - CAPTION LAW rule 7 applies, nobody tagged.",
+        "Hashtag uses #truckshow rather than #c10: only slide-3 (the white/maroon 'Cheyenne' C10) is a confirmed C10 - the maroon Ford (slides 1-2) and yellow truck (slide 4) are not, so #c10 would be loose tagging across the set.",
+        "Brand gate PASS (wg-brand-reviewer, caption + all 5 rendered slides + crop report + capture/slot dates). NEEDS-EYES carried over: small/distant background bystanders in slides 1 and 3 not individually identifiable at this resolution."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-04T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Fri 20:00 - own signals: Friday's two best posts are 20:00 and 22:10",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260902-02",
+      "created": "2026-09-02",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "big show survey, 2025-07-26 - row of 4 COE-style panel trucks/vans (one plated KERMIT), white Model A hiboy hot rod, orange/white GMC pickup, blue-gray lifted 4x4 crew cab, same show same day",
+      "hook": "More rust than paint.",
+      "caption": "One of these has more rust than paint and it's still the coolest thing in the row. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#patina",
+        "#kustomkulture",
+        "#carshow",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-02/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-02/slide-1.jpg",
+          "source_asset": "20250726_134108.jpg",
+          "source_file": "renders/posts/_sources/20250726_134108.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "row of 4 COE-style panel trucks, whole row kept, hook slide"
+          },
+          "hook": "More rust than paint."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-02/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-02/slide-2.jpg",
+          "source_asset": "20250726_134658.jpg",
+          "source_file": "renders/posts/_sources/20250726_134658.jpg",
+          "crop": {
+            "focus_x": 0.49,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "white Model A hiboy hot rod, whole car + both wheels kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-02/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-02/slide-3.jpg",
+          "source_asset": "20250726_114152.jpg",
+          "source_file": "renders/posts/_sources/20250726_114152.jpg",
+          "crop": {
+            "focus_x": 0.45,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "orange/white GMC pickup front 3/4, whole truck + grille kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-02/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-02/slide-4.jpg",
+          "source_asset": "20250726_130047.jpg",
+          "source_file": "renders/posts/_sources/20250726_130047.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "blue-gray lifted 4x4 crew cab, full side profile, both wheels kept"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260902-02/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-02/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-05T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Photo age: capture_date 2025-07-26, slot 2026-09-05 - ordinary library post, no age disclosure needed.",
+        "Green van's front plate reads KERMIT (Washington), verified by zooming the source file - but it is not legible at delivery resolution, so the caption leads on the visibly rusted box truck instead (first brand-gate pass caught the plate claim as a crop-kill; fixed).",
+        "No verifiable club/owner handle - CAPTION LAW rule 7 applies, nobody tagged. Brand gate flagged partially-legible door signage on the black box truck ('...L Customs'?) as NEEDS-EYES - not confirmed enough to credit.",
+        "Brand gate: KILLed on first pass (#ratrod hashtag inaccurate for any of the 4 vehicles; Kermit-plate caption claim illegible at render size) - fixed (hashtag swapped to #patina, caption/hook rewritten to the rust-vs-paint claim, slide-1 re-rendered with the new hook) and PASSED on re-verify."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-05T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Sat 20:00 - own signals: Sat evening 19:00-23:00 is the account's strongest band",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260902-03",
+      "created": "2026-09-02",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "chrome and whitewalls show survey, 2026-07-29 - silver 1959 Impala rear 3/4, purple 1946-48 Ford sedan, slammed blue 1946-48 Ford/Mercury coupe, golden hour row shot, same show same day",
+      "hook": "Fins, chrome, and a whitewall.",
+      "caption": "Whitewalls and fins like that don't need a filter. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#1959impala",
+        "#kustomkulture",
+        "#whitewalls",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-03/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-03/slide-1.jpg",
+          "source_asset": "20260729_175658.jpg",
+          "source_file": "renders/posts/_sources/20260729_175658.jpg",
+          "crop": {
+            "focus_x": 0.49,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "silver 1959 Impala rear 3/4, fins and chrome bumper kept, hook slide"
+          },
+          "hook": "Fins, chrome, and a whitewall."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-03/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-03/slide-2.jpg",
+          "source_asset": "20260729_181326.jpg",
+          "source_file": "renders/posts/_sources/20260729_181326.jpg",
+          "crop": {
+            "focus_x": 0.65,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "purple 1946-48 Ford sedan, whole car + grille kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-03/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-03/slide-3.jpg",
+          "source_asset": "20260729_180308.jpg",
+          "source_file": "renders/posts/_sources/20260729_180308.jpg",
+          "crop": {
+            "focus_x": 0.55,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "slammed blue 1946-48 Ford/Mercury coupe rear 3/4, roofline kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-03/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-03/slide-4.jpg",
+          "source_asset": "20260729_180255.jpg",
+          "source_file": "renders/posts/_sources/20260729_180255.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "wide row shot, spectators walking the show at golden hour"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260902-03/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-03/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-06T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Photo age: capture_date 2026-07-29, slot 2026-09-06 - ordinary library post, no age disclosure needed.",
+        "'Chopped' describes the purple 1946-48 Ford sedan's shape in this draft's own build notes but was not verified as an actual sectioned roof, so the published caption avoids the word (CAPTION LAW terminology trap) - do not add 'chopped' to this asset's copy later without visual confirmation.",
+        "No verifiable club/owner handle - nobody tagged. Identifiable bystanders in slides 3-4 (show-goers talking near the cars) - ordinary car-show candid density, not a renderer artifact.",
+        "Brand gate PASS (wg-brand-reviewer, caption + all 5 rendered slides + crop report + capture/slot dates)."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-06T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Sun 20:00 - research names Sun 20:00-21:00; own signals agree Sunday evening",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260902-04",
+      "created": "2026-09-02",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "single-vehicle feature, 2025-09-24 - red Chevrolet wagon (Nomad/Brookwood-era) with a substantial engine bay, hood up next to a red Pontiac, same show same day",
+      "hook": "That's a lot of motor for a wagon.",
+      "caption": "That's a lot of motor for a wagon. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#wagon",
+        "#enginebay",
+        "#kustomkulture",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-04/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-04/slide-1.jpg",
+          "source_asset": "20250924_180632.jpg",
+          "source_file": "renders/posts/_sources/20250924_180632.jpg",
+          "crop": {
+            "focus_x": 0.4,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "red wagon hood up over a well-built engine bay, neighbor car for context, hook slide"
+          },
+          "hook": "That's a lot of motor for a wagon."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-04/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-04/slide-2.jpg",
+          "source_asset": "20250924_180522.jpg",
+          "source_file": "renders/posts/_sources/20250924_180522.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "same wagon, full rear 3/4, tailfins and chrome kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260902-04/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-04/slide-3.jpg",
+          "source_asset": "20250924_180608.jpg",
+          "source_file": "renders/posts/_sources/20250924_180608.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "same wagon rear 3/4 beside a red Pontiac, row context"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260902-04/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260902-04/slide-4.jpg"
+        }
+      ],
+      "target_slot": "2026-09-10T15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Body style verified as a red two-door Chevrolet wagon (Nomad/Brookwood-era, full glass tailgate) - the media index's own caption mislabels this vehicle a '1959 Chevrolet El Camino'; corrected after looking at the photos directly (SKILL.md: verify the index against your eyes).",
+        "Photo age: capture_date 2025-09-24, slot 2026-09-10 - ordinary library post, no age disclosure needed.",
+        "Oregon plate '08342' is legible on the wagon's rear bumper in slide-3 - brand gate flagged as a privacy NEEDS-EYES, not a brand-lock violation. Not blurred unilaterally; carrying to John.",
+        "No verifiable club/owner handle - nobody tagged.",
+        "Brand gate: KILLed on first pass (slide-1's baked hook text was stale, from an earlier draft of the copy, and didn't match the shipped caption) - fixed (slide-1 re-rendered with the correct hook) and PASSED on re-verify."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-10T15:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Thu 15:00 - cold-start table, mid-week afternoon",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
     }
   ]
 }
