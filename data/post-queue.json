@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-04T15:11:52.892026+00:00",
+  "updated": "2026-09-04T15:13:14.874392+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -1698,6 +1698,104 @@
       "kill_reason": null,
       "scheduled_slot": "2026-09-12T20:00 America/Los_Angeles",
       "slot_why": "week builder OPEN: Sat 20:00 - own signals: Sat evening 19:00-23:00 is the account's strongest band",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260904-01",
+      "created": "2026-09-04",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "flyby-lane hot rods, 2019-08-25 - yellow Ford Model A hot rod, a red/yellow flame-painted gasser paired with a white 'Original Ramchargers' tribute sedan, a black primer rail/pickup hybrid (race number 581, blown engine), and a black primer pickup with pink wheels and a pink skull-wrench graphic, same event same day",
+      "hook": "Four completely different builds and not one of them was trying to match the others.",
+      "caption": "Four completely different builds and not one of them was trying to match the others. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#hotrod",
+        "#ratrod",
+        "#vintageiron",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260904-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260904-01/slide-1.jpg",
+          "source_asset": "20190825_125043_040.jpg",
+          "source_file": "renders/posts/_sources/20190825_125043_040.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.58,
+            "zoom": 1.0,
+            "why": "yellow Model A hot rod, closest/largest in frame, clean solo pass, hook slide"
+          },
+          "hook": "Four completely different builds and not one of them was trying to match the others."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260904-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260904-01/slide-2.jpg",
+          "source_asset": "20190825_141430_029_saved.jpg",
+          "source_file": "renders/posts/_sources/20190825_141430_029_saved.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "flame-painted gasser leading a white Ramchargers-tribute sedan, both mid-pass"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260904-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260904-01/slide-3.jpg",
+          "source_asset": "20190825_141747_006_saved.jpg",
+          "source_file": "renders/posts/_sources/20190825_141747_006_saved.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.62,
+            "zoom": 1.0,
+            "why": "black primer rail/pickup, number 581, blown engine and roll bar kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260904-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260904-01/slide-4.jpg",
+          "source_asset": "20190825_120847_027_saved.jpg",
+          "source_file": "renders/posts/_sources/20190825_120847_027_saved.jpg",
+          "crop": {
+            "focus_x": 0.45,
+            "focus_y": 0.6,
+            "zoom": 1.0,
+            "why": "black primer pickup with pink wheels and pink skull-wrench graphic, staged at the cone line"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260904-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260904-01/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-11T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Photo age: capture_date 2019-08-25, slot 2026-09-11 (~7 years) - no age disclosure required (PHOTO AGE - NO RULE, repealed 2026-08-30), picked on quality/composition alone. Ordinary library post, no post_kind/event_date, dated:false.",
+        "Event read directly from the photos, not from the media index: a closed paved strip with traffic-cone lane markers, vehicles rolling past the camera solo or in pairs, race-style car numbers (e.g. '581'). The media index's own captions call this a 'rural cruise road' - corrected after looking directly; this reads as a closed-course flyby lane, not a public road cruise (SKILL.md: verify the index against your eyes). Caption does not name a specific venue or event type since that is not independently verifiable.",
+        "No verifiable club/owner/shop handle in any crop - nobody tagged (CAPTION LAW rule 7).",
+        "First draft of this caption/hook (\"One at a time, they had the whole strip to themselves... ten seconds and gone\") was KILLed by the brand gate: slide-2 and slide-4 each show two vehicles sharing the frame, contradicting the 'one at a time'/solitude claim, and 'ten seconds' was an invented, unverifiable timing claim. Rewrote caption and re-rendered slide-1's hook to a build-diversity claim instead ('four completely different builds...'); re-verified PASS.",
+        "NEEDS-EYES (wg-brand-reviewer PASS on re-verify, 2026-09-04): slide-2's white sedan carries legible 'ORIGINAL RAMCHARGERS' tribute lettering - a bystander's tribute build, not Wolf's Garage's own claim, but worth a glance as a possible team-name/identity concern. Slide-4's second rat rod at the far right frame edge is only partially in frame - checked at 3x zoom: its front wheel and grille are fully intact, only the rear of that vehicle runs off-frame, so this is ordinary background density, not a crop-kill (the cut-wheel/grille rule protects the caption's named subject, not incidental background cars). No legible plates found on any of the four featured vehicles.",
+        "Brand gate: KILLed on first pass (caption/hook mismatch with slides 2 and 4, see above), fixed (caption and slide-1 hook rewritten, slide-1 re-rendered), re-verified PASS."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-11T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Fri 20:00 - own signals: Friday's two best posts are 20:00 and 22:10",
       "aspect": "landscape",
       "frame": "thin",
       "dated": false,
