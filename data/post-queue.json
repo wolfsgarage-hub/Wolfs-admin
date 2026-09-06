@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-05T15:00:57.621598+00:00",
+  "updated": "2026-09-06T15:28:03.361Z",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -281,7 +281,7 @@
       "format": "carousel",
       "angle": "Rose City Round-Up 2026 recap (event, one weekend)",
       "hook": "ROSE CITY ROUND-UP",
-      "caption": "Sixteen years of Rose City Round-Up and Driven Dead still run it right. Hard Money Saints on the stage after dark. Killer show, good folks. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio \ud83d\udc3a\n\nGet back in the garage.",
+      "caption": "Sixteen years of Rose City Round-Up and Driven Dead still run it right. Hard Money Saints on the stage after dark. Killer show, good folks. Thanks to everybody who brought something out!\n\nFree to list your build in the directory, link in bio 🐺\n\nGet back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#rosecityroundup",
@@ -1182,7 +1182,7 @@
       "format": "single",
       "angle": "trophy shot at a July 4th show: two-tone blue/white lowered Chevy pickup with a Wolf's Garage banner draped in the bed",
       "hook": "WINNING!",
-      "caption": "\n\nFree to list your business in the directory, link in bio \ud83d\udc3a\n\nGet back in the garage.",
+      "caption": "\n\nFree to list your business in the directory, link in bio 🐺\n\nGet back in the garage.",
       "hashtags": [
         "#wolfsgarage",
         "#classicpickup",
@@ -1259,7 +1259,7 @@
           "crop": {
             "focus_x": 0.48,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "maroon/cream Ford pickup hood up, whole truck + grille kept, hook slide"
           },
           "hook": "Everybody photographs the paint."
@@ -1273,7 +1273,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "intake plumbing detail in the same truck's engine bay"
           }
         },
@@ -1286,7 +1286,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "white/purple two-tone C10 hood up, whole truck + grille kept"
           }
         },
@@ -1299,7 +1299,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "yellow truck LS-swap engine bay detail"
           }
         },
@@ -1355,7 +1355,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "row of 4 COE-style panel trucks, whole row kept, hook slide"
           },
           "hook": "More rust than paint."
@@ -1369,7 +1369,7 @@
           "crop": {
             "focus_x": 0.49,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "white Model A hiboy hot rod, whole car + both wheels kept"
           }
         },
@@ -1382,7 +1382,7 @@
           "crop": {
             "focus_x": 0.45,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "orange/white GMC pickup front 3/4, whole truck + grille kept"
           }
         },
@@ -1395,7 +1395,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "blue-gray lifted 4x4 crew cab, full side profile, both wheels kept"
           }
         },
@@ -1451,7 +1451,7 @@
           "crop": {
             "focus_x": 0.49,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "silver 1959 Impala rear 3/4, fins and chrome bumper kept, hook slide"
           },
           "hook": "Fins, chrome, and a whitewall."
@@ -1465,7 +1465,7 @@
           "crop": {
             "focus_x": 0.65,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "purple 1946-48 Ford sedan, whole car + grille kept"
           }
         },
@@ -1478,7 +1478,7 @@
           "crop": {
             "focus_x": 0.55,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "slammed blue 1946-48 Ford/Mercury coupe rear 3/4, roofline kept"
           }
         },
@@ -1491,7 +1491,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "wide row shot, spectators walking the show at golden hour"
           }
         },
@@ -1547,7 +1547,7 @@
           "crop": {
             "focus_x": 0.4,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "red wagon hood up over a well-built engine bay, neighbor car for context, hook slide"
           },
           "hook": "That's a lot of motor for a wagon."
@@ -1561,7 +1561,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "same wagon, full rear 3/4, tailfins and chrome kept"
           }
         },
@@ -1574,7 +1574,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "same wagon rear 3/4 beside a red Pontiac, row context"
           }
         },
@@ -1631,7 +1631,7 @@
           "crop": {
             "focus_x": 0.55,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "maroon '58 Impala front 3/4, low stance and chrome grille, sun flare, hook slide"
           },
           "hook": "Impalas Car Club doesn't do subtle."
@@ -1645,7 +1645,7 @@
           "crop": {
             "focus_x": 0.6,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "white Impala rear fender, red side spear, Impala script badge, gold wire wheel kept"
           }
         },
@@ -1658,7 +1658,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "same maroon Impala, rear top-down, 'Impalas' club script legible in the back window"
           }
         },
@@ -1671,7 +1671,7 @@
           "crop": {
             "focus_x": 0.48,
             "focus_y": 0.5,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "full side profile of the same maroon Impala in a row with a white Impala and a tan/gold classic - shows the club is more than one car"
           }
         },
@@ -1729,7 +1729,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.58,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "yellow Model A hot rod, closest/largest in frame, clean solo pass, hook slide"
           },
           "hook": "Four completely different builds and not one of them was trying to match the others."
@@ -1743,7 +1743,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.55,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "flame-painted gasser leading a white Ramchargers-tribute sedan, both mid-pass"
           }
         },
@@ -1756,7 +1756,7 @@
           "crop": {
             "focus_x": 0.5,
             "focus_y": 0.62,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "black primer rail/pickup, number 581, blown engine and roll bar kept"
           }
         },
@@ -1769,7 +1769,7 @@
           "crop": {
             "focus_x": 0.45,
             "focus_y": 0.6,
-            "zoom": 1.0,
+            "zoom": 1,
             "why": "black primer pickup with pink wheels and pink skull-wrench graphic, staged at the cone line"
           }
         },
