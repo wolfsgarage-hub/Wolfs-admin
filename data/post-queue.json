@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-07T15:03:35.998874+00:00",
+  "updated": "2026-09-07T15:18:56.931114+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -1796,6 +1796,104 @@
       "kill_reason": null,
       "scheduled_slot": "2026-09-11T20:00 America/Los_Angeles",
       "slot_why": "week builder OPEN: Fri 20:00 - own signals: Friday's two best posts are 20:00 and 22:10",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260907-01",
+      "created": "2026-09-07",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "USO Portland Northwest show, 2026-07-26 - blue slammed longbed pickup under the North West Fam Car & Truck Club tent, olive C10 front 3/4 with the USO Portland Car Club tent behind it, red '57 Bel Air convertible trunk-up on chrome-plumbed hardware, a guy reclining on a patina truck-hood-and-tailgate couch build, same show same day",
+      "hook": "North West Fam brought the low one.",
+      "caption": "North West Fam's truck sat low enough to scrape, right in the middle of USO Portland's whole lineup. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#loweredtrucks",
+        "#carshow",
+        "#truckclub",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260907-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260907-01/slide-1.jpg",
+          "source_asset": "20260726_152642.jpg",
+          "source_file": "renders/posts/_sources/20260726_152642.jpg",
+          "crop": {
+            "focus_x": 0.52,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "blue lowered longbed on chrome wheels, North West Fam Car & Truck Club tent banner legible at left"
+          },
+          "hook": "North West Fam brought the low one."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260907-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260907-01/slide-2.jpg",
+          "source_asset": "20260726_162819.jpg",
+          "source_file": "renders/posts/_sources/20260726_162819.jpg",
+          "crop": {
+            "focus_x": 0.4,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "olive green C10 front 3/4, USO Portland Car Club tent sign legible behind it, whole truck kept"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260907-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260907-01/slide-3.jpg",
+          "source_asset": "20260726_162700.jpg",
+          "source_file": "renders/posts/_sources/20260726_162700.jpg",
+          "crop": {
+            "focus_x": 0.53,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "red '57 Bel Air convertible rear 3/4, trunk up on chrome-plumbed hardware, Oregon plate legible"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260907-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260907-01/slide-4.jpg",
+          "source_asset": "20260726_161429.jpg",
+          "source_file": "renders/posts/_sources/20260726_161429.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "guy reclining on a patina truck-hood-and-tailgate couch build, flame-mural backdrop"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260907-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260907-01/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-15T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Media index vision-tag caption for 20260726_152642.jpg wrongly read the tent banner as 'Stir Crazy' - verified by eye it actually reads 'North West Fam Car & Truck Club'; caption/flags here use the verified name.",
+        "Media index caption for 20260726_131744.jpg claimed a legible 'Los Reyes' plaque - on inspection the plaque reads 'AUSTIN / Las Vegas' (unrelated, ambiguous), so that asset was dropped rather than tagging an unverifiable club.",
+        "Media index caption for a 5th candidate (20260726_162635.jpg) described 'skull artwork' - on inspection it is an airbrushed pin-up mural (partially exposed figure), off-brand; dropped from the carousel rather than flagged, since it was never a fit.",
+        "No verifiable @ handle for North West Fam or USO Portland Car Club - both named in plain words per CAPTION LAW rule 7 (an unverifiable tag is worse than none).",
+        "Brand gate PASS (wg-brand-reviewer, caption + all 5 rendered slides + crop report + capture/slot dates). One RISK noted and applied: caption originally said 'longbed', which cannot be confirmed from the 3/4 angle - changed to the plainer 'truck' per the terminology rule. NEEDS-EYES: several bystanders/faces legible in slides 1-4, ordinary car-show crowd density, nothing flagged as a violation.",
+        "Photo age: capture_date 2026-07-26, slot 2026-09-15 = 51 days; no disclosure needed (PHOTO AGE - NO RULE, repealed 2026-08-30). Not classified as event_recap/event_hype - caption makes no claim about the show's timing."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-15T18:30 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Tue 18:30 - cold-start table, evening",
       "aspect": "landscape",
       "frame": "thin",
       "dated": false,
