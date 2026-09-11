@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-11T06:41:23.969223+00:00",
+  "updated": "2026-09-11T15:13:00.871127+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -2097,6 +2097,104 @@
       "kill_reason": null,
       "scheduled_slot": "2026-09-17T15:00 America/Los_Angeles",
       "slot_why": "week builder OPEN: Thu 15:00 - cold-start table, mid-week afternoon",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260911-01",
+      "created": "2026-09-11",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Car show, 2024-07-27 shoot (first use ever) - copper/cream slammed GMC C15 with 'Old Blown' fender script and a turbo LS under the open hood, its engine bay in close-up, then two more trucks laid just as low at the same show: a patina dark blue Chevy 3100 (hood up, AccuAir tag visible) and a white Chevy Fleetside rear 3/4 with the show crowd behind it",
+      "hook": "\"Old Blown\" is painted on the fender, and the turbo underneath isn't lying about it.",
+      "caption": "\"Old Blown\" is painted on the fender, and the turbo underneath isn't lying about it. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#gmc",
+        "#turbols",
+        "#squarebody",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260911-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260911-01/slide-1.jpg",
+          "source_asset": "20240727_135125.jpg",
+          "source_file": "renders/posts/_sources/20240727_135125.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "hero 3/4 front, copper GMC laid out low, hood up showing the turbo LS, 'Old Blown' script visible on the fender"
+          },
+          "hook": "\"Old Blown\" is painted on the fender, and the turbo underneath isn't lying about it."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260911-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260911-01/slide-2.jpg",
+          "source_asset": "20240727_135131.jpg",
+          "source_file": "renders/posts/_sources/20240727_135131.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.45,
+            "zoom": 1.0,
+            "why": "engine bay close-up, the turbo and polished LS valve covers under the open hood"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260911-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260911-01/slide-3.jpg",
+          "source_asset": "20240727_134637.jpg",
+          "source_file": "renders/posts/_sources/20240727_134637.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "a second truck at the same show, a slammed dark blue Chevy pickup with the hood up"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260911-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260911-01/slide-4.jpg",
+          "source_asset": "20240727_130248.jpg",
+          "source_file": "renders/posts/_sources/20240727_130248.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.48,
+            "zoom": 1.0,
+            "why": "a third truck laid just as low, white Chevy Fleetside rear 3/4 with the show crowd behind it"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260911-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260911-01/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-19T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate KILLed-on-risk the first pass: hook/caption claimed 'twin turbos' but only one turbo housing is clearly identifiable in slide-2's crop. Fixed: cut to singular 'the turbo' in the hook, caption, and slide-2's crop 'why'; re-rendered slide-1's hook plate. Re-verified: PASS-WITH-RISK (no kill conditions remaining).",
+        "GMC confirmed from the grille badge and wheel-center caps in slide-1, not assumed - matches the #gmc hashtag. 'Old Blown' fender script is genuinely legible in slide-1.",
+        "NEEDS-EYES: slide-3 has an identifiable bystander (man, sunglasses) and background business banners (Summit Racing, 'Muscle Machine of the Year') - routine show signage, not a club/creator identity, so no @ tag per CAPTION LAW rule 7. Slide-4 has a child partially visible in the background near a parked Suburban, and the white truck's rear plate is partially legible - flagging both for a look before publish, neither blocked the gate.",
+        "No verifiable club/creator/business identity on the featured (GMC) truck itself - no @ tag applied.",
+        "Photo age: capture_date 2024-07-27, slot 2026-09-19 - no disclosure needed (PHOTO AGE - NO RULE, repealed 2026-08-30). Not event_recap/event_hype - caption makes no claim about timing, ordinary library post.",
+        "First use of this capture day (2024-07-27, 97 post-worthy frames) - checked against every source_asset already in the live queue (all statuses) before picking; no asset or capture day reused."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-19T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Sat 20:00 - own signals: Sat evening 19:00-23:00 is the account's strongest band",
       "aspect": "landscape",
       "frame": "thin",
       "dated": false,
