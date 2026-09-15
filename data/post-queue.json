@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-15T15:49:18.483455+00:00",
+  "updated": "2026-09-15T15:54:55.104280+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -2197,6 +2197,104 @@
       "kill_reason": null,
       "scheduled_slot": "2026-09-19T20:00 America/Los_Angeles",
       "slot_why": "week builder OPEN: Sat 20:00 - own signals: Sat evening 19:00-23:00 is the account's strongest band",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260915-01",
+      "created": "2026-09-15",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Car show, 2026-07-26 shoot - dark green/black two-tone 1930s Ford sedan delivery hot rod, hood up on gold-engraved chrome valve covers and gold wire wheels, then the rear cabinet-style doors open on a 'DEADWOOD' gold-scripted two-chair lounge interior, then a chrome hubcap/gold pinstripe detail",
+      "hook": "Somebody engraved the valve covers in gold before the motor ever turned over.",
+      "caption": "Somebody engraved the valve covers in gold before the motor ever turned over. Open the back doors and there's a two-chair lounge back there instead of a bed. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#32ford",
+        "#sedandelivery",
+        "#kustom",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260915-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260915-01/slide-1.jpg",
+          "source_asset": "20260726_132401.jpg",
+          "source_file": "renders/posts/_sources/20260726_132401.jpg",
+          "crop": {
+            "focus_x": 0.42,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "hero 3/4 front, dark green/black two-tone sedan delivery, hood open showing the chrome/gold engine, gold wire wheels"
+          },
+          "hook": "Somebody engraved the valve covers in gold before the motor ever turned over."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260915-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260915-01/slide-2.jpg",
+          "source_asset": "20260726_132350.jpg",
+          "source_file": "renders/posts/_sources/20260726_132350.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.45,
+            "zoom": 1.05,
+            "why": "engine bay close-up, engraved gold-and-chrome valve covers under the open hood"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260915-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260915-01/slide-3.jpg",
+          "source_asset": "20260726_132503.jpg",
+          "source_file": "renders/posts/_sources/20260726_132503.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "rear cabinet-style doors open, DEADWOOD script on the roofline, two-chair lounge interior instead of a cargo bed"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260915-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260915-01/slide-4.jpg",
+          "source_asset": "20260726_132419.jpg",
+          "source_file": "renders/posts/_sources/20260726_132419.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "extreme close-up, chrome hubcap and gold pinstripe tracing the black fender edge"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260915-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260915-01/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-23T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate: PASS-WITH-RISK. Verified 'engraved the valve covers in gold' visible in slide-2 (ornate gold scrollwork on valve covers and air cleaner) and 'two-chair lounge ... instead of a bed' visible in slide-3 (two bucket seats facing forward, no cargo deck). No kill conditions.",
+        "NEEDS-EYES: slide-1 shows a 'CHEWY'S Cigar Bar' decal on the vehicle's rear quarter panel. Ambiguous whether this is the builder/owner's shop or a sponsor sticker, and no verifiable @ handle from the frame or the media index caption - per CAPTION LAW rule 7 ('a handle you cannot verify is worse than no tag'), no @ tag applied and the decal is not named in the caption.",
+        "Crop WARNs on slide-2 (keeps 23% height) and slide-4 (keeps 24% height) - both are portrait-orientation source panos cropped into the draft's landscape aspect. Checked: nothing the caption names fell outside either crop.",
+        "Background bystanders in slide-1 and slide-3 are non-focal at this resolution; no identifiable minors in a focal position.",
+        "Ordinary library post (post_kind not dated, dated=false) - no event_recap/event_hype claim, no photo-age disclosure needed (PHOTO AGE - NO RULE, repealed 2026-08-30).",
+        "First use of this capture day (2026-07-26, 87 unused post-worthy frames after this draft) - checked source_assets against every draft already in the live queue (all statuses) before picking; no asset reused. 4 of the day's frames (132334, 132341, 132448, 132501) were already burned by an earlier draft on a different subject (a different hot rod at the same show) - avoided."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-23T18:30 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Wed 18:30 - cold-start table, evening (Buffer's #3 slot overall)",
       "aspect": "landscape",
       "frame": "thin",
       "dated": false,
