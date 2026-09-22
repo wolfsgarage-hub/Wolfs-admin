@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updated": "2026-09-22T07:58:19.765221+00:00",
+  "updated": "2026-09-22T15:30:27.936984+00:00",
   "note": "Wolf's Garage post queue - Build #1 Station 3/4 contract. Written by the post-assembler skill, read by the Approval Queue page (Build 1.2) and the publisher (Build 1.3). Statuses: pending_approval -> approved | killed | fix -> published. Nothing publishes without John's tap. Schema v2 (2026-07-03): photo slides carry source_file + crop {focus_x, focus_y, zoom} so the approval page can re-crop and re-render in-browser. Schema v3 (2026-08-02): each draft carries an \"aspect\" (portrait 1080x1350 | landscape 1080x566 | square 1080x1080) and a \"frame\" (pinstripe | thin | none). A carousel is single-aspect because Instagram forces it. Drafts with no aspect/frame field are portrait/pinstripe, which is what they were rendered as. Renders come from the full-resolution ORIGINAL via the media index, never from the renders/posts/_sources copies, and assemble.py aborts rather than upscale. FRAME STANDARD (John's call 2026-08-02): new drafts render \"thin\" (12px). The 43px \"pinstripe\" frame is RETIRED and stays only on already-published history. CLOSER (same call): every caption ends \"Get back in the garage.\" - the earlier rotation rule is dead.",
   "drafts": [
     {
@@ -2307,6 +2307,645 @@
       "kill_reason": null,
       "scheduled_slot": "2026-09-23T18:30 America/Los_Angeles",
       "slot_why": "week builder OPEN: Wed 18:30 - cold-start table, evening (Buffer's #3 slot overall)",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-01",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Under-freeway classic truck meet, 2025-07-13 shoot - gray-blue Advance-Design pickup on cream steelies, white/patina C10 bagged low, LS-swap engine bay detail, GMC Advance-Design nose-on, three different murals on the same lot",
+      "hook": "Under the freeway, one guy's Advance-Design sits on cream steelies next to somebody else's C10 laid all the way out.",
+      "caption": "Under the freeway, one guy's Advance-Design sits on cream steelies next to somebody else's C10 laid all the way out. Different wall behind each one, same lot, same morning. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#advancedesign",
+        "#c10",
+        "#lsswap",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-01/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-01/slide-1.jpg",
+          "source_asset": "20250713_064220.jpg",
+          "source_file": "renders/posts/_sources/20250713_064220.jpg",
+          "crop": {
+            "focus_x": 0.55,
+            "focus_y": 0.58,
+            "zoom": 1.0,
+            "why": "hero side profile, slate Advance-Design Chevy pickup on cream steelies against blue shark/graffiti mural"
+          },
+          "hook": "Under the freeway, one guy's Advance-Design sits on cream steelies next to somebody else's C10 laid all the way out."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-01/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-01/slide-2.jpg",
+          "source_asset": "20250713_083451.jpg",
+          "source_file": "renders/posts/_sources/20250713_083451.jpg",
+          "crop": {
+            "focus_x": 0.4,
+            "focus_y": 0.56,
+            "zoom": 1.0,
+            "why": "white/patina bagged C10 front 3/4, black-and-white mural backdrop in a parking garage"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-01/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-01/slide-3.jpg",
+          "source_asset": "20250713_073505.jpg",
+          "source_file": "renders/posts/_sources/20250713_073505.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.05,
+            "why": "LS-swap engine bay detail, polished intake and Chevrolet script valve covers"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-01/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-01/slide-4.jpg",
+          "source_asset": "20250713_085450.jpg",
+          "source_file": "renders/posts/_sources/20250713_085450.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.47,
+            "zoom": 1.0,
+            "why": "GMC Advance-Design nose-on, chrome grille filling the frame, stylized black-and-white mural behind"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-01/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-01/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-24T15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer, 3 passes): first KILL for reading as one truck's story across two different vehicles; caption rewritten to name both trucks honestly. Second KILL for a false 'same mural' claim (the three backgrounds are three different murals) - cut entirely. Final pass: PASS. Engine bay in slide-3 is not claimed as belonging to either named truck.",
+        "First use of this capture day (2025-07-13, under-freeway Portland truck meet) - 99 unused post-worthy frames remain after this draft.",
+        "NEEDS-EYES: confirm slide-1 and slide-4 show the same Advance-Design truck (paint/wheel match reads consistent) rather than two similar trucks; background bystanders in all 4 slides are non-focal. Also confirm the 'same lot' claim - slide-1's mural reads as an open-air wall while slides 2 and 4 read as a covered parking-structure section (pipes, fluorescent light); plausible as one large under-freeway meet with both open and covered walls (media index groups all 4 frames under the same 2025-07-13 shoot), but not pixel-confirmable as literally the same lot."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-24T15:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Thu 15:00 - cold-start table, mid-week afternoon",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-02",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Fall car show/cruise near a vineyard, 2025-10-18 shoot - cream C10 bagged flat on grass, patina blue C10 leading a row of classic trucks, blue C10 engine bay detail, teal patina GMC panel truck with old hand-painted signage",
+      "hook": "Bagged flat on the grass, this cream C10 sits lower than the field around it.",
+      "caption": "Bagged flat on the grass, this cream C10 sits lower than the field around it. Same show had a whole row of trucks lined up down the lot. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#c10",
+        "#bagged",
+        "#patina",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-02/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-02/slide-1.jpg",
+          "source_asset": "20251018_113948(2).jpg",
+          "source_file": "renders/posts/_sources/20251018_113948(2).jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.56,
+            "zoom": 1.0,
+            "why": "hero low angle, cream C10 bagged flat on grass, vineyard and hills behind"
+          },
+          "hook": "Bagged flat on the grass, this cream C10 sits lower than the field around it."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-02/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-02/slide-2.jpg",
+          "source_asset": "20251018_103427.jpg",
+          "source_file": "renders/posts/_sources/20251018_103427.jpg",
+          "crop": {
+            "focus_x": 0.42,
+            "focus_y": 0.58,
+            "zoom": 1.0,
+            "why": "patina blue C10 full side profile leading a row of classic trucks"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-02/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-02/slide-3.jpg",
+          "source_asset": "20251018_103915.jpg",
+          "source_file": "renders/posts/_sources/20251018_103915.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.45,
+            "zoom": 1.05,
+            "why": "engine bay detail, blue 1960s C10, chrome air cleaner and small-block V8"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-02/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-02/slide-4.jpg",
+          "source_asset": "20251018_113729.jpg",
+          "source_file": "renders/posts/_sources/20251018_113729.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.52,
+            "zoom": 1.0,
+            "why": "teal patina GMC panel truck with old-school hand-painted business signage on the door"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-02/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-02/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-25T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer): PASS-WITH-RISK, no kill. Caption originally said the row of trucks sat 'behind' the named cream C10, but the row shot (slide-2) has a different truck as its own foreground subject - reworded to two separate observations from the same show rather than one continuous shot.",
+        "First use of this capture day (2025-10-18, fall cruise near a vineyard) - 79 unused post-worthy frames remain after this draft.",
+        "NEEDS-EYES: modern GMC SUV and bystanders in slide-4 background are incidental show-lot context, not the subject; no identifiable minors in a focal position."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-25T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Fri 20:00 - own signals: Friday's two best posts are 20:00 and 22:10",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-03",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Single-build feature, 2026-07-01 shoot - teal Ford Model A rat rod, straight front axle, blower through the hood, big-and-little tire stance, chopped roofline",
+      "hook": "A straight front axle, a blower through the hood, and tires that don't match front to back on purpose.",
+      "caption": "A straight front axle, a blower through the hood, and tires that don't match front to back on purpose. Somebody executed the whole rat rod formula and got it right. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#ratrod",
+        "#modela",
+        "#hotrod",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-03/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-03/slide-1.jpg",
+          "source_asset": "20260701_175929.jpg",
+          "source_file": "renders/posts/_sources/20260701_175929.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "hero front 3/4, teal Model A rat rod, straight front axle and big-and-little tire stance"
+          },
+          "hook": "A straight front axle, a blower through the hood, and tires that don't match front to back on purpose."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-03/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-03/slide-2.jpg",
+          "source_asset": "20260701_175948.jpg",
+          "source_file": "renders/posts/_sources/20260701_175948.jpg",
+          "crop": {
+            "focus_x": 0.45,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "close front-quarter detail, straight axle, blower stacks and exposed engine"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-03/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-03/slide-3.jpg",
+          "source_asset": "20260701_175956.jpg",
+          "source_file": "renders/posts/_sources/20260701_175956.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "full side profile, low chopped roofline and exposed frame rails"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-03/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-03/slide-4.jpg"
+        }
+      ],
+      "target_slot": "2026-09-26T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer): PASS. Straight axle, blower, and the mismatched front/back tire sizes all confirmed visible across the 3 slides.",
+        "First use of this capture day (2026-07-01, outdoor car show) - 72 unused post-worthy frames remain after this draft (12 of them this same rat rod).",
+        "NEEDS-EYES: background bystanders in slides 1-2, non-focal."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-26T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Sat 20:00 - own signals: Sat evening 19:00-23:00 is the account's strongest band",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-04",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Estranged Portland drag/car show, 2025-08-16 shoot - stars-and-stripes flag-liveried straight-axle gasser nose-high, white bagged 1969-70 C10, patina Model A rat lettered Coffin with exposed engine, Flat Trap Racing blue gasser",
+      "hook": "That flag-liveried gasser sits nose-high enough to see straight under it.",
+      "caption": "That flag-liveried gasser sits nose-high enough to see straight under it. Right next to it sat a rat lettered Coffin, flames on the flank and the nose sitting low to the pavement. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#gasser",
+        "#dragrace",
+        "#hotrod",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-04/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-04/slide-1.jpg",
+          "source_asset": "20250816_102018.jpg",
+          "source_file": "renders/posts/_sources/20250816_102018.jpg",
+          "crop": {
+            "focus_x": 0.55,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "hero, flag-liveried gasser nose-high on the front suspension"
+          },
+          "hook": "That flag-liveried gasser sits nose-high enough to see straight under it."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-04/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-04/slide-2.jpg",
+          "source_asset": "20250816_142418.jpg",
+          "source_file": "renders/posts/_sources/20250816_142418.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "white bagged 1969-70 C10, black hood, laid out on black wheels"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-04/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-04/slide-3.jpg",
+          "source_asset": "20250816_101756.jpg",
+          "source_file": "renders/posts/_sources/20250816_101756.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.52,
+            "zoom": 1.0,
+            "why": "patina Model A lettered Coffin, flame graphics, low stance, exposed engine"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-04/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-04/slide-4.jpg",
+          "source_asset": "20250816_100903.jpg",
+          "source_file": "renders/posts/_sources/20250816_100903.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "Flat Trap Racing blue gasser, doors up, blower and sponsor livery"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-04/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-04/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-27T20:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer, 2 passes): first KILL for naming 'Shawn Brown' - not actually legible anywhere on the car - and for 'Coffins' (plural) when only the singular 'COFFIN' is lettered on the car; also dropped an unconfirmed 'chopped roofline' claim. Final pass: PASS-WITH-RISK, no kill. 'Coffin' lettering and flame graphics on the car confirmed visible in slide-3.",
+        "First use of this capture day (2025-08-16, Estranged Portland drag/show) - 104 unused post-worthy frames remain after this draft.",
+        "NEEDS-EYES: confirm the lettering in slide-3 reads exactly 'COFFIN'; no identifiable bystander faces in a focal position in slides 1/3."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-27T20:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Sun 20:00 - research names Sun 20:00-21:00; own signals agree Sunday evening",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-05",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Indoor custom car show, 2026-03-21 shoot - copper metalflake panel truck on an elevated mirrored lift display, candy-red chopped Ford convertible, cream/maroon chopped lead sled",
+      "hook": "That copper truck sits on a mirrored floor with the chassis reflected underneath.",
+      "caption": "That copper truck sits on a mirrored floor with the chassis reflected underneath. Candy paint waited two booths over. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#kustom",
+        "#leadsled",
+        "#carshow",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-05/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-05/slide-1.jpg",
+          "source_asset": "20260321_104239.jpg",
+          "source_file": "renders/posts/_sources/20260321_104239.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.48,
+            "zoom": 1.0,
+            "why": "hero, copper metalflake panel truck on an elevated mirrored show display, hood up"
+          },
+          "hook": "That copper truck sits on a mirrored floor with the chassis reflected underneath."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-05/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-05/slide-2.jpg",
+          "source_asset": "20260321_104311.jpg",
+          "source_file": "renders/posts/_sources/20260321_104311.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.45,
+            "zoom": 1.0,
+            "why": "same copper truck from the rear, gullwing-style doors up on the lift display"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-05/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-05/slide-3.jpg",
+          "source_asset": "20260321_103704.jpg",
+          "source_file": "renders/posts/_sources/20260321_103704.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "candy-red chopped custom Ford convertible, hood and door open on the show floor"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-05/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-05/slide-4.jpg",
+          "source_asset": "20260321_112635.jpg",
+          "source_file": "renders/posts/_sources/20260321_112635.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "cream and maroon chopped custom lead sled, full side profile"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-05/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-05/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-28T15:00 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer): PASS-WITH-RISK, no kill. Square aspect chosen over the usual landscape default because these are tall show-floor lift/hood-up shots; every slide keeps only 46% width per the renderer's crop report, checked and nothing the caption names fell outside. Caption originally said the mirror 'you can't miss' the chassis - softened to 'reflected underneath' since the reflection is real but modest, not dramatic.",
+        "First use of this capture day (2026-03-21, indoor custom show) - 67 unused post-worthy frames remain after this draft.",
+        "NEEDS-EYES: incidental vendor-booth shirt text ('BREAK THE CHAIN') visible in slide-4 background, not WG branding; Oregon vanity plate 'DUOMO' visible in slide-2, not a privacy concern (the show vehicle's own plate); bystanders in slides 3-4 non-focal."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-28T15:00 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Mon 15:00 - cold-start table, start of week",
+      "aspect": "square",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-06",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Outdoor car show (Washington fairground), 2023-07-29 shoot - teal/white metalflake fiberglass dune buggy, chrome LSX engine bay, bare-metal primered twin-turbo build, white bagged 1959 Chevrolet Apache pickup",
+      "hook": "Clean enough to leave the hood off on purpose.",
+      "caption": "Clean enough to leave the hood off on purpose. This chrome LSX earns it. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#lsswap",
+        "#enginebay",
+        "#carshow",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-06/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-06/slide-1.jpg",
+          "source_asset": "20230729_100630.jpg",
+          "source_file": "renders/posts/_sources/20230729_100630.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "hero, teal/white metalflake fiberglass dune buggy, chrome engine and wide rear tires"
+          },
+          "hook": "Clean enough to leave the hood off on purpose."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-06/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-06/slide-2.jpg",
+          "source_asset": "20230729_101105.jpg",
+          "source_file": "renders/posts/_sources/20230729_101105.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.32,
+            "zoom": 1.0,
+            "why": "chrome LSX engine bay, polished intake and firewall"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-06/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-06/slide-3.jpg",
+          "source_asset": "20230729_104746.jpg",
+          "source_file": "renders/posts/_sources/20230729_104746.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "bare-metal primered build with a twin-turbo setup filling the open grille, roll cage visible"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-06/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-06/slide-4.jpg",
+          "source_asset": "20230729_105443.jpg",
+          "source_file": "renders/posts/_sources/20230729_105443.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "white 1959 Chevrolet Apache pickup, bagged, chrome wheels"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-06/slide-5.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-06/slide-5.jpg"
+        }
+      ],
+      "target_slot": "2026-09-29T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer): PASS-WITH-RISK, no kill. Caption trimmed after review flagged 3 body sentences (over the 1-3 rule) plus an unverifiable 'twin-turbo coupe' body-style claim; cut to 2 sentences + closer with no body-style claim. A shop build plate ('BUILT BY RJM MOTORSPORTS') is legible on the ORIGINAL uncropped engine-bay photo but is cropped out of the final 38%-height render (slide-2) - correctly not named anywhere in the caption.",
+        "First use of this capture day (2023-07-29) - 52 unused post-worthy frames remain after this draft.",
+        "NEEDS-EYES: background bystanders in slides 1 and 3, non-focal."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-29T18:30 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Tue 18:30 - cold-start table, evening",
+      "aspect": "landscape",
+      "frame": "thin",
+      "dated": false,
+      "refill_requested": false
+    },
+    {
+      "id": "wgpost-20260922-07",
+      "created": "2026-09-22",
+      "status": "pending_approval",
+      "format": "carousel",
+      "angle": "Single-build feature, 2025-07-26 shoot - patina green DIVCO milk truck, LS-swapped, hand-painted business signage on the door, DIVCO grille badge and steering wheel hub detail",
+      "hook": "Somebody LS-swapped a DIVCO milk truck and left the patina exactly where they found it.",
+      "caption": "Somebody LS-swapped a DIVCO milk truck and left the patina exactly where they found it. The old hand-painted sign still rides the door. Get back in the garage.",
+      "hashtags": [
+        "#wolfsgarage",
+        "#divco",
+        "#lsswap",
+        "#patina",
+        "#getbackinthegarage"
+      ],
+      "cta": "brand",
+      "slides": [
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-07/slide-1.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-07/slide-1.jpg",
+          "source_asset": "20250726_104415.jpg",
+          "source_file": "renders/posts/_sources/20250726_104415.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.55,
+            "zoom": 1.0,
+            "why": "hero, patina green DIVCO milk truck, hood up, hand-painted business signage"
+          },
+          "hook": "Somebody LS-swapped a DIVCO milk truck and left the patina exactly where they found it."
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-07/slide-2.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-07/slide-2.jpg",
+          "source_asset": "20250726_104405.jpg",
+          "source_file": "renders/posts/_sources/20250726_104405.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "DIVCO engine bay detail, LS engine under the tilted nose, DIVCO badge on the grille shell"
+          }
+        },
+        {
+          "kind": "photo",
+          "file": "renders/posts/wgpost-20260922-07/slide-3.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-07/slide-3.jpg",
+          "source_asset": "20250726_104452.jpg",
+          "source_file": "renders/posts/_sources/20250726_104452.jpg",
+          "crop": {
+            "focus_x": 0.5,
+            "focus_y": 0.5,
+            "zoom": 1.0,
+            "why": "interior detail, DIVCO-badged steering wheel and column shifter"
+          }
+        },
+        {
+          "kind": "end_card",
+          "file": "renders/posts/wgpost-20260922-07/slide-4.jpg",
+          "raw_url": "https://raw.githubusercontent.com/wolfsgarage-hub/Wolfs-admin/main/renders/posts/wgpost-20260922-07/slide-4.jpg"
+        }
+      ],
+      "target_slot": "2026-09-30T18:30 America/Los_Angeles",
+      "platforms": [
+        "instagram",
+        "facebook"
+      ],
+      "flags": [
+        "Brand gate (wg-brand-reviewer): PASS-WITH-RISK, no kill. DIVCO grille badge confirmed legible in slide-2, LS-style small-block confirmed in the engine bay. Caption originally named the door's hand-painted business script verbatim ('Total Heating Company') but only 'Total He[...]' is confirmed legible at this resolution - softened to 'the old hand-painted sign' to avoid over-claiming the full text.",
+        "First use of this capture day (2025-07-26, this specific DIVCO truck; 5 other frames from the same overall show date were already burned by an unrelated draft on a '29 Model A) - 114 unused post-worthy frames remain from this day after this draft.",
+        "NEEDS-EYES: slide-3 (steering wheel) is a tight 24%-height crop but doesn't cut anything the caption names."
+      ],
+      "fix_note": null,
+      "kill_reason": null,
+      "scheduled_slot": "2026-09-30T18:30 America/Los_Angeles",
+      "slot_why": "week builder OPEN: Wed 18:30 - cold-start table, evening",
       "aspect": "landscape",
       "frame": "thin",
       "dated": false,
