@@ -534,7 +534,8 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
 
   function lineCard(p, i) {
     var today = SQ.pacificToday();
-    var thumb = (p.media && p.media[0]) ? SQ.mediaUrl(p.media[0].path) : 'assets/wolf-logo.png';
+    // a reel's media[0] is the mp4; its cover_path is the picture (plan D task 5)
+    var thumb = (p.media && p.media[0]) ? SQ.mediaUrl(p.media[0].cover_path || p.media[0].path) : 'assets/wolf-logo.png';
     var pinnedToday = p.pinned_date === today;
     var stale = state.stale_pins.indexOf(p.id) >= 0;
     var chips = '<span class="chip ' + (p.status === 'approved' ? 'bone' : '') + '">' + esc(p.status) + '</span>';
@@ -645,7 +646,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     if (!p) { $('detailCol').innerHTML = '<div class="empty">Pick a post on the left.</div>'; return; }
     if (state.detailFor !== p.id) { state.detailFor = p.id; state.captionPick = null; state.captionText = null; state.hashText = null; }
     var slides = (p.media || []).map(function (m, i) {
-      return '<div class="slide"><img src="' + esc(SQ.mediaUrl(m.path)) + '" alt="slide ' + (i + 1) + '">' +
+      return '<div class="slide"><img src="' + esc(SQ.mediaUrl(m.cover_path || m.path)) + '" alt="slide ' + (i + 1) + '">' +
         '<span class="chip tier ' + (m.edit_tier === 'epic' ? 'bone' : '') + '">' + esc(m.edit_tier || 'raw') + '</span>' +
         '<div class="cm">slide ' + (i + 1) + ' · ' + esc(m.aspect || '') + ' · ' + esc(m.w || '?') + 'x' + esc(m.h || '?') + '</div>' +
         '<div class="btns" data-slidebtns="' + i + '"></div></div>';
