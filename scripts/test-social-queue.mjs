@@ -170,3 +170,41 @@ test('voiceCheck: em dash, en dash, shop, John are refused; clean text passes', 
   assert.match(SQ.voiceCheck('John will be there.'), /John/);
   assert.equal(SQ.voiceCheck('Johnson County cruise.'), null);                       // whole word only
 });
+
+test('handleWarnings flags club names not on the handle list', () => {
+  const handles = [{ name: 'Portland Roadsters', aliases: ['PDX Roadsters'] }, { name: 'Rose City Rods', aliases: [] }];
+  assert.deepEqual(SQ.handleWarnings({ club: ['Rose City Rods', 'Unknown Cruisers'] }, handles), ['Unknown Cruisers']);
+  assert.deepEqual(SQ.handleWarnings({ club: 'pdx roadsters ' }, handles), []);
+  assert.deepEqual(SQ.handleWarnings({ club: [] }, handles), []);
+  assert.deepEqual(SQ.handleWarnings({}, handles), []);
+  assert.deepEqual(SQ.handleWarnings({ club: 'Anyone' }, []), ['Anyone']);
+});
+
+test('tagsAfterHandle adds user tags, collab only when collab_ok, location for venues, remove', () => {
+  const t0 = { user_tags: [], collaborators: [], location_id: '', handles_used: [] };
+  const club = { id: 1, name: 'Portland Roadsters', ig_handle: 'portlandroadsters', kind: 'club', collab_ok: true, location_id: '' };
+  const club2 = { id: 2, name: 'Rose City Rods', ig_handle: 'rosecityrods', kind: 'club', collab_ok: false, location_id: '' };
+  const venue = { id: 3, name: 'Beaverton Round', ig_handle: '', kind: 'venue', collab_ok: false, location_id: '123' };
+  const t1 = SQ.tagsAfterHandle(t0, club, 'user');
+  assert.deepEqual(t1, { user_tags: [{ username: 'portlandroadsters', x: 0.5, y: 0.5 }], collaborators: [], location_id: '', handles_used: [1] });
+  assert.deepEqual(SQ.tagsAfterHandle(t1, club, 'user'), t1);                       // dedupe
+  const t2 = SQ.tagsAfterHandle(t1, club, 'collab');
+  assert.deepEqual(t2.collaborators, ['portlandroadsters']);
+  const t3 = SQ.tagsAfterHandle(t2, club2, 'collab');                                // not collab_ok -> user tag
+  assert.deepEqual(t3.collaborators, ['portlandroadsters']);
+  assert.deepEqual(t3.user_tags.map(u => u.username), ['portlandroadsters', 'rosecityrods']);
+  const t4 = SQ.tagsAfterHandle(t3, venue, 'user');
+  assert.equal(t4.location_id, '123'); assert.equal(t4.user_tags.length, 2); assert.deepEqual(t4.handles_used, [1, 2, 3]);
+  const t5 = SQ.tagsAfterHandle(t4, club, 'remove');
+  assert.deepEqual(t5.user_tags.map(u => u.username), ['rosecityrods']); assert.deepEqual(t5.collaborators, []); assert.deepEqual(t5.handles_used, [2, 3]);
+  assert.deepEqual(t0, { user_tags: [], collaborators: [], location_id: '', handles_used: [] }); // never mutated
+});
+
+test('storyRestore and mediaWithSlide', () => {
+  assert.deepEqual(SQ.storyRestore({ id: 'sp-1' }, {}), { path: 'posts/sp-1/story.jpg', w: 1080, h: 1920 });
+  assert.deepEqual(SQ.storyRestore({ id: 'sp-1' }, { 'sp-1': { path: 'x.jpg', w: 1080, h: 1920 } }), { path: 'x.jpg', w: 1080, h: 1920 });
+  const media = [{ path: 'a.jpg', edit_tier: 'darkroom' }, { path: 'b.jpg', edit_tier: 'cleanup' }];
+  const out = SQ.mediaWithSlide(media, 1, 'posts/sp-1/slide-2-manual.jpg');
+  assert.deepEqual(out[1], { path: 'posts/sp-1/slide-2-manual.jpg', edit_tier: 'epic', manual: true });
+  assert.deepEqual(out[0], media[0]); assert.equal(media[1].path, 'b.jpg');
+});

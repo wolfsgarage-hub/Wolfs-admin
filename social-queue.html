@@ -55,7 +55,7 @@ main{padding:12px 16px;max-width:1100px;margin:0 auto}
 .row{margin:8px 0;font-size:.88rem}
 .row a{color:var(--copper)}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-button.act{font-family:'Oswald',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;border:1px solid var(--border);background:none;color:var(--bone);cursor:pointer}
+button.act,label.act{font-family:'Oswald',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;border:1px solid var(--border);background:none;color:var(--bone);cursor:pointer}
 button.act.primary{background:var(--red);border-color:var(--red)}
 button.act.kill{border-color:var(--red);color:var(--red)}
 button.act.copper{border-color:var(--copper);color:var(--copper)}
@@ -250,6 +250,53 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     return null;
   };
 
+  // D12: never a handle not on the list. Names the facts mention that the list does not know
+  // get a warning chip so John can add them on the HANDLES tab.
+  SQ.handleWarnings = function (facts, handles) {
+    var raw = facts && facts.club;
+    var names = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    var known = {};
+    (handles || []).forEach(function (h) {
+      [h.name].concat(h.aliases || []).forEach(function (n) { if (n) { known[String(n).trim().toLowerCase()] = 1; } });
+    });
+    return names.map(function (n) { return String(n).trim(); }).filter(function (n) { return n && !known[n.toLowerCase()]; });
+  };
+  SQ.tagsAfterHandle = function (tags, h, mode) {
+    var t = tags || {};
+    var out = { user_tags: (t.user_tags || []).slice(), collaborators: (t.collaborators || []).slice(), location_id: t.location_id || '', handles_used: (t.handles_used || []).slice() };
+    var u = String(h.ig_handle || '').replace(/^@/, '').trim();
+    if (mode === 'remove') {
+      out.user_tags = out.user_tags.filter(function (x) { return x.username !== u; });
+      out.collaborators = out.collaborators.filter(function (x) { return x !== u; });
+      out.handles_used = out.handles_used.filter(function (x) { return x !== h.id; });
+      if (h.location_id && out.location_id === h.location_id) { out.location_id = ''; }
+      return out;
+    }
+    if (out.handles_used.indexOf(h.id) < 0) { out.handles_used.push(h.id); }
+    if (!u) { if (h.location_id) { out.location_id = h.location_id; } return out; }
+    if (mode === 'collab' && h.collab_ok) {
+      if (out.collaborators.indexOf(u) < 0) { out.collaborators.push(u); }
+      return out;
+    }
+    if (!out.user_tags.some(function (x) { return x.username === u; })) { out.user_tags.push({ username: u, x: 0.5, y: 0.5 }); }
+    if (h.location_id && !out.location_id) { out.location_id = h.location_id; }
+    return out;
+  };
+  // Story toggle "restore": the stash from this page session, else the render convention.
+  // If plan B renders the Story under a different path, this is the one place to change.
+  SQ.storyRestore = function (post, stash) {
+    if (stash && stash[post.id]) { return stash[post.id]; }
+    return { path: 'posts/' + post.id + '/story.jpg', w: 1080, h: 1920 };
+  };
+  SQ.mediaWithSlide = function (media, index, path) {
+    return (media || []).map(function (m, i) {
+      if (i !== index) { return m; }
+      var c = {}; Object.keys(m).forEach(function (k) { c[k] = m[k]; });
+      c.path = path; c.edit_tier = 'epic'; c.manual = true;
+      return c;
+    });
+  };
+
   window.SQ_VERSION = SQ_VERSION;
   window.SQ = SQ;
 })(window);
@@ -295,7 +342,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   var FN = 'https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/wg-ig-publish';
   var DEMO = /[?&]demo=1/.test(location.search);
   var state = { tab: 'line', line: [], stale_pins: [], counts: {}, slot_plan: [], settings: {}, days: 0,
-                runs: [], handles: [], comments: [], selectedId: null, storyStash: {}, demo: null,
+                runs: [], handles: [], handlesAt: null, comments: [], selectedId: null, storyStash: {}, demo: null,
                 detailFor: null, captionPick: null, captionText: null, hashText: null };
   var $ = function (id) { return document.getElementById(id); };
   var esc = SQ.esc;
@@ -525,7 +572,87 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       '</div>';
     renderExtras(p);
   }
-  function renderExtras(p) { /* Task 5 */ }
+  function loadHandles(force) {
+    if (!force && state.handles.length && state.handlesAt && (Date.now() - state.handlesAt) < 600000) { return Promise.resolve(state.handles); }
+    return rpc('social_handles', {}).then(function (h) { state.handles = Array.isArray(h) ? h : (h.handles || []); state.handlesAt = Date.now(); return state.handles; });
+  }
+  function handleById(id) { return state.handles.filter(function (h) { return String(h.id) === String(id); })[0] || null; }
+  function extrasHtml(p) {
+    var tags = p.tags || {};
+    var byUser = {};
+    state.handles.forEach(function (h) { if (h.ig_handle) { byUser[String(h.ig_handle).replace(/^@/, '')] = h; } });
+    var chips = (tags.user_tags || []).map(function (u) {
+      var h = byUser[u.username];
+      return '<span class="chip bone">@' + esc(u.username) + (h ? '' : ' (NOT ON LIST)') + ' <button class="act" style="padding:0 4px;border:0" data-act="tag-remove" data-user="' + esc(u.username) + '" type="button">x</button></span>';
+    }).join('') + (tags.collaborators || []).map(function (u) {
+      return '<span class="chip">collab @' + esc(u) + ' <button class="act" style="padding:0 4px;border:0" data-act="tag-remove" data-user="' + esc(u) + '" type="button">x</button></span>';
+    }).join('') + (tags.location_id ? '<span class="chip dim">location ' + esc(tags.location_id) + '</span>' : '');
+    var warns = SQ.handleWarnings(p.facts, state.handles).map(function (n) { return '<span class="chip bad">' + esc(n) + ' - not on the handle list</span>'; }).join('');
+    var sel = '<select id="handleSel" style="width:auto"><option value="">pick a handle</option>' + state.handles.map(function (h) {
+      return '<option value="' + esc(h.id) + '">' + esc(h.name) + (h.ig_handle ? ' @' + esc(String(h.ig_handle).replace(/^@/, '')) : '') + ' (' + esc(h.kind || '') + (h.collab_ok ? ', collab ok' : '') + ')</option>';
+    }).join('') + '</select>';
+    var story = p.story_media ? 'STORY: ON (auto-posts as a Story after the feed post)' : 'STORY: OFF';
+    var packetLinks = (p.media || []).map(function (m, i) { return '<a href="' + esc(SQ.mediaUrl(m.path)) + '" target="_blank" rel="noopener">PICTURE ' + (i + 1) + '</a>'; }).join(' · ');
+    return '<div class="field"><label>Tags (only handles on your list)</label><div id="tagList">' + (chips || '<span class="hint">no tags yet</span>') + '</div>' +
+      (warns ? '<div style="margin-top:6px">' + warns + '</div>' : '') +
+      '<div class="btns">' + sel + '<button class="act" data-act="tag-user" type="button">TAG IN PHOTO</button><button class="act" data-act="tag-collab" type="button">COLLAB</button></div></div>' +
+      '<div class="field"><label>Story</label><div class="btns" style="margin-top:0"><button class="act ' + (p.story_media ? 'copper' : '') + '" data-act="story-toggle" type="button">' + esc(story) + '</button></div>' +
+      (p.story_media ? '<div class="hint">' + esc(p.story_media.path) + '</div>' : '') + '</div>' +
+      '<div class="field"><label>Epic edit</label><div class="hint">EPIC on a slide asks the cloud for the full retouch (OpenAI, style brief from your examples). DROP IN replaces a slide with a file from this laptop. Either way the slide gets the epic badge.</div><pre id="epicOut" style="display:none"></pre></div>' +
+      '<details><summary>Manual packet - put it up by hand</summary>' +
+      '<div class="row">' + (packetLinks || 'no pictures') + '</div>' +
+      '<textarea readonly id="packetCap">' + esc(SQ.fullCaption(p)) + '</textarea>' +
+      '<div class="btns"><button class="act copper" data-act="copy-caption" type="button">COPY THE CAPTION</button></div>' +
+      '<div class="hint">Save each picture, copy the caption, post it in the Instagram app. Then KILL IT here with reason "other" so the cloud never posts it too.</div></details>';
+  }
+  function renderExtras(p) {
+    loadHandles(false).then(function () {
+      if (!selected() || selected().id !== p.id) { return; }
+      var ex = $('extras'); if (!ex) { return; }
+      ex.innerHTML = extrasHtml(p);
+      (p.media || []).forEach(function (m, i) {
+        var host = document.querySelector('[data-slidebtns="' + i + '"]'); if (!host) { return; }
+        host.innerHTML = '<button class="act" data-act="epic" data-slide="' + i + '" type="button">EPIC</button>' +
+          '<label class="act" style="display:inline-block">DROP IN<input type="file" accept="image/jpeg,image/png" data-slide="' + i + '" style="display:none"></label>';
+      });
+    }).catch(function (e) { var ex = $('extras'); if (ex) { ex.innerHTML = '<div class="hint bad">handles failed: ' + esc(e.message) + '</div>'; } });
+  }
+  function copyText(btn, text) {
+    var old = btn.textContent;
+    function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = old; }, 2000); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta); done(ok ? 'CAPTION COPIED' : 'COPY FAILED - SELECT IT ABOVE');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function () { done('CAPTION COPIED'); }, fallback); } else { fallback(); }
+  }
+  function saveTags(p, tags) {
+    return rpc('social_post_upsert', { p_post: { id: p.id, tags: tags } }).then(function () { toast('Tags saved'); return loadLine(); }).catch(function (e) { toast('Tags failed: ' + e.message); });
+  }
+  function dropIn(p, slide, file) {
+    if (!file) { return; }
+    if (file.size > 8 * 1024 * 1024) { toast('File over 8 MB - export a smaller JPEG'); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var b64 = String(reader.result).split(',')[1] || '';
+      var ext = /png$/i.test(file.type) ? 'png' : 'jpg';
+      var path = 'posts/' + p.id + '/slide-' + (slide + 1) + '-manual.' + ext;
+      toast('Uploading slide ' + (slide + 1) + '...');
+      fnCall('upload', { path: path, base64: b64, content_type: file.type || 'image/jpeg' }).then(function (r) {
+        if (!r.data || r.data.demo) { return; }
+        if (!(r.data.ok || r.data.url || r.data.path)) { toast('Upload refused: ' + redact(JSON.stringify(r.data)).slice(0, 120)); return; }
+        var newPath = r.data.path || SQ.pathFromUrl(r.data.url || path);
+        var media = SQ.mediaWithSlide(p.media || [], slide, newPath);
+        // p_story null = "leave" (contract, amended 2026-09-22); the drop-in never touches the Story.
+        return rpc('social_post_media', { p_id: p.id, p_media: media, p_story: null }).then(function () { toast('Slide ' + (slide + 1) + ' replaced'); return loadLine(); });
+      }).catch(function (e) { toast('Drop-in failed: ' + e.message); });
+    };
+    reader.readAsDataURL(file);
+  }
   function saveCaption(p) {
     var choice = SQ.captionChoice(p.caption_options || [], state.captionPick, $('capText').value);
     if (!choice) { toast('Nothing to save - pick an option or type a caption'); return Promise.resolve(); }
@@ -569,7 +696,32 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       else if (extrasClick) { extrasClick(p, b, act); }
     });
   }
-  var extrasClick = null;   // Task 5 assigns a handler for the tags / story / epic / drop-in / packet buttons
+  var extrasClick = function (p, b, act) {
+    if (act === 'tag-user' || act === 'tag-collab') {
+      var h = handleById($('handleSel').value); if (!h) { toast('Pick a handle first'); return; }
+      saveTags(p, SQ.tagsAfterHandle(p.tags, h, act === 'tag-collab' ? 'collab' : 'user'));
+    } else if (act === 'tag-remove') {
+      var u = b.getAttribute('data-user');
+      var hh = state.handles.filter(function (x) { return String(x.ig_handle || '').replace(/^@/, '') === u; })[0] || { id: -1, ig_handle: u, location_id: '' };
+      saveTags(p, SQ.tagsAfterHandle(p.tags, hh, 'remove'));
+    } else if (act === 'story-toggle') {
+      // Contract (amended 2026-09-22): a JSON null p_story means "leave", so turning the Story
+      // off sends p_clear_story: true. Media is left alone either way (p_media null = leave).
+      var story, args;
+      if (p.story_media) { state.storyStash[p.id] = p.story_media; story = null; args = { p_id: p.id, p_media: null, p_story: null, p_clear_story: true }; }
+      else { story = SQ.storyRestore(p, state.storyStash); args = { p_id: p.id, p_media: null, p_story: story, p_clear_story: false }; }
+      rpc('social_post_media', args).then(function () { toast(story ? 'Story on' : 'Story off'); return loadLine(); }).catch(function (e) { toast('Story failed: ' + e.message); });
+    } else if (act === 'epic') {
+      var slide = parseInt(b.getAttribute('data-slide'), 10); b.disabled = true;
+      fnCall('epic_request', { post_id: p.id, slide: slide }).then(function (r) {
+        var out = $('epicOut'); if (out) { out.style.display = 'block'; out.textContent = 'HTTP ' + r.status + '\n' + redact(JSON.stringify(r.data, null, 1)); }
+        b.disabled = false; if (r.data && r.data.ok) { loadLine(); }
+      }).catch(function (e) { toast('Epic failed: ' + e.message); b.disabled = false; });
+    } else if (act === 'copy-caption') { copyText(b, $('packetCap').value); }
+  };
+  $('detailCol').addEventListener('change', function (ev) {
+    if (ev.target.type === 'file' && ev.target.hasAttribute('data-slide')) { var p = selected(); if (p) { dropIn(p, parseInt(ev.target.getAttribute('data-slide'), 10), ev.target.files[0]); } }
+  });
   bindDetailEvents();
 
   // Filled in by Tasks 6-8.
