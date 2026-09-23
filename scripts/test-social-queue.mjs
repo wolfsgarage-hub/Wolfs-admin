@@ -124,3 +124,12 @@ test('mediaUrl / pathFromUrl', () => {
   assert.equal(SQ.pathFromUrl(SQ.BUCKET_URL + 'posts/x/slide-2-manual.jpg'), 'posts/x/slide-2-manual.jpg');
   assert.equal(SQ.pathFromUrl('posts/x.jpg'), 'posts/x.jpg');
 });
+
+test('kindLabel and KILL_REASONS', () => {
+  assert.equal(SQ.kindLabel('car'), 'CAR');
+  assert.equal(SQ.kindLabel('weekend_shows'), 'WEEKEND SHOWS');
+  assert.equal(SQ.kindLabel('weekend_story'), 'WEEKEND STORY');
+  assert.equal(SQ.kindLabel('reel'), 'REEL');
+  assert.equal(SQ.kindLabel(undefined), '?');
+  assert.deepEqual(SQ.KILL_REASONS, ['wrong photo', 'caption', 'not this week', 'dupe', 'other']);
+});

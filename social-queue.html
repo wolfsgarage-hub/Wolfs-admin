@@ -210,6 +210,9 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     return s.indexOf(SQ.BUCKET_URL) === 0 ? s.slice(SQ.BUCKET_URL.length) : s;
   };
 
+  SQ.kindLabel = function (k) { return k ? String(k).replace(/_/g, ' ').toUpperCase() : '?'; };
+  SQ.KILL_REASONS = ['wrong photo', 'caption', 'not this week', 'dupe', 'other'];
+
   window.SQ_VERSION = SQ_VERSION;
   window.SQ = SQ;
 })(window);
@@ -354,8 +357,96 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     if (!open) s.classList.add('open');
   });
 
-  // Filled in by Tasks 3-8.
-  function renderLine() { $('lineCol').innerHTML = '<div class="empty">Line view: Task 3.</div>'; }
+  function lineCard(p, i) {
+    var today = SQ.pacificToday();
+    var thumb = (p.media && p.media[0]) ? SQ.mediaUrl(p.media[0].path) : 'assets/wolf-logo.png';
+    var pinnedToday = p.pinned_date === today;
+    var stale = state.stale_pins.indexOf(p.id) >= 0;
+    var chips = '<span class="chip ' + (p.status === 'approved' ? 'bone' : '') + '">' + esc(p.status) + '</span>';
+    if (p.pinned_date) { chips += '<span class="chip' + (stale ? ' bad' : '') + '">' + (stale ? 'PIN PASSED ' : 'PIN ') + esc(p.pinned_date) + '</span>'; }
+    if (p.caption_author === 'john') { chips += '<span class="chip dim">your words</span>'; }
+    if (!p.caption_final) { chips += '<span class="chip bad">no caption</span>'; }
+    if (p.story_media) { chips += '<span class="chip dim">story</span>'; }
+    var cap = p.caption_final || ((p.caption_options || [])[0] || {}).text || '';
+    return '<div class="card ' + esc(p.status) + (p.id === state.selectedId ? ' sel' : '') + '" data-id="' + esc(p.id) + '" draggable="' + (pinnedToday ? 'false' : 'true') + '">' +
+      '<img src="' + esc(thumb) + '" alt="">' +
+      '<div><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">' +
+      '<div class="ct">' + (i + 1) + '. ' + esc(SQ.kindLabel(p.kind)) + (pinnedToday ? ' · TODAY' : '') + '</div>' +
+      '<span class="handle" title="drag to reorder">&#8801;</span></div>' +
+      '<div class="cm">' + esc(p.id) + ' · ' + ((p.media || []).length) + ' slide' + ((p.media || []).length === 1 ? '' : 's') + '</div>' +
+      '<div>' + chips + '</div>' +
+      '<div class="row" style="color:var(--bone-dim);font-size:.82rem">' + esc(cap.length > 110 ? cap.slice(0, 110) + '...' : cap) + '</div>' +
+      '<div class="btns">' +
+      (p.status === 'pending' ? '<button class="act primary" data-act="approve" data-id="' + esc(p.id) + '" type="button">POST IT</button>' : '<button class="act" data-act="unapprove" data-id="' + esc(p.id) + '" type="button" disabled>APPROVED</button>') +
+      '<button class="act" data-act="edit" data-id="' + esc(p.id) + '" type="button">FIX IT</button>' +
+      '<button class="act kill" data-act="kill" data-id="' + esc(p.id) + '" type="button">KILL IT</button>' +
+      '</div>' +
+      '<div class="btns" data-reasons="' + esc(p.id) + '" style="display:none">' + SQ.KILL_REASONS.map(function (r) {
+        return '<button class="act kill" data-act="kill-reason" data-id="' + esc(p.id) + '" data-reason="' + esc(r) + '" type="button">' + esc(r) + '</button>';
+      }).join('') + '<button class="act" data-act="kill-cancel" data-id="' + esc(p.id) + '" type="button">never mind</button></div>' +
+      '</div></div>';
+  }
+  function renderLine() {
+    if (!state.line.length) { $('lineCol').innerHTML = '<div class="empty">Line is empty. The builder tops it up to ' + esc((state.settings || {}).line_depth || 10) + ' overnight.</div>'; return; }
+    $('lineCol').innerHTML = state.line.map(lineCard).join('') + '<div class="dropend">drop here to send to the back of the line</div>';
+  }
+  function decide(id, action, reason) {
+    return rpc('social_post_decide', { p_id: id, p_action: action, p_reason: reason || null })
+      .then(function () { toast(action === 'approve' ? 'Approved - in line' : (action === 'kill' ? 'Killed' : 'Back in line')); return loadLine(); })
+      .catch(function (e) { toast('Failed: ' + e.message); });
+  }
+  function pinPost(id, date) {
+    return rpc('social_post_pin', { p_id: id, p_date: date || null })
+      .then(function () { toast(date ? 'Pinned to ' + date : 'Unpinned'); return loadLine(); })
+      .catch(function (e) { toast('Pin failed: ' + e.message); });
+  }
+  function reorder(draggedId, beforeId) {
+    var ids = state.line.map(function (p) { return p.id; });
+    var after = SQ.reorderTarget(ids, draggedId, beforeId);
+    return rpc('social_post_reorder', { p_id: draggedId, p_after_id: after })
+      .then(function () { toast('Moved'); return loadLine(); })
+      .catch(function (e) { toast('Reorder failed: ' + e.message); loadLine(); });
+  }
+  var dragId = null;
+  function bindLineEvents() {
+    var col = $('lineCol');
+    col.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button.act');
+      if (b) {
+        var act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+        if (act === 'approve') { b.disabled = true; decide(id, 'approve', 'approved on social-queue'); }
+        else if (act === 'kill') { var r = col.querySelector('[data-reasons="' + id + '"]'); if (r) { r.style.display = r.style.display === 'none' ? 'flex' : 'none'; } }
+        else if (act === 'kill-cancel') { var r2 = col.querySelector('[data-reasons="' + id + '"]'); if (r2) { r2.style.display = 'none'; } }
+        else if (act === 'kill-reason') { b.disabled = true; decide(id, 'kill', b.getAttribute('data-reason')); }
+        else if (act === 'edit') { select(id); var dc = $('detailCol'); if (dc.scrollIntoView) { dc.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }
+        return;
+      }
+      var card = ev.target.closest('.card'); if (card) { select(card.getAttribute('data-id')); }
+    });
+    col.addEventListener('dragstart', function (ev) {
+      var card = ev.target.closest('.card'); if (!card || card.getAttribute('draggable') !== 'true') { ev.preventDefault(); return; }
+      dragId = card.getAttribute('data-id'); card.classList.add('drag');
+      try { ev.dataTransfer.setData('text/plain', dragId); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {}
+    });
+    col.addEventListener('dragend', function () { dragId = null; col.querySelectorAll('.drag,.over').forEach(function (x) { x.classList.remove('drag'); x.classList.remove('over'); }); });
+    col.addEventListener('dragover', function (ev) {
+      var t = ev.target.closest('.card,.dropend'); if (!t || !dragId) return;
+      ev.preventDefault(); try { ev.dataTransfer.dropEffect = 'move'; } catch (e) {}
+      col.querySelectorAll('.over').forEach(function (x) { x.classList.remove('over'); }); t.classList.add('over');
+    });
+    col.addEventListener('dragleave', function (ev) { var t = ev.target.closest('.card,.dropend'); if (t) t.classList.remove('over'); });
+    col.addEventListener('drop', function (ev) {
+      var t = ev.target.closest('.card,.dropend'); if (!t || !dragId) return;
+      ev.preventDefault();
+      var beforeId = t.classList.contains('dropend') ? null : t.getAttribute('data-id');
+      var id = dragId; dragId = null;
+      if (beforeId === id) { return; }
+      reorder(id, beforeId);
+    });
+  }
+  bindLineEvents();
+
+  // Filled in by Tasks 4-8.
   function renderDetail() { $('detailCol').innerHTML = '<div class="empty">Pick a post.</div>'; }
   function renderHandles() { $('tabHandles').innerHTML = '<div class="empty">Handles: Task 6.</div>'; }
   function renderComments() { $('tabComments').innerHTML = '<div class="empty">Comments: Task 7.</div>'; }
