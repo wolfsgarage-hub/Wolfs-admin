@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="2.7">
-<title>WG Post Queue v2.7</title>
+<meta name="wg-version" content="2.8">
+<title>WG Post Queue v2.8 (retired)</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
@@ -129,6 +129,10 @@
 </head>
 <body>
 <header>
+<div id="tombstone" style="background:#CC0000;color:#F5F1E8;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.06em;padding:14px 16px;line-height:1.5">
+  RETIRED 2026-09-23. This queue no longer publishes. The line, approvals, captions and the arming switch live on
+  <a href="social-queue.html" style="color:#F5F1E8;font-weight:700">social-queue.html</a>. The 8 drafts that were here were moved into it.
+</div>
   <h1>POST QUEUE</h1>
   <img src="assets/wolf-logo.png" alt="Wolf's Garage">
 </header>
@@ -153,7 +157,7 @@
 <div class="pinstripe"></div>
 <footer>WOLF'S GARAGE LLC &middot; PORTLAND, OREGON &middot; GET BACK IN THE GARAGE.</footer>
 <script>
-console.log("WG post-queue v2.7 (reels: format:\"reel\" drafts play an mp4 with a poster where photo drafts paint a canvas; publish leg for reels is NOT wired yet, so approve/POST NOW are held shut on them; ?preview_queue=1 loads demo JSON read-only)");
+console.log("WG post-queue v2.8 RETIRED 2026-09-23 - use social-queue.html; this page is read-only history");
 (function () {
   "use strict";
   var SUPABASE_PROXY_URL = "https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/github-proxy";
@@ -1502,6 +1506,7 @@ console.log("WG post-queue v2.7 (reels: format:\"reel\" drafts play an mp4 with 
     save.onclick = function () { if (blockIfPreview(m)) { return; } persist(m, "Saving edits...", "Edits saved."); };
     var post = document.createElement("button"); post.className = "btn post"; post.textContent = "POST IT";
     post.onclick = function () {
+      alert("Retired. Use social-queue.html."); return;
       if (blockIfPreview(m) || blockIfReelNotPublishable(m)) { return; }
       if (blockIfNotReady(m)) { return; } /* never mutate status when the save cannot start */
       var preSnap = snapshotDraft(m);
@@ -1585,6 +1590,7 @@ console.log("WG post-queue v2.7 (reels: format:\"reel\" drafts play an mp4 with 
        Gate A/B, and the full rollback on failure for free. Gate P (in saveQueueDoc) is the
        extra double-post guard this path needs. */
     function doPostNow(mm) {
+      alert("Retired. Use social-queue.html."); return;
       var dd = mm.draft;
       if (blockIfNotReady(mm)) { return; }
       if (!canPostNow(dd)) {
@@ -1766,6 +1772,7 @@ console.log("WG post-queue v2.7 (reels: format:\"reel\" drafts play an mp4 with 
     /* Deliberately its own tap and never automatic: published_at is the estate's universal
        "this is on Instagram" flag, and writing it without a real post buries the draft alive. */
     function doMarkPosted(mm) {
+      alert("Retired. Use social-queue.html."); return;
       var dd = mm.draft;
       if (blockIfNotReady(mm)) { return; }
       if (isLocked(dd)) { setStat(mm, "Already marked posted - nothing to do.", "err"); return; }
