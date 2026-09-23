@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="wg-version" content="1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>WG Social Queue v1.0</title>
+<script id="sq-logic">
+(function (window) {
+  'use strict';
+  // Pure logic only. No document, no fetch, no localStorage in this block: it is extracted by
+  // scripts/test-social-queue.mjs and run under node:test against a bare window object.
+  var SQ_VERSION = '1.0';   // the contract's version constant; <meta name="wg-version"> and <title> carry the same string
+  var SQ = {};
+  SQ.VERSION = SQ_VERSION;
+  SQ.BUCKET_URL = 'https://pcqoivjzcokgdtlvoona.supabase.co/storage/v1/object/public/social-media/';
+  SQ.WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];                                   // slot chips
+  SQ.WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; // sentences (slotWhy)
+
+  SQ.esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  SQ.pacificToday = function (now) {
+    var d = now || new Date();
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  };
+
+  // D3: ordered line with pins. Pinned-for-today jumps the line; a pin whose date passed is
+  // reported (stale_pins) and ordered as if unpinned. Killed and published are not in the line.
+  SQ.orderLine = function (posts, today) {
+    var live = (posts || []).filter(function (p) { return p.status === 'pending' || p.status === 'approved'; });
+    var stale = [];
+    live.forEach(function (p) { if (p.pinned_date && p.pinned_date < today) { stale.push(p.id); } });
+    live.sort(function (a, b) {
+      var ap = a.pinned_date === today ? 0 : 1, bp = b.pinned_date === today ? 0 : 1;
+      if (ap !== bp) { return ap - bp; }
+      var d = Number(a.line_order) - Number(b.line_order);
+      if (d !== 0 && !isNaN(d)) { return d; }
+      return String(a.id) < String(b.id) ? -1 : (String(a.id) > String(b.id) ? 1 : 0);
+    });
+    return { line: live, stale_pins: stale };
+  };
+
+  // Drag-reorder -> social_post_reorder(p_id, p_after_id). beforeId null = dropped at the end.
+  // A card dropped on itself keeps its place (returns its own predecessor, or null at the front).
+  SQ.reorderTarget = function (ids, draggedId, beforeId) {
+    var all = ids || [];
+    if (beforeId === draggedId) {                       // dropped on itself: keep its place
+      var i = all.indexOf(draggedId);
+      return i <= 0 ? null : all[i - 1];
+    }
+    var rest = all.filter(function (x) { return x !== draggedId; });
+    if (beforeId == null) { return rest.length ? rest[rest.length - 1] : null; }
+    var idx = rest.indexOf(beforeId);
+    if (idx < 0) { return rest.length ? rest[rest.length - 1] : null; }
+    if (idx === 0) { return null; }
+    return rest[idx - 1];
+  };
+
+  window.SQ_VERSION = SQ_VERSION;
+  window.SQ = SQ;
+})(window);
+</script>
+</head>
+<body></body>
+</html>
