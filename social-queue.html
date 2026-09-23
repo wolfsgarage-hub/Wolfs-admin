@@ -660,7 +660,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       return '<span class="chip">collab @' + esc(u) + ' <button class="act" style="padding:0 4px;border:0" data-act="tag-remove" data-user="' + esc(u) + '" type="button">x</button></span>';
     }).join('') + (tags.location_id ? '<span class="chip dim">location ' + esc(tags.location_id) + '</span>' : '');
     var warns = SQ.handleWarnings(p.facts, state.handles).map(function (n) { return '<span class="chip bad">' + esc(n) + ' - not on the handle list</span>'; }).join('');
-    var sel = '<select id="handleSel" style="width:auto"><option value="">pick a handle</option>' + state.handles.map(function (h) {
+    var sel = '<select id="handleSel" style="width:auto;max-width:100%"><option value="">pick a handle</option>' + state.handles.map(function (h) {
       return '<option value="' + esc(h.id) + '">' + esc(h.name) + (h.ig_handle ? ' @' + esc(String(h.ig_handle).replace(/^@/, '')) : '') + ' (' + esc(h.kind || '') + (h.collab_ok ? ', collab ok' : '') + ')</option>';
     }).join('') + '</select>';
     var story = p.story_media ? 'STORY: ON (auto-posts as a Story after the feed post)' : 'STORY: OFF';
