@@ -927,15 +927,23 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     });
   });
 
+  function applyUrlState() {
+    var q = location.search;
+    var tab = (/[?&]tab=(line|handles|comments|runs)/.exec(q) || [])[1];
+    var sel = (/[?&]sel=([A-Za-z0-9_-]+)/.exec(q) || [])[1];
+    // select() re-renders the line and the detail; assigning state.selectedId alone would leave
+    // card 1's detail on screen because loadLine() already rendered before this runs.
+    if (sel && state.line.some(function (p) { return p.id === sel; })) { select(sel); }
+    if (tab && tab !== 'line') { var t = document.querySelector('.tab[data-tab="' + tab + '"]'); if (t) { t.click(); } }
+    if (/[?&]why=1/.test(q)) { setTimeout(function () { var s = document.querySelector('.slot.today') || document.querySelector('.slot'); if (s) { s.classList.add('open'); } }, 300); }
+  }
   function boot() {
     if (DEMO) {
       $('demoBar').className = 'on';
-      fetch('data/social-queue-demo.json').then(function (r) { return r.json(); }).then(function (d) { state.demo = d; loadLine(); })
+      fetch('data/social-queue-demo.json').then(function (r) { return r.json(); }).then(function (d) { state.demo = d; return loadLine(); }).then(applyUrlState)
         .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Demo fixture failed: ' + esc(e.message) + '</div>'; });
-    } else { loadLine(); }
-    // Contract: "Reads social_line on load and every 60 s". Every tab: the header strip (approved
-    // days, live flag, cloud tick) must not go stale while John is on HANDLES / COMMENTS / RUNS.
-    // loadLine() only re-renders the line and detail columns when state.tab === 'line'.
+    } else { loadLine().then(applyUrlState); }
+    // Every tab, every 60 s (contract); loadLine only repaints the columns on the LINE tab.
     setInterval(loadLine, 60000);
   }
   boot();
