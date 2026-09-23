@@ -6,6 +6,89 @@
 <meta name="wg-version" content="1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>WG Social Queue v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0A;--red:#CC0000;--red-dim:#7a0000;--bone:#F5F1E8;--bone-dim:#b8b3a6;--copper:#C8922A;--panel:#141414;--panel-2:#1c1c1c;--border:rgba(245,241,232,.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--bone);font-family:'Work Sans',sans-serif;font-size:15px;line-height:1.5;padding-bottom:60px}
+.pin{height:3px;background:repeating-linear-gradient(90deg,var(--red) 0 16px,transparent 16px 20px,var(--bone) 20px 23px,transparent 23px 27px)}
+header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto}
+header .brand{display:flex;align-items:center;gap:12px}
+header img{height:40px}
+h1{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.08em}
+h1 span{color:var(--red)}
+main{padding:12px 16px;max-width:1100px;margin:0 auto}
+.strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 4px}
+.slot{position:relative;background:var(--panel);border:1px solid var(--border);padding:6px 10px;font-family:'Oswald',sans-serif;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.slot b{display:block;color:var(--bone);font-size:.9rem;font-weight:400}
+.slot.today{border-color:var(--red)}
+.slot .why{display:none;position:absolute;left:0;top:100%;z-index:20;width:300px;background:var(--panel-2);border:1px solid var(--copper);padding:10px 12px;font-family:'Work Sans',sans-serif;font-size:.8rem;text-transform:none;letter-spacing:0;color:var(--bone);line-height:1.45;white-space:normal}
+.slot.open .why{display:block}
+.stat{background:var(--panel);border:1px solid var(--border);padding:6px 12px;font-size:.78rem;font-family:'Oswald',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.stat b{color:var(--red);font-size:1rem;font-weight:400}
+.stat.ok b{color:var(--bone)}
+#tick{color:var(--copper);font-size:.74rem;font-family:'Oswald',sans-serif;letter-spacing:.06em;text-transform:uppercase;margin-left:auto}
+#banner{display:none;margin:10px 0;padding:12px 14px;background:var(--red);color:var(--bone);font-family:'Oswald',sans-serif;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase}
+#banner.on{display:block}
+#demoBar{display:none;margin:10px 0 0;padding:8px 12px;border:1px solid var(--copper);color:var(--copper);font-family:'Oswald',sans-serif;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase}
+#demoBar.on{display:block}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.tab{font-family:'Oswald',sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;padding:9px 14px;border:1px solid var(--border);background:none;color:var(--bone);cursor:pointer}
+.tab.on{background:var(--red);border-color:var(--red)}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:1024px){.cols{grid-template-columns:420px 1fr;align-items:start}#detailCol{position:sticky;top:12px}}
+.card{background:var(--panel-2);border:1px solid var(--border);border-left:4px solid var(--red);padding:12px;margin-bottom:10px;display:grid;grid-template-columns:72px 1fr;gap:10px;cursor:pointer}
+.card.sel{outline:1px solid var(--copper)}
+.card.approved{border-left-color:var(--bone)}
+.card.drag{opacity:.4}
+.card.over{outline:2px dashed var(--copper)}
+.card img{width:72px;height:90px;object-fit:cover;display:block;background:#000}
+.ct{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.04em;line-height:1.1}
+.cm{font-family:'Oswald',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--copper);margin:3px 0}
+.chip{display:inline-block;font-size:.66rem;font-family:'Oswald',sans-serif;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--copper);color:var(--copper);padding:2px 7px;margin:2px 4px 2px 0}
+.chip.bad{border-color:var(--red);color:var(--red)}
+.chip.bone{border-color:var(--bone);color:var(--bone)}
+.chip.dim{border-color:var(--border);color:var(--bone-dim)}
+.handle{font-family:'Oswald',sans-serif;color:var(--bone-dim);cursor:grab;font-size:1.1rem;line-height:1;user-select:none}
+.row{margin:8px 0;font-size:.88rem}
+.row a{color:var(--copper)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button.act{font-family:'Oswald',sans-serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;border:1px solid var(--border);background:none;color:var(--bone);cursor:pointer}
+button.act.primary{background:var(--red);border-color:var(--red)}
+button.act.kill{border-color:var(--red);color:var(--red)}
+button.act.copper{border-color:var(--copper);color:var(--copper)}
+button.act:disabled{opacity:.4}
+.detail{background:var(--panel-2);border:1px solid var(--border);padding:14px}
+.slides{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.slide{position:relative;flex:0 0 200px}
+.slide img{width:200px;display:block;background:#000}
+.slide .tier{position:absolute;left:6px;top:6px}
+.slide .btns{margin-top:6px}
+.field{margin:12px 0}
+.field label{display:block;font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--copper);margin-bottom:4px}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;font-size:.9rem}
+.opt input{margin-top:4px;accent-color:var(--red)}
+.opt .reg{font-family:'Oswald',sans-serif;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--copper);display:block}
+textarea,input[type=text],input[type=date],select{width:100%;padding:8px 10px;background:rgba(0,0,0,.5);border:1px solid var(--border);color:var(--bone);font-family:'Work Sans',sans-serif;font-size:.9rem}
+textarea{min-height:90px;resize:vertical}
+.hint{font-size:.76rem;color:var(--bone-dim);margin-top:3px}
+.hint.bad{color:var(--red)}
+details{margin:10px 0;font-size:.82rem}
+summary{cursor:pointer;color:var(--copper);font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:.72rem;letter-spacing:.08em}
+pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.4);padding:8px;border:1px solid var(--border);max-height:260px;overflow:auto;font-size:.78rem}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--copper);font-weight:400}
+td input[type=text],td select{padding:5px 6px;font-size:.82rem}
+td input[type=checkbox]{accent-color:var(--red)}
+#msg{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--panel);border-left:4px solid var(--red);padding:10px 18px;font-family:'Oswald',sans-serif;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;display:none;z-index:50}
+.empty{border:1px dashed var(--border);padding:22px;text-align:center;color:rgba(245,241,232,.6)}
+.dropend{border:1px dashed var(--border);padding:10px;text-align:center;color:var(--bone-dim);font-size:.76rem;font-family:'Oswald',sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.dropend.over{border-color:var(--copper);color:var(--copper)}
+footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:18px 10px 8px}
+</style>
 <script id="sq-logic">
 (function (window) {
   'use strict';
@@ -61,10 +144,267 @@
     return rest[idx - 1];
   };
 
+  SQ.fmtTime = function (t) {
+    var m = /^(\d{1,2}):(\d{2})/.exec(String(t == null ? '' : t));
+    if (!m) { return '?'; }
+    var h = parseInt(m[1], 10), ap = h >= 12 ? 'PM' : 'AM', h12 = h % 12 || 12;
+    return h12 + ':' + m[2] + ' ' + ap;
+  };
+
+  // The slot "why" popover, from slot_plan.evidence (contract: online_peak_hour,
+  // online_mean_by_hour, tie_break, previous, shift_min).
+  SQ.slotWhy = function (row) {
+    if (!row) { return 'No plan yet.'; }
+    var e = row.evidence || {}, parts = [];
+    if (e.online_peak_hour != null) {
+      // Full day name + 's' ("Mondays"); SQ.WEEKDAYS ('Mon') is for the chips only and would read "Mons".
+      var dayName = SQ.WEEKDAY_NAMES[row.weekday] ? SQ.WEEKDAY_NAMES[row.weekday] + 's' : 'that day';
+      parts.push('Followers online peak at ' + SQ.fmtTime(e.online_peak_hour + ':00') + ' on ' + dayName + ' (mean of the last 4).');
+    }
+    if (e.tie_break === 'reach') { parts.push('Tie within 5% broken by our own reach in that hour.'); }
+    if (e.previous) {
+      parts.push('Was ' + SQ.fmtTime(e.previous) + (e.shift_min ? ', moved ' + e.shift_min + ' min (max 30 a week).' : ', unchanged.'));
+    }
+    if (row.computed_at) { parts.push('Computed ' + String(row.computed_at).slice(0, 10) + '.'); }
+    return parts.join(' ') || 'No evidence stored.';
+  };
+
+  SQ.daysOfApproved = function (line) {
+    return (line || []).filter(function (p) { return p.status === 'approved'; }).length;
+  };
+  SQ.reviewCount = function (line) {
+    var a = SQ.daysOfApproved(line), t = (line || []).length;
+    return { approved: a, pending: t - a, total: t };
+  };
+  // D19: an empty approved line is a dark day; say so 3 days out.
+  SQ.lineBanner = function (days) {
+    if (days >= 3) { return ''; }
+    if (days <= 0) { return 'NOTHING APPROVED. The next slot is a dark day until you approve something.'; }
+    return days + ' approved day' + (days === 1 ? '' : 's') + ' left. Approve more or the feed goes dark in ' + days + '.';
+  };
+
+  SQ.ago = function (iso, now) {
+    if (!iso) { return 'never'; }
+    var t = new Date(iso).getTime(), n = (now || new Date()).getTime();
+    if (isNaN(t)) { return 'never'; }
+    var s = Math.max(0, Math.round((n - t) / 1000));
+    if (s < 60) { return 'just now'; }
+    if (s < 3600) { return Math.round(s / 60) + ' min ago'; }
+    if (s < 86400) { return Math.round(s / 3600) + ' h ago'; }
+    return Math.round(s / 86400) + ' d ago';
+  };
+  SQ.lastTick = function (runs, now) {
+    var ticks = (runs || []).filter(function (r) { return r.action === 'due' || r.action === 'tick'; });
+    ticks.sort(function (a, b) { return new Date(b.at).getTime() - new Date(a.at).getTime(); });
+    if (!ticks.length) { return 'no cloud tick yet'; }
+    return 'cloud tick ' + SQ.ago(ticks[0].at, now) + (ticks[0].outcome ? ' · ' + ticks[0].outcome : '');
+  };
+
+  SQ.mediaUrl = function (p) {
+    var s = String(p == null ? '' : p);
+    if (/^(https?:)?\/\//.test(s) || /^(renders|data|assets)\//.test(s)) { return s; }
+    return SQ.BUCKET_URL + s.replace(/^\/+/, '');
+  };
+  SQ.pathFromUrl = function (u) {
+    var s = String(u == null ? '' : u);
+    return s.indexOf(SQ.BUCKET_URL) === 0 ? s.slice(SQ.BUCKET_URL.length) : s;
+  };
+
   window.SQ_VERSION = SQ_VERSION;
   window.SQ = SQ;
 })(window);
 </script>
 </head>
-<body></body>
+<body>
+<header>
+  <div class="brand"><img src="assets/wolf-logo.png" alt="Wolf's Garage"><h1>WG <span>SOCIAL</span> QUEUE</h1></div>
+  <button class="act" id="lockBtn" type="button">LOCK</button>
+</header>
+<div class="pin"></div>
+<main>
+  <div id="demoBar">DEMO DATA - nothing on this page is saved</div>
+  <div class="strip" id="slots"></div>
+  <div class="strip">
+    <div class="stat" id="daysStat"><b>-</b> approved days</div>
+    <div class="stat ok" id="lineStat"><b>-</b> in line</div>
+    <div class="stat ok" id="liveStat"><b>-</b> live publishing</div>
+    <button class="act" id="liveBtn" type="button" disabled>ARM LIVE</button>
+    <div id="tick">loading</div>
+  </div>
+  <div id="banner"></div>
+  <div class="tabs">
+    <button class="tab on" data-tab="line" type="button">Line</button>
+    <button class="tab" data-tab="handles" type="button">Handles</button>
+    <button class="tab" data-tab="comments" type="button">Comments</button>
+    <button class="tab" data-tab="runs" type="button">Runs</button>
+  </div>
+  <div class="pane on" id="paneLine"><div class="cols"><div id="lineCol"></div><div id="detailCol"></div></div></div>
+  <div class="pane" id="paneHandles"><div id="tabHandles"></div></div>
+  <div class="pane" id="paneComments"><div id="tabComments"></div></div>
+  <div class="pane" id="paneRuns"><div id="tabRuns"></div></div>
+</main>
+<div class="pin"></div>
+<footer>Wolf's Garage LLC · Portland, Oregon · social queue v1.0</footer>
+<div id="msg"></div>
+<script id="sq-app">
+(function () {
+  'use strict';
+  var SQ = window.SQ;
+  var SB = 'https://pcqoivjzcokgdtlvoona.supabase.co/rest/v1/rpc/';
+  var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcW9pdmp6Y29rZ2R0bHZvb25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3NzgsImV4cCI6MjA5NDM5OTc3OH0.yp8ypvsFewABuCjLpewEocY-8vBUjz6gmLLHofYTzbo';
+  var FN = 'https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/wg-ig-publish';
+  var DEMO = /[?&]demo=1/.test(location.search);
+  var state = { tab: 'line', line: [], stale_pins: [], counts: {}, slot_plan: [], settings: {}, days: 0,
+                runs: [], handles: [], comments: [], selectedId: null, storyStash: {}, demo: null };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = SQ.esc;
+
+  // Same key as events-queue.html (events.admin_check); prompt on first use, LOCK clears.
+  function key() {
+    var k = localStorage.getItem('wgEvAdminKey');
+    if (!k) { k = prompt('Events admin key (from your password manager / WG_EVENTS_ADMIN_KEY):') || ''; if (k) localStorage.setItem('wgEvAdminKey', k.trim()); }
+    return (k || '').trim();
+  }
+  // Proxy write token for edge-function actions (upload, epic_request, comment_reply).
+  // Contract key is wgProxyToken; post-queue.html stored it as wg:proxytok, so read that as a
+  // fallback and migrate it so John does not paste it twice on the same laptop.
+  function proxyTok() {
+    var t = null;
+    try { t = localStorage.getItem('wgProxyToken') || localStorage.getItem('wg:proxytok'); } catch (e) {}
+    if (!t) {
+      t = (prompt('One-time setup: paste the WG proxy write token (vault _secrets\\wg-proxy-token.txt)') || '').trim();
+    }
+    if (t) { try { localStorage.setItem('wgProxyToken', t); } catch (e2) {} }
+    return t || '';
+  }
+  function toast(t) { var m = $('msg'); m.textContent = t; m.style.display = 'block'; setTimeout(function () { m.style.display = 'none'; }, 2600); }
+
+  var WRITE_RPCS = { social_post_decide: 1, social_post_caption: 1, social_post_reorder: 1, social_post_pin: 1,
+                     social_post_media: 1, social_post_upsert: 1, social_handle_upsert: 1, social_handle_delete: 1,
+                     social_comment_set: 1, social_setting_set: 1 };
+  function demoRpc(name, args) {
+    var d = state.demo || {};
+    if (WRITE_RPCS[name]) { toast('DEMO - nothing saved'); return Promise.resolve({ ok: true, demo: true }); }
+    if (name === 'social_line') { return Promise.resolve(d.line || { ok: true, line: [] }); }
+    if (name === 'social_runs') { return Promise.resolve(d.runs || []); }
+    if (name === 'social_handles') { return Promise.resolve(d.handles || []); }
+    if (name === 'social_comments') { return Promise.resolve(d.comments || []); }
+    if (name === 'social_post_get') { return Promise.resolve(((d.line || {}).line || []).filter(function (p) { return p.id === args.p_id; })[0] || null); }
+    return Promise.resolve({ ok: false, error: 'demo has no ' + name });
+  }
+  function rpc(name, args) {
+    args = args || {};
+    if (DEMO) { return demoRpc(name, args); }
+    args.p_key = key();
+    return fetch(SB + name, { method: 'POST', headers: { 'content-type': 'application/json', apikey: ANON, authorization: 'Bearer ' + ANON }, body: JSON.stringify(args) })
+      .then(function (r) {
+        if (r.status === 400 || r.status === 401 || r.status === 403) {
+          return r.json().catch(function(){return {};}).then(function (e) {
+            if (/unauthorized|admin_key/.test(JSON.stringify(e))) { localStorage.removeItem('wgEvAdminKey'); toast('Bad key - re-enter'); }
+            throw new Error('rpc ' + name + ': ' + (e.message || e.error || ('http ' + r.status)));
+          });
+        }
+        if (!r.ok) throw new Error('rpc ' + name + ': http ' + r.status);
+        return r.json();
+      });
+  }
+  // Edge function call. Never logs the body (it can carry base64 media); the reply is shown
+  // verbatim by the caller where the contract says so (epic_request), after redact().
+  function fnCall(action, body) {
+    if (DEMO) { toast('DEMO - nothing sent'); return Promise.resolve({ status: 200, data: { ok: false, demo: true, action: action } }); }
+    var tok = proxyTok();
+    if (!tok) { return Promise.reject(new Error('no write token on this device')); }
+    var payload = Object.assign({ action: action }, body || {});
+    return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: ANON, Authorization: 'Bearer ' + ANON, 'x-wg-token': tok }, body: JSON.stringify(payload) })
+      .then(function (r) { return r.json().catch(function () { return null; }).then(function (data) { return { status: r.status, data: data }; }); });
+  }
+  function redact(s) { return String(s == null ? '' : s).replace(/access_token=[^&\s"]+/g, 'access_token=REDACTED').replace(/EAA[A-Za-z0-9]{20,}/g, 'EAA...REDACTED'); }
+
+  document.getElementById('lockBtn').addEventListener('click', function () {
+    localStorage.removeItem('wgEvAdminKey'); localStorage.removeItem('wgProxyToken'); localStorage.removeItem('wg:proxytok'); toast('Keys cleared');
+  });
+
+  function renderHeader() {
+    var today = SQ.pacificToday(), dow = new Date(today + 'T12:00:00').getDay();
+    var byDay = {};
+    (state.slot_plan || []).forEach(function (r) { byDay[r.weekday] = r; });
+    $('slots').innerHTML = SQ.WEEKDAYS.map(function (n, i) {
+      var r = byDay[i];
+      return '<div class="slot' + (i === dow ? ' today' : '') + '" data-day="' + i + '">' + n + '<b>' + (r ? SQ.fmtTime(r.slot_time) : '--') + '</b>' +
+        '<div class="why">' + esc(SQ.slotWhy(r || null)) + '</div></div>';
+    }).join('');
+    var rc = SQ.reviewCount(state.line);
+    var days = (state.days != null) ? state.days : SQ.daysOfApproved(state.line);
+    $('daysStat').innerHTML = '<b>' + esc(days) + '</b> approved days';
+    $('daysStat').className = 'stat' + (days >= 3 ? ' ok' : '');
+    $('lineStat').innerHTML = '<b>' + rc.total + '</b> in line · ' + rc.approved + ' approved · ' + rc.pending + ' to review';
+    var live = (state.settings || {}).live_publishing || 'off';
+    $('liveStat').innerHTML = '<b>' + esc(live) + '</b> live publishing';
+    $('liveStat').className = 'stat' + (live === 'on' ? '' : ' ok');
+    $('tick').textContent = SQ.lastTick(state.runs, new Date());
+    var b = SQ.lineBanner(days);
+    var stale = (state.stale_pins || []).length ? ' · ' + state.stale_pins.length + ' pin' + (state.stale_pins.length === 1 ? '' : 's') + ' past date - unpinned in the order, fix the date or clear it' : '';
+    $('banner').textContent = b + stale;
+    $('banner').className = (b || stale) ? 'on' : '';
+  }
+  $('slots').addEventListener('click', function (ev) {
+    var s = ev.target.closest('.slot'); if (!s) return;
+    var open = s.classList.contains('open');
+    document.querySelectorAll('.slot.open').forEach(function (x) { x.classList.remove('open'); });
+    if (!open) s.classList.add('open');
+  });
+
+  // Filled in by Tasks 3-8.
+  function renderLine() { $('lineCol').innerHTML = '<div class="empty">Line view: Task 3.</div>'; }
+  function renderDetail() { $('detailCol').innerHTML = '<div class="empty">Pick a post.</div>'; }
+  function renderHandles() { $('tabHandles').innerHTML = '<div class="empty">Handles: Task 6.</div>'; }
+  function renderComments() { $('tabComments').innerHTML = '<div class="empty">Comments: Task 7.</div>'; }
+  function renderRuns() { $('tabRuns').innerHTML = '<div class="empty">Runs: Task 8.</div>'; }
+
+  function select(id) { state.selectedId = id; renderLine(); renderDetail(); }
+  function selected() { return state.line.filter(function (p) { return p.id === state.selectedId; })[0] || null; }
+
+  function loadLine() {
+    return rpc('social_line', {}).then(function (d) {
+      var o = SQ.orderLine(d.line || [], SQ.pacificToday());
+      state.line = o.line; state.stale_pins = o.stale_pins;
+      state.counts = d.counts || {}; state.slot_plan = d.slot_plan || []; state.settings = d.settings || {};
+      state.days = (d.days_of_approved != null) ? d.days_of_approved : SQ.daysOfApproved(o.line);
+      if (!selected() && state.line.length) { state.selectedId = state.line[0].id; }
+      return rpc('social_runs', { p_limit: 10 }).then(function (r) { state.runs = Array.isArray(r) ? r : (r.runs || []); }).catch(function () {});
+    }).then(function () { renderHeader(); if (state.tab === 'line') { renderLine(); renderDetail(); } })
+      .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Load failed: ' + esc(e.message) + '</div>'; $('tick').textContent = 'load failed'; });
+  }
+  function refresh() {
+    if (state.tab === 'handles') { return renderHandles(); }
+    if (state.tab === 'comments') { return renderComments(); }
+    if (state.tab === 'runs') { return renderRuns(); }
+    return loadLine();
+  }
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+      document.querySelectorAll('.pane').forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on'); state.tab = t.getAttribute('data-tab');
+      $('pane' + state.tab.charAt(0).toUpperCase() + state.tab.slice(1)).classList.add('on');
+      refresh();
+    });
+  });
+
+  function boot() {
+    if (DEMO) {
+      $('demoBar').className = 'on';
+      fetch('data/social-queue-demo.json').then(function (r) { return r.json(); }).then(function (d) { state.demo = d; loadLine(); })
+        .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Demo fixture failed: ' + esc(e.message) + '</div>'; });
+    } else { loadLine(); }
+    // Contract: "Reads social_line on load and every 60 s". Every tab: the header strip (approved
+    // days, live flag, cloud tick) must not go stale while John is on HANDLES / COMMENTS / RUNS.
+    // loadLine() only re-renders the line and detail columns when state.tab === 'line'.
+    setInterval(loadLine, 60000);
+  }
+  boot();
+  console.log('WG Social Queue v' + window.SQ_VERSION + (DEMO ? ' (demo data, read-only)' : ''));
+})();
+</script>
+</body>
 </html>

@@ -68,3 +68,59 @@ test('esc escapes the five HTML characters', () => {
   assert.equal(SQ.esc(`<a href="x">it's & done</a>`), '&lt;a href=&quot;x&quot;&gt;it&#39;s &amp; done&lt;/a&gt;');
   assert.equal(SQ.esc(null), '');
 });
+
+test('fmtTime renders Pacific wall clock as 12h', () => {
+  assert.equal(SQ.fmtTime('17:15:00'), '5:15 PM');
+  assert.equal(SQ.fmtTime('09:05'), '9:05 AM');
+  assert.equal(SQ.fmtTime('00:30'), '12:30 AM');
+  assert.equal(SQ.fmtTime('12:00'), '12:00 PM');
+  assert.equal(SQ.fmtTime(''), '?');
+});
+
+test('slotWhy explains the evidence in plain words', () => {
+  const row = { weekday: 1, slot_time: '17:15:00', computed_at: '2026-09-27T16:07:00+00:00',
+    evidence: { online_peak_hour: 17, tie_break: 'reach', previous: '17:45', shift_min: 30 } };
+  const s = SQ.slotWhy(row);
+  assert.match(s, /peak at 5:00 PM on Mondays/);
+  assert.match(s, /Tie within 5% broken by our own reach/);
+  assert.match(s, /Was 5:45 PM, moved 30 min/);
+  assert.match(s, /Computed 2026-09-27/);
+  assert.equal(SQ.slotWhy(null), 'No plan yet.');
+  assert.equal(SQ.slotWhy({ weekday: 0, slot_time: '18:15', evidence: {} }), 'No evidence stored.');
+});
+
+test('daysOfApproved / reviewCount / lineBanner', () => {
+  const line = [{ status: 'approved' }, { status: 'pending' }, { status: 'approved' }];
+  assert.equal(SQ.daysOfApproved(line), 2);
+  assert.deepEqual(SQ.reviewCount(line), { approved: 2, pending: 1, total: 3 });
+  assert.equal(SQ.lineBanner(3), '');
+  assert.equal(SQ.lineBanner(7), '');
+  assert.match(SQ.lineBanner(2), /^2 approved days left/);
+  assert.match(SQ.lineBanner(1), /^1 approved day left/);
+  assert.match(SQ.lineBanner(0), /^NOTHING APPROVED/);
+});
+
+test('ago and lastTick', () => {
+  const now = new Date('2026-09-22T23:00:00Z');
+  assert.equal(SQ.ago('2026-09-22T22:59:40Z', now), 'just now');
+  assert.equal(SQ.ago('2026-09-22T22:45:00Z', now), '15 min ago');
+  assert.equal(SQ.ago('2026-09-22T20:00:00Z', now), '3 h ago');
+  assert.equal(SQ.ago('2026-09-20T20:00:00Z', now), '2 d ago');
+  assert.equal(SQ.ago(null, now), 'never');
+  const runs = [
+    { at: '2026-09-22T22:30:00Z', action: 'publish', outcome: 'dry_due' },
+    { at: '2026-09-22T22:45:00Z', action: 'due', outcome: 'not_due' },
+    { at: '2026-09-22T22:15:00Z', action: 'due', outcome: 'not_due' },
+  ];
+  assert.equal(SQ.lastTick(runs, now), 'cloud tick 15 min ago · not_due');
+  assert.equal(SQ.lastTick([], now), 'no cloud tick yet');
+});
+
+test('mediaUrl / pathFromUrl', () => {
+  assert.equal(SQ.mediaUrl('posts/sp-20260923-01/slide-1.jpg'), SQ.BUCKET_URL + 'posts/sp-20260923-01/slide-1.jpg');
+  assert.equal(SQ.mediaUrl('/posts/x.jpg'), SQ.BUCKET_URL + 'posts/x.jpg');
+  assert.equal(SQ.mediaUrl('renders/posts/wgpost-20260922-07/slide-1.jpg'), 'renders/posts/wgpost-20260922-07/slide-1.jpg');
+  assert.equal(SQ.mediaUrl('https://example.com/a.jpg'), 'https://example.com/a.jpg');
+  assert.equal(SQ.pathFromUrl(SQ.BUCKET_URL + 'posts/x/slide-2-manual.jpg'), 'posts/x/slide-2-manual.jpg');
+  assert.equal(SQ.pathFromUrl('posts/x.jpg'), 'posts/x.jpg');
+});

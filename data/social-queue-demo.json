@@ -1,0 +1,89 @@
+{
+  "line": {
+    "ok": true,
+    "days_of_approved": 2,
+    "counts": { "pending": 1, "approved": 2, "published_7d": 6 },
+    "settings": { "live_publishing": "off", "line_depth": "10", "slot_window_minutes": "45", "slot_max_shift_minutes": "30", "ig_user_id": "17841480600270447", "graph_version": "v23.0" },
+    "slot_plan": [
+      { "weekday": 0, "slot_time": "18:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 18, "tie_break": "none", "previous": null, "shift_min": 0 } },
+      { "weekday": 1, "slot_time": "17:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 17, "tie_break": "reach", "previous": "17:45", "shift_min": 30 } },
+      { "weekday": 2, "slot_time": "17:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 17, "tie_break": "none", "previous": "17:15", "shift_min": 0 } },
+      { "weekday": 3, "slot_time": "18:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 18, "tie_break": "none", "previous": "18:15", "shift_min": 0 } },
+      { "weekday": 4, "slot_time": "17:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 17, "tie_break": "none", "previous": "17:15", "shift_min": 0 } },
+      { "weekday": 5, "slot_time": "19:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 19, "tie_break": "reach", "previous": "19:15", "shift_min": 0 } },
+      { "weekday": 6, "slot_time": "18:15:00", "computed_at": "2026-09-20T16:07:00+00:00", "evidence": { "online_peak_hour": 18, "tie_break": "none", "previous": "18:15", "shift_min": 0 } }
+    ],
+    "line": [
+      {
+        "id": "sp-20260923-01", "kind": "car", "status": "approved", "line_order": 10, "pinned_date": null,
+        "caption_options": [
+          { "register": "hit", "text": "That roofline has not been touched since the factory and it shows.", "facts_used": ["make", "model"] },
+          { "register": "question", "text": "Who else runs steelies on a car this clean?", "facts_used": ["make"] },
+          { "register": "shoutout", "text": "Portland Roadsters brought the goods to Beaverton this weekend.", "facts_used": ["club", "venue"] }
+        ],
+        "caption_final": "That roofline has not been touched since the factory and it shows.", "caption_author": "machine",
+        "hashtags": ["#wolfsgarage", "#pnwcars", "#hotrod"],
+        "tags": { "user_tags": [{ "username": "portlandroadsters", "x": 0.5, "y": 0.5 }], "collaborators": [], "location_id": "", "handles_used": [1] },
+        "facts": { "event": "Beaverton Cruise", "venue": "Beaverton Round", "club": ["Portland Roadsters"], "make": "Ford", "model": "Coupe", "year": 1932, "capture_date": "2026-09-13", "shoot_note": "" },
+        "media": [
+          { "path": "data/demo/car/slide-1.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "epic", "source_id": "20260913_143012.jpg" },
+          { "path": "data/demo/car/slide-2.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "darkroom", "source_id": "20260913_143050.jpg" },
+          { "path": "data/demo/car/slide-3.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "cleanup", "source_id": "20260913_143101.jpg" }
+        ],
+        "story_media": { "path": "data/demo/car/slide-1.jpg", "w": 1080, "h": 1920 },
+        "source_ids": ["20260913_143012.jpg", "20260913_143050.jpg", "20260913_143101.jpg"], "event_id": null,
+        "created_by": "builder", "created_at": "2026-09-22T08:17:00+00:00", "approved_at": "2026-09-22T22:25:00+00:00", "attempts": 0
+      },
+      {
+        "id": "sp-20260923-02", "kind": "weekend_shows", "status": "approved", "line_order": 20, "pinned_date": "2026-09-25",
+        "caption_options": [
+          { "register": "hit", "text": "Three shows inside 100 miles this weekend. Pick one and go.", "facts_used": ["event"] },
+          { "register": "question", "text": "Which one are you hitting Saturday?", "facts_used": ["event"] },
+          { "register": "shoutout", "text": "Flyers from the clubs putting these on. Go say hi.", "facts_used": ["event"] }
+        ],
+        "caption_final": "Three shows inside 100 miles this weekend. Pick one and go.", "caption_author": "machine",
+        "hashtags": ["#wolfsgarage", "#pnwcarshows", "#thisweekend"],
+        "tags": { "user_tags": [], "collaborators": [], "location_id": "", "handles_used": [] },
+        "facts": { "event": "Weekend shows 09-26..09-27", "venue": "", "club": ["Rose City Rods", "Unknown Cruisers"], "capture_date": null, "shoot_note": "" },
+        "media": [
+          { "path": "data/demo/shows/slide-1.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "darkroom", "source_id": "flyer-1" },
+          { "path": "data/demo/shows/slide-2.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "darkroom", "source_id": "flyer-2" }
+        ],
+        "story_media": null, "source_ids": [], "event_id": null,
+        "created_by": "builder", "created_at": "2026-09-22T08:17:00+00:00", "approved_at": "2026-09-22T22:26:00+00:00", "attempts": 0
+      },
+      {
+        "id": "sp-20260923-03", "kind": "community", "status": "pending", "line_order": 30, "pinned_date": null,
+        "caption_options": [
+          { "register": "hit", "text": "A one-man upholstery bench in Gresham that still does tuck and roll by hand.", "facts_used": ["venue"] },
+          { "register": "question", "text": "Who did your interior? Drop the name below.", "facts_used": [] },
+          { "register": "shoutout", "text": "Found in the directory. Go give them work.", "facts_used": ["venue"] }
+        ],
+        "caption_final": null, "caption_author": null, "hashtags": [],
+        "tags": { "user_tags": [], "collaborators": [], "location_id": "", "handles_used": [] },
+        "facts": { "event": "", "venue": "Gresham Upholstery", "club": [], "capture_date": "2026-09-19", "shoot_note": "" },
+        "media": [
+          { "path": "data/demo/community/slide-1.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "darkroom", "source_id": "20260919_101010.jpg" },
+          { "path": "data/demo/community/slide-2.jpg", "w": 1080, "h": 1350, "aspect": "4:5", "edit_tier": "darkroom", "source_id": "20260919_101033.jpg" }
+        ],
+        "story_media": { "path": "data/demo/community/slide-1.jpg", "w": 1080, "h": 1920 },
+        "source_ids": ["20260919_101010.jpg", "20260919_101033.jpg"], "event_id": null,
+        "created_by": "builder", "created_at": "2026-09-22T08:17:00+00:00", "attempts": 0
+      }
+    ]
+  },
+  "handles": [
+    { "id": 1, "name": "Portland Roadsters", "ig_handle": "portlandroadsters", "kind": "club", "location_id": "", "collab_ok": true, "aliases": ["PDX Roadsters"], "notes": "collab ok per John" },
+    { "id": 2, "name": "Rose City Rods", "ig_handle": "rosecityrods", "kind": "club", "location_id": "", "collab_ok": false, "aliases": [], "notes": "" },
+    { "id": 3, "name": "Beaverton Round", "ig_handle": "", "kind": "venue", "location_id": "123456789", "collab_ok": false, "aliases": ["The Round"], "notes": "location only" }
+  ],
+  "comments": [
+    { "ig_comment_id": "1790000000000001", "ig_media_id": "1800000000000001", "post_id": "sp-20260920-01", "username": "steelie_steve", "text": "That is my coupe! Thanks for the shot", "commented_at": "2026-09-22T19:12:00+00:00", "draft_reply": "Good looking car. Bring it back next month.", "status": "drafted", "sent_at": null },
+    { "ig_comment_id": "1790000000000002", "ig_media_id": "1800000000000001", "post_id": "sp-20260920-01", "username": "pnw_cruiser", "text": "where was this", "commented_at": "2026-09-22T20:40:00+00:00", "draft_reply": "Beaverton Round, the Sunday cruise-in.", "status": "drafted", "sent_at": null }
+  ],
+  "runs": [
+    { "id": 12, "at": "2026-09-22T22:45:03+00:00", "action": "due", "outcome": "not_due", "post_id": null, "detail": { "reason": "outside slot window", "pacific_now": "15:45" } },
+    { "id": 11, "at": "2026-09-22T22:30:02+00:00", "action": "due", "outcome": "not_due", "post_id": null, "detail": { "reason": "outside slot window" } },
+    { "id": 10, "at": "2026-09-22T00:15:04+00:00", "action": "due", "outcome": "dry_due", "post_id": "sp-20260921-01", "detail": { "would_call": ["POST /17841480600270447/media", "POST /17841480600270447/media_publish"], "live": "off" } }
+  ]
+}
