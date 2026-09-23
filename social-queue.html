@@ -313,6 +313,14 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       notes: String(f.notes || '').trim() } };
   };
 
+  // D14: drafted replies John taps to send; owners commenting on their own car flagged.
+  SQ.commentsToShow = function (rows) {
+    var own = /\b(my|mine|our)\b[^.!?]*\b(car|truck|coupe|ride|build|pickup|wagon)\b|\b(that|this) is (my|mine)\b/i;
+    return (rows || []).filter(function (r) { return r.status === 'new' || r.status === 'drafted'; })
+      .map(function (r) { var c = {}; Object.keys(r).forEach(function (k) { c[k] = r[k]; }); c.owner_flag = own.test(String(r.text || '')); return c; })
+      .sort(function (a, b) { return new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime(); });
+  };
+
   window.SQ_VERSION = SQ_VERSION;
   window.SQ = SQ;
 })(window);
@@ -785,7 +793,48 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     });
   }
   bindHandleEvents();
-  function renderComments() { $('tabComments').innerHTML = '<div class="empty">Comments: Task 7.</div>'; }
+  function renderComments() {
+    $('tabComments').innerHTML = '<div class="empty">Loading comments...</div>';
+    rpc('social_comments', { p_limit: 100 }).then(function (rows) {
+      var list = SQ.commentsToShow(Array.isArray(rows) ? rows : (rows.comments || []));
+      state.comments = list;
+      if (!list.length) { $('tabComments').innerHTML = '<div class="empty">Inbox zero. Comments are pulled every 15 minutes.</div>'; return; }
+      $('tabComments').innerHTML = '<div class="cm">' + list.length + ' waiting · nothing sends until you tap SEND</div>' + list.map(function (c) {
+        return '<div class="card" style="grid-template-columns:1fr;cursor:default">' +
+          '<div><div class="ct">@' + esc(c.username) + (c.owner_flag ? ' <span class="chip bad">OWNER?</span>' : '') + '</div>' +
+          '<div class="cm">' + esc(c.post_id || c.ig_media_id || '') + ' · ' + esc(SQ.ago(c.commented_at, new Date())) + ' · ' + esc(c.status) + '</div>' +
+          '<div class="row">' + esc(c.text) + '</div>' +
+          '<textarea data-cid="' + esc(c.ig_comment_id) + '" placeholder="Reply in your words">' + esc(c.draft_reply || '') + '</textarea>' +
+          '<div class="btns"><button class="act primary" data-act="c-send" data-cid="' + esc(c.ig_comment_id) + '" type="button">SEND</button>' +
+          '<button class="act" data-act="c-skip" data-cid="' + esc(c.ig_comment_id) + '" type="button">SKIP</button></div></div></div>';
+      }).join('');
+    }).catch(function (e) { $('tabComments').innerHTML = '<div class="empty">Comments failed: ' + esc(e.message) + '</div>'; });
+  }
+  function bindCommentEvents() {
+    $('tabComments').addEventListener('click', function (ev) {
+      var b = ev.target.closest('button.act'); if (!b) return;
+      var cid = b.getAttribute('data-cid'), act = b.getAttribute('data-act');
+      var ta = $('tabComments').querySelector('textarea[data-cid="' + cid + '"]');
+      var text = ta ? ta.value.trim() : '';
+      if (act === 'c-send') {
+        if (!text) { toast('Write the reply first'); return; }
+        var bad = SQ.voiceCheck(text);                       // same gate as saveCaption (Task 4)
+        if (bad) { toast(bad); return; }
+        if (!confirm('Send this reply on Instagram now?\n\n' + text)) { return; }
+        b.disabled = true;
+        fnCall('comment_reply', { ig_comment_id: cid, text: text }).then(function (r) {
+          if (r.data && r.data.demo) { b.disabled = false; return; }
+          if (r.data && r.data.ok) { toast('Sent'); renderComments(); }
+          else { b.disabled = false; toast('Send refused: ' + redact(JSON.stringify(r.data || r.status)).slice(0, 120)); }
+        }).catch(function (e) { b.disabled = false; toast('Send failed: ' + e.message); });
+      } else if (act === 'c-skip') {
+        b.disabled = true;
+        rpc('social_comment_set', { p_id: cid, p_draft: text || null, p_status: 'skipped' }).then(function () { toast('Skipped'); renderComments(); })
+          .catch(function (e) { b.disabled = false; toast('Skip failed: ' + e.message); });
+      }
+    });
+  }
+  bindCommentEvents();
   function renderRuns() { $('tabRuns').innerHTML = '<div class="empty">Runs: Task 8.</div>'; }
 
   function select(id) { state.selectedId = id; renderLine(); renderDetail(); }

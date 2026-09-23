@@ -218,3 +218,17 @@ test('handleFromRow validates and normalises a handle row', () => {
   assert.match(SQ.handleFromRow({ name: 'X', ig_handle: 'x', kind: 'band' }).error, /kind/);
   assert.match(SQ.handleFromRow({ name: 'X', ig_handle: '', kind: 'club', location_id: '' }).error, /handle or a location/);
 });
+
+test('commentsToShow keeps new/drafted, newest first, flags likely owners', () => {
+  const rows = [
+    { ig_comment_id: '1', status: 'sent', text: 'nice', commented_at: '2026-09-22T10:00:00Z' },
+    { ig_comment_id: '2', status: 'new', text: 'where was this', commented_at: '2026-09-22T09:00:00Z' },
+    { ig_comment_id: '3', status: 'drafted', text: 'That is my coupe! thanks', commented_at: '2026-09-22T11:00:00Z' },
+    { ig_comment_id: '4', status: 'skipped', text: 'x', commented_at: '2026-09-22T12:00:00Z' },
+    { ig_comment_id: '5', status: 'new', text: 'this is our build from last year', commented_at: '2026-09-21T11:00:00Z' },
+  ];
+  const out = SQ.commentsToShow(rows);
+  assert.deepEqual(out.map(r => r.ig_comment_id), ['3', '2', '5']);
+  assert.deepEqual(out.map(r => !!r.owner_flag), [true, false, true]);
+  assert.equal(rows[2].owner_flag, undefined);
+});
