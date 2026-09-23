@@ -37,8 +37,9 @@ main{padding:12px 16px;max-width:1100px;margin:0 auto}
 .tab.on{background:var(--red);border-color:var(--red)}
 .pane{display:none}
 .pane.on{display:block}
-.cols{display:grid;grid-template-columns:1fr;gap:16px}
-@media (min-width:1024px){.cols{grid-template-columns:420px 1fr;align-items:start}#detailCol{position:sticky;top:12px}}
+/* minmax(0,1fr) not 1fr: a 1fr track's auto minimum lets the 3 x 200px .slides row widen the whole column past a phone viewport. */
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:1024px){.cols{grid-template-columns:420px minmax(0,1fr);align-items:start}#detailCol{position:sticky;top:12px}}
 .card{background:var(--panel-2);border:1px solid var(--border);border-left:4px solid var(--red);padding:12px;margin-bottom:10px;display:grid;grid-template-columns:72px 1fr;gap:10px;cursor:pointer}
 .card.sel{outline:1px solid var(--copper)}
 .card.approved{border-left-color:var(--bone)}
