@@ -321,6 +321,18 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       .sort(function (a, b) { return new Date(b.commented_at).getTime() - new Date(a.commented_at).getTime(); });
   };
 
+  // Contract: live_publishing is 'off' until John says go in laptop Chrome, and only
+  // social_setting_set flips it. This is the plan for that tap; the app script asks the question.
+  SQ.armPlan = function (current) {
+    var on = String(current == null ? 'off' : current).trim().toLowerCase() === 'on';
+    if (on) {
+      return { next: 'off', label: 'DISARM', mustType: null,
+        confirm: 'Turn live publishing OFF? The cloud goes back to dry runs: it logs what it would post and posts nothing.' };
+    }
+    return { next: 'on', label: 'ARM LIVE', mustType: 'GO',
+      confirm: 'Turn live publishing ON? From the next slot the cloud will post to Instagram for real, one approved post a day, in line order. Type GO to confirm.' };
+  };
+
   window.SQ_VERSION = SQ_VERSION;
   SQ.runRow = function (r, now) {
     r = r || {};
@@ -457,9 +469,16 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     $('daysStat').innerHTML = '<b>' + esc(days) + '</b> approved days';
     $('daysStat').className = 'stat' + (days >= 3 ? ' ok' : '');
     $('lineStat').innerHTML = '<b>' + rc.total + '</b> in line · ' + rc.approved + ' approved · ' + rc.pending + ' to review';
-    var live = (state.settings || {}).live_publishing || 'off';
+    var live = String((state.settings || {}).live_publishing || 'off').trim().toLowerCase();
+    var armPlan = SQ.armPlan(live);
     $('liveStat').innerHTML = '<b>' + esc(live) + '</b> live publishing';
     $('liveStat').className = 'stat' + (live === 'on' ? '' : ' ok');
+    var lb = $('liveBtn');
+    lb.textContent = armPlan.label;
+    lb.className = 'act' + (live === 'on' ? ' kill' : ' primary');
+    // Enabled only when social_line actually returned a settings row; a failed load or a
+    // pre-plan-A schema leaves it greyed so there is nothing to flip by accident.
+    lb.disabled = !(state.settings && state.settings.live_publishing != null);
     $('tick').textContent = SQ.lastTick(state.runs, new Date());
     var b = SQ.lineBanner(days);
     var stale = (state.stale_pins || []).length ? ' · ' + state.stale_pins.length + ' pin' + (state.stale_pins.length === 1 ? '' : 's') + ' past date - unpinned in the order, fix the date or clear it' : '';
@@ -471,6 +490,27 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     var open = s.classList.contains('open');
     document.querySelectorAll('.slot.open').forEach(function (x) { x.classList.remove('open'); });
     if (!open) s.classList.add('open');
+  });
+
+  // The one place the page writes social.settings. John's tap, contract-mandated.
+  function setLive(next) {
+    return rpc('social_setting_set', { p_setting: 'live_publishing', p_value: next })
+      .then(function (res) {
+        // Demo mode already toasted 'DEMO - nothing saved'; never claim LIVE when nothing was written.
+        if (!(res && res.demo)) { toast(next === 'on' ? 'LIVE. The next slot posts for real.' : 'Disarmed. Dry runs only.'); }
+        return loadLine();
+      })
+      .catch(function (e) { toast('Setting failed: ' + e.message); });
+  }
+  $('liveBtn').addEventListener('click', function () {
+    var plan = SQ.armPlan((state.settings || {}).live_publishing);
+    if (plan.mustType) {
+      var typed = prompt(plan.confirm, '');
+      if (typed === null) { return; }
+      if (String(typed).trim().toUpperCase() !== plan.mustType) { toast('Not armed. You have to type ' + plan.mustType + '.'); return; }
+    } else if (!confirm(plan.confirm)) { return; }
+    $('liveBtn').disabled = true;
+    setLive(plan.next).then(function () { renderHeader(); });
   });
 
   function lineCard(p, i) {

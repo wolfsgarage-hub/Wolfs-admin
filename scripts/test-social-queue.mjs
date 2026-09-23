@@ -240,3 +240,16 @@ test('runRow flattens a runs row for the table', () => {
   assert.equal(SQ.runRow({ at: null, action: 'publish', outcome: 'failed: token', post_id: 'sp-1', detail: null }, now).bad, true);
   assert.equal(SQ.runRow({ at: null, action: 'publish', outcome: 'failed: token', post_id: 'sp-1', detail: null }, now).detail, '');
 });
+
+test('armPlan: off -> arm with typed GO, on -> disarm with a plain confirm', () => {
+  const a = SQ.armPlan('off');
+  assert.equal(a.next, 'on'); assert.equal(a.label, 'ARM LIVE'); assert.equal(a.mustType, 'GO');
+  assert.match(a.confirm, /post to Instagram for real/);
+  assert.match(a.confirm, /Type GO/);
+  const d = SQ.armPlan('on');
+  assert.equal(d.next, 'off'); assert.equal(d.label, 'DISARM'); assert.equal(d.mustType, null);
+  assert.match(d.confirm, /dry runs/);
+  assert.deepEqual(SQ.armPlan(undefined), SQ.armPlan('off'));
+  assert.deepEqual(SQ.armPlan('ON'), SQ.armPlan('on'));
+  assert.deepEqual(SQ.armPlan('banana'), SQ.armPlan('off'));
+});
