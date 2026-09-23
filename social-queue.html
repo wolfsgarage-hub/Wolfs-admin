@@ -8,7 +8,7 @@
 <title>WG Social Queue v1.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0A0A0A;--red:#CC0000;--red-dim:#7a0000;--bone:#F5F1E8;--bone-dim:#b8b3a6;--copper:#C8922A;--panel:#141414;--panel-2:#1c1c1c;--border:rgba(245,241,232,.12)}
+:root{--bg:#0A0A0A;--red:#CC0000;--bone:#F5F1E8;--bone-dim:#b8b3a6;--copper:#C8922A;--panel:#141414;--panel-2:#1c1c1c;--border:rgba(245,241,232,.12)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--bone);font-family:'Work Sans',sans-serif;font-size:15px;line-height:1.5;padding-bottom:60px}
 .pin{height:3px;background:repeating-linear-gradient(90deg,var(--red) 0 16px,transparent 16px 20px,var(--bone) 20px 23px,transparent 23px 27px)}
@@ -68,7 +68,8 @@ button.act:disabled{opacity:.4}
 .slide .tier{position:absolute;left:6px;top:6px}
 .slide .btns{margin-top:6px}
 .field{margin:12px 0}
-.field label{display:block;font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--copper);margin-bottom:4px}
+/* heading labels only: the caption-option rows are <label class="opt"> inside the same .field */
+.field>label:not(.opt){display:block;font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--copper);margin-bottom:4px}
 .opt{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;font-size:.9rem}
 .opt input{margin-top:4px;accent-color:var(--red)}
 .opt .reg{font-family:'Oswald',sans-serif;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--copper);display:block}
@@ -115,6 +116,8 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
 
   // D3: ordered line with pins. Pinned-for-today jumps the line; a pin whose date passed is
   // reported (stale_pins) and ordered as if unpinned. Killed and published are not in the line.
+  // social_line already returns the rows ordered (contract row 136); re-sorting here is deliberate
+  // so the page never depends on server order for the today-pin jump and the id tie-break.
   SQ.orderLine = function (posts, today) {
     var live = (posts || []).filter(function (p) { return p.status === 'pending' || p.status === 'approved'; });
     var stale = [];
@@ -247,7 +250,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     if (/—/.test(s)) { return 'No em dashes. Use a period or a comma.'; }
     if (/\s–\s/.test(s)) { return 'No dashes as punctuation. Use a period or a comma.'; }
     if (/\bshop\b/i.test(s)) { return 'Do not call it a shop. It is a garage or a community hub.'; }
-    if (/\bJohn\b/.test(s)) { return 'Public copy says Wolf, never John.'; }
+    if (/\bJohn\b/i.test(s)) { return 'Public copy says Wolf, never John.'; }
     return null;
   };
 
@@ -285,9 +288,24 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   };
   // Story toggle "restore": the stash from this page session, else the render convention.
   // If plan B renders the Story under a different path, this is the one place to change.
+  // Returns null for a post with no stash and no slides: the builder renders story.jpg for every
+  // post it builds, so a slide-less post never had one and a restore would point the cloud at a
+  // path that does not exist in the bucket.
   SQ.storyRestore = function (post, stash) {
     if (stash && stash[post.id]) { return stash[post.id]; }
+    if (!(post.media || []).length) { return null; }
     return { path: 'posts/' + post.id + '/story.jpg', w: 1080, h: 1920 };
+  };
+  // 60 s poll guard (Must fix, whole-branch review): the poll must never wipe what John is doing.
+  // Skip the detail repaint while focus is inside it or the selected post is byte-identical to the
+  // last paint; skip the line repaint while a kill-reason row is open. User actions (select, save)
+  // always repaint through loadLine() without the poll flag.
+  SQ.pollRepaint = function (o) {
+    o = o || {};
+    return {
+      line: !o.reasonsOpen,
+      detail: !o.focusInside && (o.snap == null || o.snap !== o.lastSnap)
+    };
   };
   SQ.mediaWithSlide = function (media, index, path) {
     return (media || []).map(function (m, i) {
@@ -387,7 +405,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   var DEMO = /[?&]demo=1/.test(location.search);
   var state = { tab: 'line', line: [], stale_pins: [], counts: {}, slot_plan: [], settings: {}, days: 0,
                 runs: [], handles: [], handlesAt: null, comments: [], selectedId: null, storyStash: {}, demo: null,
-                detailFor: null, captionPick: null, captionText: null, hashText: null };
+                detailFor: null, captionPick: null, captionText: null, hashText: null, detailSnap: null };
   var $ = function (id) { return document.getElementById(id); };
   var esc = SQ.esc;
 
@@ -421,7 +439,6 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     if (name === 'social_runs') { return Promise.resolve(d.runs || []); }
     if (name === 'social_handles') { return Promise.resolve(d.handles || []); }
     if (name === 'social_comments') { return Promise.resolve(d.comments || []); }
-    if (name === 'social_post_get') { return Promise.resolve(((d.line || {}).line || []).filter(function (p) { return p.id === args.p_id; })[0] || null); }
     return Promise.resolve({ ok: false, error: 'demo has no ' + name });
   }
   function rpc(name, args) {
@@ -482,9 +499,10 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     lb.disabled = !(state.settings && state.settings.live_publishing != null);
     $('tick').textContent = SQ.lastTick(state.runs, new Date());
     var b = SQ.lineBanner(days);
-    var stale = (state.stale_pins || []).length ? ' · ' + state.stale_pins.length + ' pin' + (state.stale_pins.length === 1 ? '' : 's') + ' past date - unpinned in the order, fix the date or clear it' : '';
-    $('banner').textContent = b + stale;
-    $('banner').className = (b || stale) ? 'on' : '';
+    var stale = (state.stale_pins || []).length ? state.stale_pins.length + ' pin' + (state.stale_pins.length === 1 ? '' : 's') + ' past date - unpinned in the order, fix the date or clear it' : '';
+    var bannerText = [b, stale].filter(Boolean).join(' · ');
+    $('banner').textContent = bannerText;
+    $('banner').className = bannerText ? 'on' : '';
   }
   $('slots').addEventListener('click', function (ev) {
     var s = ev.target.closest('.slot'); if (!s) return;
@@ -550,7 +568,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   function decide(id, action, reason) {
     return rpc('social_post_decide', { p_id: id, p_action: action, p_reason: reason || null })
       .then(function () { toast(action === 'approve' ? 'Approved - in line' : (action === 'kill' ? 'Killed' : 'Back in line')); return loadLine(); })
-      .catch(function (e) { toast('Failed: ' + e.message); });
+      .catch(function (e) { toast('Failed: ' + e.message); loadLine(); });   // repaint so the disabled button comes back
   }
   function pinPost(id, date) {
     return rpc('social_post_pin', { p_id: id, p_date: date || null })
@@ -642,10 +660,12 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       '<button class="act" data-act="pin" type="button">PIN</button><button class="act" data-act="unpin" type="button"' + (p.pinned_date ? '' : ' disabled') + '>UNPIN</button></div></div>' +
       '<div id="extras"></div>' +
       '</div>';
+    state.detailSnap = JSON.stringify(p);   // the poll compares against this before repainting
     renderExtras(p);
   }
   function loadHandles(force) {
     if (!force && state.handles.length && state.handlesAt && (Date.now() - state.handlesAt) < 600000) { return Promise.resolve(state.handles); }
+    // Bare array or {handles:[...]}: deliberate tolerance for either RPC shape (same at the two social_runs sites).
     return rpc('social_handles', {}).then(function (h) { state.handles = Array.isArray(h) ? h : (h.handles || []); state.handlesAt = Date.now(); return state.handles; });
   }
   function handleById(id) { return state.handles.filter(function (h) { return String(h.id) === String(id); })[0] || null; }
@@ -677,17 +697,21 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       '<div class="btns"><button class="act copper" data-act="copy-caption" type="button">COPY THE CAPTION</button></div>' +
       '<div class="hint">Save each picture, copy the caption, post it in the Instagram app. Then KILL IT here with reason "other" so the cloud never posts it too.</div></details>';
   }
+  function paintExtras(p, err) {
+    if (!selected() || selected().id !== p.id) { return; }
+    var ex = $('extras'); if (!ex) { return; }
+    ex.innerHTML = (err ? '<div class="hint bad">handles failed: ' + esc(err) + ' (tag list is whatever was cached, maybe empty; Story, EPIC and the manual packet still work)</div>' : '') + extrasHtml(p);
+    (p.media || []).forEach(function (m, i) {
+      var host = document.querySelector('[data-slidebtns="' + i + '"]'); if (!host) { return; }
+      host.innerHTML = '<button class="act" data-act="epic" data-slide="' + i + '" type="button">EPIC</button>' +
+        '<label class="act" style="display:inline-block">DROP IN<input type="file" accept="image/jpeg,image/png" data-slide="' + i + '" style="display:none"></label>';
+    });
+  }
   function renderExtras(p) {
-    loadHandles(false).then(function () {
-      if (!selected() || selected().id !== p.id) { return; }
-      var ex = $('extras'); if (!ex) { return; }
-      ex.innerHTML = extrasHtml(p);
-      (p.media || []).forEach(function (m, i) {
-        var host = document.querySelector('[data-slidebtns="' + i + '"]'); if (!host) { return; }
-        host.innerHTML = '<button class="act" data-act="epic" data-slide="' + i + '" type="button">EPIC</button>' +
-          '<label class="act" style="display:inline-block">DROP IN<input type="file" accept="image/jpeg,image/png" data-slide="' + i + '" style="display:none"></label>';
-      });
-    }).catch(function (e) { var ex = $('extras'); if (ex) { ex.innerHTML = '<div class="hint bad">handles failed: ' + esc(e.message) + '</div>'; } });
+    // A failed handle list must not hide the Story toggle, EPIC / DROP IN or the manual packet,
+    // the fallback John needs most when the cloud is misbehaving. Paint with whatever handles
+    // are cached (possibly none) and say so.
+    loadHandles(false).then(function () { paintExtras(p, null); }).catch(function (e) { paintExtras(p, e.message); });
   }
   function copyText(btn, text) {
     var old = btn.textContent;
@@ -781,7 +805,11 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       // off sends p_clear_story: true. Media is left alone either way (p_media null = leave).
       var story, args;
       if (p.story_media) { state.storyStash[p.id] = p.story_media; story = null; args = { p_id: p.id, p_media: null, p_story: null, p_clear_story: true }; }
-      else { story = SQ.storyRestore(p, state.storyStash); args = { p_id: p.id, p_media: null, p_story: story, p_clear_story: false }; }
+      else {
+        story = SQ.storyRestore(p, state.storyStash);
+        if (!story) { toast('No Story rendered for this post (no slides). Drop in a slide first.'); return; }
+        args = { p_id: p.id, p_media: null, p_story: story, p_clear_story: false };
+      }
       rpc('social_post_media', args).then(function () { toast(story ? 'Story on' : 'Story off'); return loadLine(); }).catch(function (e) { toast('Story failed: ' + e.message); });
     } else if (act === 'epic') {
       var slide = parseInt(b.getAttribute('data-slide'), 10); b.disabled = true;
@@ -886,7 +914,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   function renderRuns() {
     $('tabRuns').innerHTML = '<div class="empty">Loading runs...</div>';
     rpc('social_runs', { p_limit: 100 }).then(function (rows) {
-      var list = Array.isArray(rows) ? rows : (rows.runs || []);
+      var list = Array.isArray(rows) ? rows : (rows.runs || []);   // bare array or {runs:[...]}: deliberate tolerance
       state.runs = list; renderHeader();
       if (!list.length) { $('tabRuns').innerHTML = '<div class="empty">No runs logged yet. The cloud ticks every 15 minutes once plan A is live.</div>'; return; }
       var now = new Date();
@@ -901,15 +929,27 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   function select(id) { state.selectedId = id; renderLine(); renderDetail(); }
   function selected() { return state.line.filter(function (p) { return p.id === state.selectedId; })[0] || null; }
 
-  function loadLine() {
+  function loadLine(opts) {
+    var poll = !!(opts && opts.poll);
     return rpc('social_line', {}).then(function (d) {
       var o = SQ.orderLine(d.line || [], SQ.pacificToday());
       state.line = o.line; state.stale_pins = o.stale_pins;
       state.counts = d.counts || {}; state.slot_plan = d.slot_plan || []; state.settings = d.settings || {};
       state.days = (d.days_of_approved != null) ? d.days_of_approved : SQ.daysOfApproved(o.line);
       if (!selected() && state.line.length) { state.selectedId = state.line[0].id; }
-      return rpc('social_runs', { p_limit: 10 }).then(function (r) { state.runs = Array.isArray(r) ? r : (r.runs || []); }).catch(function () {});
-    }).then(function () { renderHeader(); if (state.tab === 'line') { renderLine(); renderDetail(); } })
+      return rpc('social_runs', { p_limit: 10 }).then(function (r) { state.runs = Array.isArray(r) ? r : (r.runs || []); }).catch(function () {});   // bare array or {runs:[...]}: deliberate tolerance
+    }).then(function () {
+      renderHeader();
+      if (state.tab !== 'line') { return; }
+      if (!poll) { renderLine(); renderDetail(); return; }
+      var cur = selected();
+      var r = SQ.pollRepaint({
+        reasonsOpen: !!$('lineCol').querySelector('[data-reasons]:not([style*="none"])'),
+        focusInside: !!(document.activeElement && $('detailCol').contains(document.activeElement)),
+        snap: cur ? JSON.stringify(cur) : null, lastSnap: state.detailSnap });
+      if (r.line) { renderLine(); }
+      if (r.detail) { renderDetail(); }
+    })
       .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Load failed: ' + esc(e.message) + '</div>'; $('tick').textContent = 'load failed'; });
   }
   function refresh() {
@@ -944,8 +984,9 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       fetch('data/social-queue-demo.json').then(function (r) { return r.json(); }).then(function (d) { state.demo = d; return loadLine(); }).then(applyUrlState)
         .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Demo fixture failed: ' + esc(e.message) + '</div>'; });
     } else { loadLine().then(applyUrlState); }
-    // Every tab, every 60 s (contract); loadLine only repaints the columns on the LINE tab.
-    setInterval(loadLine, 60000);
+    // Every tab, every 60 s (contract); loadLine only repaints the columns on the LINE tab, and
+    // the poll flag keeps it from wiping a caption John is typing or an open kill-reason row.
+    setInterval(function () { loadLine({ poll: true }); }, 60000);
   }
   boot();
   console.log('WG Social Queue v' + window.SQ_VERSION + (DEMO ? ' (demo data, read-only)' : ''));

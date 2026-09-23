@@ -169,6 +169,7 @@ test('voiceCheck: em dash, en dash, shop, John are refused; clean text passes', 
   assert.equal(SQ.voiceCheck('Workshop Saturday. Shopping list is short.'), null);   // whole word only
   assert.match(SQ.voiceCheck('John will be there.'), /John/);
   assert.equal(SQ.voiceCheck('Johnson County cruise.'), null);                       // whole word only
+  assert.match(SQ.voiceCheck('ask john about it'), /John/);                         // case-insensitive (review fix)
 });
 
 test('handleWarnings flags club names not on the handle list', () => {
@@ -201,8 +202,11 @@ test('tagsAfterHandle adds user tags, collab only when collab_ok, location for v
 });
 
 test('storyRestore and mediaWithSlide', () => {
-  assert.deepEqual(SQ.storyRestore({ id: 'sp-1' }, {}), { path: 'posts/sp-1/story.jpg', w: 1080, h: 1920 });
+  const withSlides = { id: 'sp-1', media: [{ path: 'posts/sp-1/slide-1.jpg' }] };
+  assert.deepEqual(SQ.storyRestore(withSlides, {}), { path: 'posts/sp-1/story.jpg', w: 1080, h: 1920 });
   assert.deepEqual(SQ.storyRestore({ id: 'sp-1' }, { 'sp-1': { path: 'x.jpg', w: 1080, h: 1920 } }), { path: 'x.jpg', w: 1080, h: 1920 });
+  assert.equal(SQ.storyRestore({ id: 'sp-1' }, {}), null);                 // no slides, no stash: nothing to restore
+  assert.equal(SQ.storyRestore({ id: 'sp-1', media: [] }, null), null);
   const media = [{ path: 'a.jpg', edit_tier: 'darkroom' }, { path: 'b.jpg', edit_tier: 'cleanup' }];
   const out = SQ.mediaWithSlide(media, 1, 'posts/sp-1/slide-2-manual.jpg');
   assert.deepEqual(out[1], { path: 'posts/sp-1/slide-2-manual.jpg', edit_tier: 'epic', manual: true });
@@ -252,4 +256,18 @@ test('armPlan: off -> arm with typed GO, on -> disarm with a plain confirm', () 
   assert.deepEqual(SQ.armPlan(undefined), SQ.armPlan('off'));
   assert.deepEqual(SQ.armPlan('ON'), SQ.armPlan('on'));
   assert.deepEqual(SQ.armPlan('banana'), SQ.armPlan('off'));
+});
+
+test('pollRepaint: the 60 s poll never wipes what John is doing', () => {
+  // idle page, data changed: repaint both columns
+  assert.deepEqual(SQ.pollRepaint({ reasonsOpen: false, focusInside: false, snap: 'b', lastSnap: 'a' }), { line: true, detail: true });
+  // typing in the detail column: the detail keeps its focus and caret, the line still refreshes
+  assert.deepEqual(SQ.pollRepaint({ reasonsOpen: false, focusInside: true, snap: 'b', lastSnap: 'a' }), { line: true, detail: false });
+  // selected post byte-identical to the last paint: leave the detail alone (pinDate, handleSel, epicOut survive)
+  assert.deepEqual(SQ.pollRepaint({ reasonsOpen: false, focusInside: false, snap: 'a', lastSnap: 'a' }), { line: true, detail: false });
+  // kill-reason row open: the line is not repainted under John's cursor
+  assert.deepEqual(SQ.pollRepaint({ reasonsOpen: true, focusInside: false, snap: 'b', lastSnap: 'a' }), { line: false, detail: true });
+  // nothing selected: a repaint of the empty detail is harmless
+  assert.deepEqual(SQ.pollRepaint({ snap: null, lastSnap: null }), { line: true, detail: true });
+  assert.deepEqual(SQ.pollRepaint(), { line: true, detail: true });
 });
