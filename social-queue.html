@@ -322,6 +322,13 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   };
 
   window.SQ_VERSION = SQ_VERSION;
+  SQ.runRow = function (r, now) {
+    r = r || {};
+    var detail = '';
+    if (r.detail != null && r.detail !== '') { try { detail = typeof r.detail === 'string' ? r.detail : JSON.stringify(r.detail); } catch (e) { detail = String(r.detail); } }
+    return { when: SQ.ago(r.at, now), action: String(r.action || ''), outcome: String(r.outcome || ''), post: String(r.post_id || ''), detail: detail, bad: /fail|error|refused/i.test(String(r.outcome || '')) };
+  };
+
   window.SQ = SQ;
 })(window);
 </script>
@@ -835,7 +842,20 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     });
   }
   bindCommentEvents();
-  function renderRuns() { $('tabRuns').innerHTML = '<div class="empty">Runs: Task 8.</div>'; }
+  function renderRuns() {
+    $('tabRuns').innerHTML = '<div class="empty">Loading runs...</div>';
+    rpc('social_runs', { p_limit: 100 }).then(function (rows) {
+      var list = Array.isArray(rows) ? rows : (rows.runs || []);
+      state.runs = list; renderHeader();
+      if (!list.length) { $('tabRuns').innerHTML = '<div class="empty">No runs logged yet. The cloud ticks every 15 minutes once plan A is live.</div>'; return; }
+      var now = new Date();
+      $('tabRuns').innerHTML = '<div class="cm">' + list.length + ' most recent · every tick and every publish · live publishing is ' + esc((state.settings || {}).live_publishing || 'off') + '</div>' +
+        '<table><thead><tr><th>When</th><th>Action</th><th>Outcome</th><th>Post</th><th>Detail</th></tr></thead><tbody>' + list.map(function (r) {
+          var x = SQ.runRow(r, now);
+          return '<tr><td style="white-space:nowrap">' + esc(x.when) + '</td><td>' + esc(x.action) + '</td><td' + (x.bad ? ' style="color:var(--red)"' : '') + '>' + esc(x.outcome) + '</td><td>' + esc(x.post) + '</td><td><pre style="max-height:80px;margin:0">' + esc(redact(x.detail)) + '</pre></td></tr>';
+        }).join('') + '</tbody></table>';
+    }).catch(function (e) { $('tabRuns').innerHTML = '<div class="empty">Runs failed: ' + esc(e.message) + '</div>'; });
+  }
 
   function select(id) { state.selectedId = id; renderLine(); renderDetail(); }
   function selected() { return state.line.filter(function (p) { return p.id === state.selectedId; })[0] || null; }

@@ -232,3 +232,11 @@ test('commentsToShow keeps new/drafted, newest first, flags likely owners', () =
   assert.deepEqual(out.map(r => !!r.owner_flag), [true, false, true]);
   assert.equal(rows[2].owner_flag, undefined);
 });
+
+test('runRow flattens a runs row for the table', () => {
+  const now = new Date('2026-09-22T23:00:00Z');
+  const r = SQ.runRow({ id: 1, at: '2026-09-22T22:45:03+00:00', action: 'due', outcome: 'not_due', post_id: null, detail: { reason: 'outside slot window' } }, now);
+  assert.deepEqual(r, { when: '15 min ago', action: 'due', outcome: 'not_due', post: '', detail: '{"reason":"outside slot window"}', bad: false });
+  assert.equal(SQ.runRow({ at: null, action: 'publish', outcome: 'failed: token', post_id: 'sp-1', detail: null }, now).bad, true);
+  assert.equal(SQ.runRow({ at: null, action: 'publish', outcome: 'failed: token', post_id: 'sp-1', detail: null }, now).detail, '');
+});
