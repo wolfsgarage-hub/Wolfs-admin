@@ -208,3 +208,13 @@ test('storyRestore and mediaWithSlide', () => {
   assert.deepEqual(out[1], { path: 'posts/sp-1/slide-2-manual.jpg', edit_tier: 'epic', manual: true });
   assert.deepEqual(out[0], media[0]); assert.equal(media[1].path, 'b.jpg');
 });
+
+test('handleFromRow validates and normalises a handle row', () => {
+  assert.deepEqual(SQ.HANDLE_KINDS, ['club', 'show', 'venue', 'shop', 'person']);
+  const ok = SQ.handleFromRow({ id: '', name: ' Rose City Rods ', ig_handle: '@RoseCityRods', kind: 'club', location_id: '', collab_ok: 'true', aliases: 'RCR, rose city ', notes: '' });
+  assert.deepEqual(ok, { ok: true, handle: { id: null, name: 'Rose City Rods', ig_handle: 'RoseCityRods', kind: 'club', location_id: '', collab_ok: true, aliases: ['RCR', 'rose city'], notes: '' } });
+  assert.equal(SQ.handleFromRow({ id: '7', name: 'X', ig_handle: '', kind: 'venue', location_id: '99', collab_ok: false, aliases: '', notes: 'n' }).handle.id, 7);
+  assert.match(SQ.handleFromRow({ name: '', ig_handle: 'x', kind: 'club' }).error, /name/);
+  assert.match(SQ.handleFromRow({ name: 'X', ig_handle: 'x', kind: 'band' }).error, /kind/);
+  assert.match(SQ.handleFromRow({ name: 'X', ig_handle: '', kind: 'club', location_id: '' }).error, /handle or a location/);
+});

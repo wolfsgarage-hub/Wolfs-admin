@@ -297,6 +297,22 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     });
   };
 
+  SQ.HANDLE_KINDS = ['club', 'show', 'venue', 'shop', 'person'];
+  SQ.handleFromRow = function (f) {
+    f = f || {};
+    var name = String(f.name || '').trim(), ig = String(f.ig_handle || '').trim().replace(/^@/, ''), kind = String(f.kind || '').trim();
+    var loc = String(f.location_id || '').trim();
+    if (!name) { return { ok: false, error: 'name is required' }; }
+    if (SQ.HANDLE_KINDS.indexOf(kind) < 0) { return { ok: false, error: 'kind must be one of ' + SQ.HANDLE_KINDS.join('/') }; }
+    if (!ig && !loc) { return { ok: false, error: 'needs an IG handle or a location id' }; }
+    var idn = parseInt(f.id, 10);
+    return { ok: true, handle: {
+      id: isNaN(idn) ? null : idn, name: name, ig_handle: ig, kind: kind, location_id: loc,
+      collab_ok: f.collab_ok === true || f.collab_ok === 'true' || f.collab_ok === 'on',
+      aliases: String(f.aliases || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+      notes: String(f.notes || '').trim() } };
+  };
+
   window.SQ_VERSION = SQ_VERSION;
   window.SQ = SQ;
 })(window);
@@ -725,7 +741,50 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   bindDetailEvents();
 
   // Filled in by Tasks 6-8.
-  function renderHandles() { $('tabHandles').innerHTML = '<div class="empty">Handles: Task 6.</div>'; }
+  function handleRow(h) {
+    h = h || { id: '', name: '', ig_handle: '', kind: 'club', location_id: '', collab_ok: false, aliases: [], notes: '' };
+    var isNew = h.id === '' || h.id == null;
+    return '<tr data-hid="' + esc(isNew ? '' : h.id) + '">' +
+      '<td><input type="text" data-f="name" value="' + esc(h.name) + '" placeholder="' + (isNew ? 'new handle' : '') + '"></td>' +
+      '<td><input type="text" data-f="ig_handle" value="' + esc(h.ig_handle || '') + '" placeholder="no @"></td>' +
+      '<td><select data-f="kind">' + SQ.HANDLE_KINDS.map(function (k) { return '<option value="' + k + '"' + (k === h.kind ? ' selected' : '') + '>' + k + '</option>'; }).join('') + '</select></td>' +
+      '<td><input type="text" data-f="location_id" value="' + esc(h.location_id || '') + '"></td>' +
+      '<td style="text-align:center"><input type="checkbox" data-f="collab_ok"' + (h.collab_ok ? ' checked' : '') + '></td>' +
+      '<td><input type="text" data-f="aliases" value="' + esc((h.aliases || []).join(', ')) + '"></td>' +
+      '<td><input type="text" data-f="notes" value="' + esc(h.notes || '') + '"></td>' +
+      '<td style="white-space:nowrap"><button class="act primary" data-act="h-save" type="button">' + (isNew ? 'ADD' : 'SAVE') + '</button>' +
+      (isNew ? '' : ' <button class="act kill" data-act="h-delete" type="button">DEL</button>') + '</td></tr>';
+  }
+  function renderHandles() {
+    $('tabHandles').innerHTML = '<div class="empty">Loading handles...</div>';
+    loadHandles(true).then(function (list) {
+      var sorted = list.slice().sort(function (a, b) { return String(a.kind).localeCompare(String(b.kind)) || String(a.name).localeCompare(String(b.name)); });
+      $('tabHandles').innerHTML = '<div class="cm">' + sorted.length + ' handles · only these can ever be tagged · collab only for clubs you tick</div>' +
+        '<table><thead><tr><th>Name</th><th>IG handle</th><th>Kind</th><th>Location id</th><th>Collab</th><th>Aliases (comma)</th><th>Notes</th><th></th></tr></thead><tbody>' +
+        sorted.map(handleRow).join('') + handleRow(null) + '</tbody></table>';
+    }).catch(function (e) { $('tabHandles').innerHTML = '<div class="empty">Handles failed: ' + esc(e.message) + '</div>'; });
+  }
+  function bindHandleEvents() {
+    $('tabHandles').addEventListener('click', function (ev) {
+      var b = ev.target.closest('button.act'); if (!b) return;
+      var tr = b.closest('tr'); var act = b.getAttribute('data-act');
+      var f = { id: tr.getAttribute('data-hid') };
+      tr.querySelectorAll('[data-f]').forEach(function (el) { f[el.getAttribute('data-f')] = el.type === 'checkbox' ? el.checked : el.value; });
+      if (act === 'h-save') {
+        var v = SQ.handleFromRow(f);
+        if (!v.ok) { toast(v.error); return; }
+        b.disabled = true;
+        rpc('social_handle_upsert', { p_handle: v.handle }).then(function () { toast(v.handle.id ? 'Handle saved' : 'Handle added'); renderHandles(); })
+          .catch(function (e) { b.disabled = false; toast('Save failed: ' + e.message); });
+      } else if (act === 'h-delete') {
+        if (!confirm('Delete "' + f.name + '" from the handle list? Posts already tagged keep their tags.')) { return; }
+        b.disabled = true;
+        rpc('social_handle_delete', { p_id: parseInt(f.id, 10) }).then(function () { toast('Deleted'); renderHandles(); })
+          .catch(function (e) { b.disabled = false; toast('Delete failed: ' + e.message); });
+      }
+    });
+  }
+  bindHandleEvents();
   function renderComments() { $('tabComments').innerHTML = '<div class="empty">Comments: Task 7.</div>'; }
   function renderRuns() { $('tabRuns').innerHTML = '<div class="empty">Runs: Task 8.</div>'; }
 
