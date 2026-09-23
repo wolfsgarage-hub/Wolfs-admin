@@ -213,6 +213,43 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   SQ.kindLabel = function (k) { return k ? String(k).replace(/_/g, ' ').toUpperCase() : '?'; };
   SQ.KILL_REASONS = ['wrong photo', 'caption', 'not this week', 'dupe', 'other'];
 
+  // D5: three options + a blank. A radio picked and left alone is the machine's words; anything
+  // John types or edits is his (and the server files it as a voice sample).
+  SQ.captionChoice = function (options, pickedIndex, typed) {
+    var text = String(typed == null ? '' : typed).trim();
+    if (!text) { return null; }
+    var opt = (pickedIndex != null && options && options[pickedIndex]) ? options[pickedIndex] : null;
+    if (opt && text === String(opt.text || '').trim()) { return { text: text, author: 'machine', register: opt.register || null }; }
+    return { text: text, author: 'john', register: null };
+  };
+  SQ.parseHashtags = function (raw) {
+    var errors = [], tags = [], seen = {};
+    String(raw == null ? '' : raw).split(/[\s,]+/).forEach(function (t) {
+      if (!t) { return; }
+      var tag = t.charAt(0) === '#' ? t : '#' + t;
+      if (!/^#[A-Za-z0-9_]+$/.test(tag)) { errors.push('bad tag: ' + t); return; }
+      var k = tag.toLowerCase();
+      if (seen[k]) { return; }
+      seen[k] = 1; tags.push(k);
+    });
+    if (tags.length > 5) { errors.push('max 5 hashtags (you have ' + tags.length + ')'); }
+    return { tags: tags, errors: errors, ok: errors.length === 0 };
+  };
+  SQ.fullCaption = function (post) {
+    var c = String((post && post.caption_final) || '').trim(), h = (post && post.hashtags) || [];
+    return h.length ? c + '\n\n' + h.join(' ') : c;
+  };
+  // Voice hard lines (contract): no em dashes, no "shop", public copy says Wolf never John.
+  // Used by saveCaption (Task 4) and the comment SEND button (Task 7). null = clean.
+  SQ.voiceCheck = function (text) {
+    var s = String(text == null ? '' : text);
+    if (/—/.test(s)) { return 'No em dashes. Use a period or a comma.'; }
+    if (/\s–\s/.test(s)) { return 'No dashes as punctuation. Use a period or a comma.'; }
+    if (/\bshop\b/i.test(s)) { return 'Do not call it a shop. It is a garage or a community hub.'; }
+    if (/\bJohn\b/.test(s)) { return 'Public copy says Wolf, never John.'; }
+    return null;
+  };
+
   window.SQ_VERSION = SQ_VERSION;
   window.SQ = SQ;
 })(window);
@@ -258,7 +295,8 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   var FN = 'https://pcqoivjzcokgdtlvoona.supabase.co/functions/v1/wg-ig-publish';
   var DEMO = /[?&]demo=1/.test(location.search);
   var state = { tab: 'line', line: [], stale_pins: [], counts: {}, slot_plan: [], settings: {}, days: 0,
-                runs: [], handles: [], comments: [], selectedId: null, storyStash: {}, demo: null };
+                runs: [], handles: [], comments: [], selectedId: null, storyStash: {}, demo: null,
+                detailFor: null, captionPick: null, captionText: null, hashText: null };
   var $ = function (id) { return document.getElementById(id); };
   var esc = SQ.esc;
 
@@ -446,8 +484,95 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   }
   bindLineEvents();
 
-  // Filled in by Tasks 4-8.
-  function renderDetail() { $('detailCol').innerHTML = '<div class="empty">Pick a post.</div>'; }
+  function detailCaptionHtml(p) {
+    var opts = p.caption_options || [];
+    var pick = state.captionPick;
+    var radios = opts.map(function (o, i) {
+      return '<label class="opt"><input type="radio" name="capopt" value="' + i + '"' + (pick === i ? ' checked' : '') + '>' +
+        '<span><span class="reg">' + esc(o.register || 'option ' + (i + 1)) + '</span>' + esc(o.text || '') + '</span></label>';
+    }).join('');
+    var current = (state.captionText != null) ? state.captionText : (p.caption_final || '');
+    var hashRaw = (state.hashText != null) ? state.hashText : (p.hashtags || []).join(' ');
+    var hv = SQ.parseHashtags(hashRaw);
+    return '<div class="field"><label>Caption - pick one or write your own' + (p.caption_author ? ' · current: ' + esc(p.caption_author === 'john' ? 'your words' : 'machine') : ' · nothing chosen yet') + '</label>' +
+      radios +
+      '<textarea id="capText" placeholder="Or type it here. Plain words. No em dashes.">' + esc(current) + '</textarea>' +
+      '<div class="hint">Facts the engine may use: ' + esc(Object.keys(p.facts || {}).filter(function (k) { var v = p.facts[k]; return v && String(v).length && k !== 'shoot_note'; }).map(function (k) { return k + '=' + (Array.isArray(p.facts[k]) ? p.facts[k].join('/') : p.facts[k]); }).join(' · ') || 'none') + '</div></div>' +
+      '<div class="field"><label>Hashtags (0 to 5)</label><input type="text" id="hashText" value="' + esc(hashRaw) + '" placeholder="#wolfsgarage #pnwcars">' +
+      '<div class="hint' + (hv.ok ? '' : ' bad') + '" id="hashHint">' + esc(hv.ok ? (hv.tags.length + ' tag' + (hv.tags.length === 1 ? '' : 's')) : hv.errors.join(' · ')) + '</div></div>' +
+      '<div class="btns"><button class="act primary" data-act="use-caption" type="button">USE THIS</button>' +
+      '<button class="act" data-act="reset-caption" type="button">RESET</button></div>';
+  }
+  function renderDetail() {
+    var p = selected();
+    if (!p) { $('detailCol').innerHTML = '<div class="empty">Pick a post on the left.</div>'; return; }
+    if (state.detailFor !== p.id) { state.detailFor = p.id; state.captionPick = null; state.captionText = null; state.hashText = null; }
+    var slides = (p.media || []).map(function (m, i) {
+      return '<div class="slide"><img src="' + esc(SQ.mediaUrl(m.path)) + '" alt="slide ' + (i + 1) + '">' +
+        '<span class="chip tier ' + (m.edit_tier === 'epic' ? 'bone' : '') + '">' + esc(m.edit_tier || 'raw') + '</span>' +
+        '<div class="cm">slide ' + (i + 1) + ' · ' + esc(m.aspect || '') + ' · ' + esc(m.w || '?') + 'x' + esc(m.h || '?') + '</div>' +
+        '<div class="btns" data-slidebtns="' + i + '"></div></div>';
+    }).join('');
+    $('detailCol').innerHTML = '<div class="detail">' +
+      '<div class="ct">' + esc(SQ.kindLabel(p.kind)) + ' · ' + esc(p.id) + '</div>' +
+      '<div class="cm">' + esc(p.status) + (p.pinned_date ? ' · pinned ' + esc(p.pinned_date) : '') + (p.facts && p.facts.event ? ' · ' + esc(p.facts.event) : '') + '</div>' +
+      '<div class="slides" id="slides">' + (slides || '<div class="empty">No slides yet.</div>') + '</div>' +
+      detailCaptionHtml(p) +
+      '<div class="field"><label>Pin to a date (jumps the line that day)</label>' +
+      '<div class="btns" style="margin-top:0"><input type="date" id="pinDate" style="width:auto" value="' + esc(p.pinned_date || '') + '">' +
+      '<button class="act" data-act="pin" type="button">PIN</button><button class="act" data-act="unpin" type="button"' + (p.pinned_date ? '' : ' disabled') + '>UNPIN</button></div></div>' +
+      '<div id="extras"></div>' +
+      '</div>';
+    renderExtras(p);
+  }
+  function renderExtras(p) { /* Task 5 */ }
+  function saveCaption(p) {
+    var choice = SQ.captionChoice(p.caption_options || [], state.captionPick, $('capText').value);
+    if (!choice) { toast('Nothing to save - pick an option or type a caption'); return Promise.resolve(); }
+    // Same gate as the comment SEND button: what John types is what posts, so the hard lines
+    // (em dash / shop / John) are checked here too, not only on the machine side.
+    var bad = SQ.voiceCheck(choice.text);
+    if (bad) { toast(bad); return Promise.resolve(); }
+    var hv = SQ.parseHashtags($('hashText').value);
+    if (!hv.ok) { toast(hv.errors[0]); return Promise.resolve(); }
+    return rpc('social_post_caption', { p_id: p.id, p_text: choice.text, p_author: choice.author, p_hashtags: hv.tags })
+      .then(function () { toast(choice.author === 'john' ? 'Saved your words (voice sample filed)' : 'Saved option: ' + (choice.register || 'machine')); state.captionText = null; state.hashText = null; return loadLine(); })
+      .catch(function (e) { toast('Save failed: ' + e.message); });
+  }
+  function bindDetailEvents() {
+    var col = $('detailCol');
+    col.addEventListener('change', function (ev) {
+      var p = selected(); if (!p) return;
+      if (ev.target.name === 'capopt') {
+        state.captionPick = parseInt(ev.target.value, 10);
+        var o = (p.caption_options || [])[state.captionPick];
+        $('capText').value = o ? (o.text || '') : ''; state.captionText = $('capText').value;
+      }
+    });
+    col.addEventListener('input', function (ev) {
+      if (ev.target.id === 'capText') { state.captionText = ev.target.value; }
+      if (ev.target.id === 'hashText') {
+        state.hashText = ev.target.value;
+        var hv = SQ.parseHashtags(ev.target.value);
+        $('hashHint').className = 'hint' + (hv.ok ? '' : ' bad');
+        $('hashHint').textContent = hv.ok ? (hv.tags.length + ' tag' + (hv.tags.length === 1 ? '' : 's')) : hv.errors.join(' · ');
+      }
+    });
+    col.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button.act'); if (!b) return;
+      var p = selected(); if (!p) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'use-caption') { b.disabled = true; saveCaption(p).then(function () { b.disabled = false; }); }
+      else if (act === 'reset-caption') { state.captionPick = null; state.captionText = null; state.hashText = null; renderDetail(); }
+      else if (act === 'pin') { var d = $('pinDate').value; if (!d) { toast('Pick a date first'); return; } if (d < SQ.pacificToday()) { toast('That date already passed'); return; } pinPost(p.id, d); }
+      else if (act === 'unpin') { pinPost(p.id, null); }
+      else if (extrasClick) { extrasClick(p, b, act); }
+    });
+  }
+  var extrasClick = null;   // Task 5 assigns a handler for the tags / story / epic / drop-in / packet buttons
+  bindDetailEvents();
+
+  // Filled in by Tasks 6-8.
   function renderHandles() { $('tabHandles').innerHTML = '<div class="empty">Handles: Task 6.</div>'; }
   function renderComments() { $('tabComments').innerHTML = '<div class="empty">Comments: Task 7.</div>'; }
   function renderRuns() { $('tabRuns').innerHTML = '<div class="empty">Runs: Task 8.</div>'; }

@@ -133,3 +133,40 @@ test('kindLabel and KILL_REASONS', () => {
   assert.equal(SQ.kindLabel(undefined), '?');
   assert.deepEqual(SQ.KILL_REASONS, ['wrong photo', 'caption', 'not this week', 'dupe', 'other']);
 });
+
+test('captionChoice: unchanged radio = machine, edits or typing = john, empty = null', () => {
+  const opts = [{ register: 'hit', text: 'A. ' }, { register: 'question', text: 'B?' }, { register: 'shoutout', text: 'C!' }];
+  assert.deepEqual(SQ.captionChoice(opts, 0, 'A.'), { text: 'A.', author: 'machine', register: 'hit' });
+  assert.deepEqual(SQ.captionChoice(opts, 1, '  B?  '), { text: 'B?', author: 'machine', register: 'question' });
+  assert.deepEqual(SQ.captionChoice(opts, 1, 'B? really'), { text: 'B? really', author: 'john', register: null });
+  assert.deepEqual(SQ.captionChoice(opts, null, 'my own words'), { text: 'my own words', author: 'john', register: null });
+  assert.equal(SQ.captionChoice(opts, null, '   '), null);
+  assert.equal(SQ.captionChoice(opts, 2, ''), null);
+  assert.deepEqual(SQ.captionChoice([], null, 'x'), { text: 'x', author: 'john', register: null });
+});
+
+test('parseHashtags: 0-5 real tags, dedupe, lowercase, reject junk', () => {
+  assert.deepEqual(SQ.parseHashtags(''), { tags: [], errors: [], ok: true });
+  assert.deepEqual(SQ.parseHashtags('#WolfsGarage pnwcars, #PNWcars #hotrod'), { tags: ['#wolfsgarage', '#pnwcars', '#hotrod'], errors: [], ok: true });
+  const six = SQ.parseHashtags('#a #b #c #d #e #f');
+  assert.equal(six.ok, false); assert.equal(six.tags.length, 6); assert.match(six.errors[0], /max 5/);
+  const junk = SQ.parseHashtags('#good #bad-tag #also.bad');
+  assert.equal(junk.ok, false); assert.deepEqual(junk.tags, ['#good']); assert.equal(junk.errors.length, 2);
+});
+
+test('fullCaption joins caption and hashtags', () => {
+  assert.equal(SQ.fullCaption({ caption_final: 'Hey.', hashtags: ['#a', '#b'] }), 'Hey.\n\n#a #b');
+  assert.equal(SQ.fullCaption({ caption_final: ' Hey. ', hashtags: [] }), 'Hey.');
+  assert.equal(SQ.fullCaption({ caption_final: null, hashtags: null }), '');
+});
+
+test('voiceCheck: em dash, en dash, shop, John are refused; clean text passes', () => {
+  assert.equal(SQ.voiceCheck('That roofline has not been touched since the factory.'), null);
+  assert.equal(SQ.voiceCheck(''), null);
+  assert.match(SQ.voiceCheck('Clean car — nice work'), /em dash/);
+  assert.match(SQ.voiceCheck('Clean car – nice work'), /dash/);
+  assert.match(SQ.voiceCheck('Bring it by the shop.'), /shop/);
+  assert.equal(SQ.voiceCheck('Workshop Saturday. Shopping list is short.'), null);   // whole word only
+  assert.match(SQ.voiceCheck('John will be there.'), /John/);
+  assert.equal(SQ.voiceCheck('Johnson County cruise.'), null);                       // whole word only
+});
