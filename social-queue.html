@@ -635,7 +635,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     return '<div class="field"><label>Caption - pick one or write your own' + (p.caption_author ? ' · current: ' + esc(p.caption_author === 'john' ? 'your words' : 'machine') : ' · nothing chosen yet') + '</label>' +
       radios +
       '<textarea id="capText" placeholder="Or type it here. Plain words. No em dashes.">' + esc(current) + '</textarea>' +
-      '<div class="hint">Facts the engine may use: ' + esc(Object.keys(p.facts || {}).filter(function (k) { var v = p.facts[k]; return v && String(v).length && k !== 'shoot_note'; }).map(function (k) { return k + '=' + (Array.isArray(p.facts[k]) ? p.facts[k].join('/') : p.facts[k]); }).join(' · ') || 'none') + '</div></div>' +
+      '<div class="hint">Facts the engine may use: ' + esc(Object.keys(p.facts || {}).filter(function (k) { var v = p.facts[k]; return v && String(v).length && k !== 'shoot_note' && (Array.isArray(v) || typeof v !== 'object'); }).map(function (k) { return k + '=' + (Array.isArray(p.facts[k]) ? p.facts[k].join('/') : p.facts[k]); }).join(' · ') || 'none') + '</div></div>' +
       '<div class="field"><label>Hashtags (0 to 5)</label><input type="text" id="hashText" value="' + esc(hashRaw) + '" placeholder="#wolfsgarage #pnwcars">' +
       '<div class="hint' + (hv.ok ? '' : ' bad') + '" id="hashHint">' + esc(hv.ok ? (hv.tags.length + ' tag' + (hv.tags.length === 1 ? '' : 's')) : hv.errors.join(' · ')) + '</div></div>' +
       '<div class="btns"><button class="act primary" data-act="use-caption" type="button">USE THIS</button>' +
