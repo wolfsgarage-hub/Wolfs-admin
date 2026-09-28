@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="wg-version" content="2.8">
-<title>WG Post Queue v2.8 (retired)</title>
+<meta name="wg-version" content="2.9">
+<title>WG Post Queue v2.9 (retired)</title>
+<script>
+  // v2.9 (2026-09-27): this address is muscle memory. The queue moved to social-queue.html and
+  // John kept landing here, so the old address now goes straight to the new page. ?legacy=1 still
+  // shows this read-only history page.
+  if (!/[?&]legacy=1/.test(location.search)) { location.replace('social-queue.html?v=9'); }
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;700&family=Work+Sans:wght@400;600&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0A0A0A; --bg2:#141414; --bg3:#1c1c1c; --line:#2a2a2a; --red:#CC0000; --red-dim:#7a0000; --bone:#F5F1E8; --bone-dim:#b8b3a6; --copper:#C8922A; }
