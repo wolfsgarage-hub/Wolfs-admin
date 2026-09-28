@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="wg-version" content="1.0">
+<meta name="wg-version" content="1.1">
 <meta name="robots" content="noindex,nofollow">
-<title>WG Social Queue v1.0</title>
+<title>WG Social Queue v1.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0A0A0A;--red:#CC0000;--bone:#F5F1E8;--bone-dim:#b8b3a6;--copper:#C8922A;--panel:#141414;--panel-2:#1c1c1c;--border:rgba(245,241,232,.12)}
@@ -96,7 +96,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   'use strict';
   // Pure logic only. No document, no fetch, no localStorage in this block: it is extracted by
   // scripts/test-social-queue.mjs and run under node:test against a bare window object.
-  var SQ_VERSION = '1.0';   // the contract's version constant; <meta name="wg-version"> and <title> carry the same string
+  var SQ_VERSION = '1.1';   // the contract's version constant; <meta name="wg-version"> and <title> carry the same string
   var SQ = {};
   SQ.VERSION = SQ_VERSION;
   SQ.BUCKET_URL = 'https://pcqoivjzcokgdtlvoona.supabase.co/storage/v1/object/public/social-media/';
@@ -566,6 +566,19 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     if (!state.line.length) { $('lineCol').innerHTML = '<div class="empty">Line is empty. The builder tops it up to ' + esc((state.settings || {}).line_depth || 10) + ' overnight.</div>'; return; }
     $('lineCol').innerHTML = state.line.map(lineCard).join('') + '<div class="dropend">drop here to send to the back of the line</div>';
   }
+  // POST IT on a card that has options but no chosen caption (v1.1, 2026-09-27: John's first
+  // approve came back NO_CAPTION). The card shows option 1, so approving the card approves that
+  // text, or the radio he picked in the detail panel for this same post. Typed words still go
+  // through USE THIS so the voice sample is filed.
+  function approveWithCaption(p, id) {
+    var opts = p.caption_options || [];
+    if (p.caption_final || !opts.length) { return decide(id, 'approve', 'approved on social-queue'); }
+    var pick = (state.selectedId === id && state.captionPick != null) ? state.captionPick : 0;
+    var o = opts[pick] || opts[0];
+    return rpc('social_post_caption', { p_id: id, p_text: o.text, p_author: 'machine', p_hashtags: p.hashtags || [] })
+      .then(function () { return decide(id, 'approve', 'approved on social-queue (' + (o.register || 'option') + ')'); })
+      .catch(function (e) { toast('Failed: ' + e.message); loadLine(); });
+  }
   function decide(id, action, reason) {
     return rpc('social_post_decide', { p_id: id, p_action: action, p_reason: reason || null })
       .then(function () { toast(action === 'approve' ? 'Approved - in line' : (action === 'kill' ? 'Killed' : 'Back in line')); return loadLine(); })
@@ -590,7 +603,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       var b = ev.target.closest('button.act');
       if (b) {
         var act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
-        if (act === 'approve') { b.disabled = true; decide(id, 'approve', 'approved on social-queue'); }
+        if (act === 'approve') { b.disabled = true; approveWithCaption(state.line.filter(function (x) { return x.id === id; })[0] || { id: id }, id); }
         else if (act === 'kill') { var r = col.querySelector('[data-reasons="' + id + '"]'); if (r) { r.style.display = r.style.display === 'none' ? 'flex' : 'none'; } }
         else if (act === 'kill-cancel') { var r2 = col.querySelector('[data-reasons="' + id + '"]'); if (r2) { r2.style.display = 'none'; } }
         else if (act === 'kill-reason') { b.disabled = true; decide(id, 'kill', b.getAttribute('data-reason')); }
@@ -771,6 +784,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
         state.captionPick = parseInt(ev.target.value, 10);
         var o = (p.caption_options || [])[state.captionPick];
         $('capText').value = o ? (o.text || '') : ''; state.captionText = $('capText').value;
+        if (o) { saveCaption(p); }   // v1.1: tapping a radio is the pick; no second USE THIS tap needed
       }
     });
     col.addEventListener('input', function (ev) {

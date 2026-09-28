@@ -18,9 +18,9 @@ const SQ = win.SQ;
 
 const P = (id, status, line_order, pinned_date) => ({ id, status, line_order, pinned_date: pinned_date || null });
 
-test('SQ exists with VERSION 1.0 (SQ_VERSION on window, mirrored on SQ)', () => {
+test('SQ exists with VERSION 1.1 (SQ_VERSION on window, mirrored on SQ)', () => {
   assert.ok(SQ, 'window.SQ missing');
-  assert.equal(win.SQ_VERSION, '1.0');
+  assert.equal(win.SQ_VERSION, '1.1');
   assert.equal(SQ.VERSION, win.SQ_VERSION);
   assert.equal(SQ.BUCKET_URL, 'https://pcqoivjzcokgdtlvoona.supabase.co/storage/v1/object/public/social-media/');
   assert.deepEqual(SQ.WEEKDAYS, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
