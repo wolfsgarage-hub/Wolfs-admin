@@ -1,4 +1,4 @@
-/* Wolf's Garage Studio v39-preview.1. Applies only to the reviewed v38 source.
+/* Wolf's Garage Studio v39-preview.2. Applies only to the reviewed v38 source.
  * The original index.html and all production settings remain unchanged.
  * Browser preview and Node test/build use the same transformation.
  */
@@ -32,8 +32,8 @@
       }
       node.textContent = message;
     }
-    function errorMessage(status) {
-      if (status === 401 || status === 403) return 'Generation access blocked (HTTP ' + status + ') for ' + location.origin + '. The service must authorize this address or validate your existing WG proxy token. Do not enter a provider API key.';
+    function errorMessage(status, hasToken) {
+      if (status === 401 || status === 403) return 'Generation access blocked (HTTP ' + status + ') for ' + location.origin + '. ' + (hasToken ? 'A saved WG proxy token was sent, but access was denied.' : 'No WG proxy token was sent.') + ' Use your established admin address. Saved tokens are specific to this browser and origin. This status alone does not identify a token or server configuration fault. Do not enter a provider API key.';
       if (status === 429) return 'Generation is rate-limited. Wait, then try once. No automatic retry was sent.';
       if (status === 413) return 'The selected media is too large. Remove a few shots and try again.';
       if (status >= 500) return 'The generation service is unavailable (HTTP ' + status + '). Your previous package is still here.';
@@ -54,7 +54,12 @@
       try {
         var response = await fetch(ANTHROPIC_PROXY, {method:'POST',headers:headers,signal:controller.signal,
           body:JSON.stringify({model:MODEL,max_tokens:maxTokens || 2600,system:system,messages:[{role:'user',content:content}]})});
-        if (!response.ok) throw new Error(errorMessage(response.status));
+        if (!response.ok) {
+          // Only expose a validated correlation ID, never response bodies or credentials.
+          var requestId = response.headers && response.headers.get('sb-request-id');
+          var reference = typeof requestId === 'string' && /^[a-f0-9-]{36}$/i.test(requestId) ? ' Request ID: ' + requestId + '.' : '';
+          throw new Error(errorMessage(response.status, !!token) + reference);
+        }
         var data;
         try { data = await response.json(); } catch (e) { throw new Error('The service returned an unreadable response. Your previous package is unchanged.'); }
         if (data.error) throw new Error('The service reported an upstream error. Check the generation service logs.');
@@ -104,15 +109,17 @@
   function setupCode() {
     function wireSetup() {
       var field = $('studio-key-field'), status = $('studio-key-status');
-      field.value = getKey();
-      function note() { status.textContent = 'Not tested. ' + (getKey() ? 'Existing WG proxy token is available on this device.' : 'No WG proxy token is saved on this origin.') + ' Use TEST CONNECTION to check generation.'; }
+      function savedOverride() { var token = (getLS(LS_KEY) || '').trim(); return /^sk-/i.test(token) ? '' : token; }
+      // Do not copy a shared queue token into a separate Studio override.
+      field.value = savedOverride();
+      function note() { status.textContent = 'Not tested. ' + (savedOverride() ? 'A Studio WG proxy token is saved.' : getKey() ? 'Using an existing shared WG proxy token on this origin. The Studio override is blank.' : 'No WG proxy token is saved on this origin. Access depends on the service policy for this address.') + ' Save any token changes, then use TEST CONNECTION to check generation. A connection test makes one small generation request.'; }
       function saveToken() {
         var token = field.value.trim();
         if (/^sk-/i.test(token)) { status.textContent = 'Do not save an Anthropic or OpenAI API key here. This field accepts only the existing WG proxy token.'; return false; }
         try {
           if (token) localStorage.setItem(LS_KEY, token);
           else localStorage.removeItem(LS_KEY);
-          if (token && localStorage.getItem(LS_KEY) !== token) throw new Error('not saved');
+          if ((localStorage.getItem(LS_KEY) || '') !== token) throw new Error('not saved');
           return true;
         } catch (e) { status.textContent = 'Token was not saved. Browser storage is unavailable.'; return false; }
       }
@@ -122,7 +129,7 @@
       $('studio-test-key').addEventListener('click', async function () {
         var button = this;
         if (button.disabled) return;
-        if (!saveToken()) return;
+        if (field.value.trim() !== savedOverride()) { status.textContent = 'Save or discard the token change before testing. No request was sent.'; return; }
         button.disabled = true; status.textContent = 'Checking the generation service...';
         try {
           var text = await callClaude('Connectivity test. Reply exactly WG_DIAGNOSTIC_OK.', 'Reply WG_DIAGNOSTIC_OK.', [], 32);
@@ -161,7 +168,10 @@
   function body(fn) { var s = fn.toString(); return s.slice(s.indexOf('{') + 1, s.lastIndexOf('}')); }
   function apply(html) {
     if (typeof html !== 'string' || !html.includes('<!-- ============== STUDIO MODULE ============== -->')) throw new Error('Not the existing Wolf\'s Garage admin.');
-    html = once(html, '<span class="topbar-ver">v38</span>', '<span class="topbar-ver">v39-preview.1</span>');
+    html = once(html, '<span class="topbar-ver">v38</span>', '<span class="topbar-ver">v39-preview.2</span>');
+    html = once(html, "No API key on this phone. Studio calls go through the Wolf's Garage proxy, which holds the key server-side. Token below is ONLY needed if you open this page as a local file.", "Studio uses the Wolf's Garage service. Provider API keys stay on the server. Access depends on the address you open and the service's WG proxy token policy. Saved tokens do not carry between different origins or browsers. Leave the override blank to reuse a shared WG token already saved here. Never paste a provider API key.");
+    html = once(html, 'placeholder="proxy token (usually leave blank)"', 'aria-label="Studio WG proxy token override" placeholder="WG proxy token override (optional)"');
+    html = once(html, '// now holds the OPTIONAL proxy token (file:// use only), never an API key', '// Studio WG proxy token override; origin policy is checked by the server, never an API key');
     html = once(html, '  function getKey() { return getLS(LS_KEY) || ""; }', '  function getKey() { var keys = [LS_KEY, "wgProxyToken", "wg:proxytok"]; for (var i=0;i<keys.length;i++) { var token=(getLS(keys[i]) || "").trim(); if (token && !/^sk-/i.test(token)) return token; } return ""; }');
     html = between(html, '  function callClaude(', '  function parseJSON(', body(requestCode));
     html = between(html, '  function getDrafts()', '  function renderDrafts()', body(draftCode));
@@ -179,5 +189,5 @@
     html = once(html, 'Queued on this phone only (sync failed)', 'Saved on this device only. Cloud queue is not connected in this preview.');
     return html;
   }
-  return {version:'v39-preview.1', apply:apply};
+  return {version:'v39-preview.2', apply:apply};
 });

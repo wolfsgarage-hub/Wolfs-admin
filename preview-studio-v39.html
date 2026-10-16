@@ -13,7 +13,7 @@ body{margin:0;background:#0A0A0A;color:#F5F1E8;font:16px/1.5 system-ui,sans-seri
 <body>
 <main>
 <div class="preview-notice">
-<h1>Wolf's Garage Studio | v39 Repair Preview</h1>
+<h1>Wolf's Garage Studio | v39-preview.2</h1>
 <p><strong>Interface preview, not the live post maker.</strong> This runs the repaired Studio from the existing admin source. Sample replies are fixtures, not AI-generated posts.</p>
 <p>No sign-in, publishing, cloud queue, saved credentials, or live generation calls. Drafts here last only until this page closes. Photos stay in this page and are not uploaded.</p>
 <label for="preview-mode">Test response </label>
@@ -62,10 +62,15 @@ body{margin:0;background:#0A0A0A;color:#F5F1E8;font:16px/1.5 system-ui,sans-seri
     var scripts=Array.from(doc.querySelectorAll('script')).filter(function(s){return !s.src && s.textContent.includes('var LS_DRAFTS = "wgcs:drafts"');});
     if(scripts.length!==1)throw new Error('Studio module could not be isolated safely.');
     var script=document.createElement('script');
-    script.textContent='(function(localStorage,fetch){'+scripts[0].textContent+'\n})(window.__wgPreviewStorage,window.__wgPreviewFetch);';
+    var moduleSource = scripts[0].textContent;
+    var liveSuccess = 'Connection verified. Generation returned the expected reply.';
+    if (moduleSource.split(liveSuccess).length !== 2) throw new Error('Connection message changed. Preview stopped.');
+    moduleSource = moduleSource.replace(liveSuccess, 'Sample response verified. Live generation was not tested.');
+    script.textContent='(function(localStorage,fetch){'+moduleSource+'\n})(window.__wgPreviewStorage,window.__wgPreviewFetch);';
     document.body.appendChild(script);
     document.getElementById('studio-topic').value='Preview the caption and shot-list layout.';
     document.getElementById('studio-key-status').textContent='Sample connection only. Never enter credentials in this preview.';
+    document.getElementById('studio-test-key').textContent='TEST SAMPLE RESPONSE';
     status.textContent='Reviewed base verified. Choose a response above, then tap GENERATE PACKAGE. Nothing here changes the live app.';
   } catch (error) {status.textContent='Preview stopped: '+error.message;}
 })();
