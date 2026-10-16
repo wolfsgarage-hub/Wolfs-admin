@@ -174,7 +174,9 @@
     html = once(html, '<div class="k">Caption <button', '<div class="k">Caption <button class="studio-copy" data-copy="all">Copy post + tags</button> <button');
     html = html.replace(/Or the June 13 booth\./g, 'Or an upcoming booth, with its confirmed date.').replace(/Promote June 13 booth/g, 'Promote a confirmed booth').replace(/At the June 13 booth:/g, 'At a booth with a confirmed date:').replace(/the June 13 booth, or follow/g, 'a confirmed upcoming booth, or follow').replace(/@wolfsgarage/g, '@_wolfsgarage').replace(/or the booth date 'JUNE 13' for booth-related posts/g, 'or a booth date explicitly supplied in the topic for booth-related posts').replace(/WHAT IS WORKING RIGHT NOW \(May 2026\), build on this:/g, 'EDITORIAL STARTING POINTS, not live trend research. Never invent dates, event details, hashtag research or performance statistics:').replace(/<b>The rules of the game right now:<\/b>/g, '<b>Editorial ideas, not live trend research:<\/b>');
     html = between(html, '  var PRINCIPLES = ', '\n\n  var TRENDS = ', '  var PRINCIPLES = "Use real Wolf media. Make the opening clear, build a short story, and end with one community-focused action. Verify event details and permissions. These are editorial ideas, not current algorithm research or measured performance claims. Check the five hashtag suggestions before publishing.";');
-    html = once(html, 'return true;\n  } catch (e) { return false; }', 'return true;\n  } catch (e) { return false; }');
+    // Preview safety: never revive the retired GitHub JSON queue or guess the new RPC writer contract.
+    html = between(html, 'async function pushToApprovalQueue(entry) {', 'async function saveSocialPost(type) {', 'async function pushToApprovalQueue(entry) { return false; }');
+    html = once(html, 'Queued on this phone only (sync failed)', 'Saved on this device only. Cloud queue is not connected in this preview.');
     return html;
   }
   return {version:'v39-preview.1', apply:apply};
