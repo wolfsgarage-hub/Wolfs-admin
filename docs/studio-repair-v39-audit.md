@@ -42,10 +42,13 @@ Correlation IDs for the initial comparison (no credential values recorded):
 - The committed diagnostic script reproduced the same 204/403/204/400 matrix without any token or generation request.
 - Only the small live diagnostic is verified. The broader draft/photo test was blocked by automatic approval review because it would disclose a local repository image and draft prompts to the Supabase/AI endpoint without explicit approval for those inputs. It was not retried. Do not count full text/photo packages as verified.
 - Supabase connector was discoverable but not connected. The user's connected computer was offline. No saved credentials were accessed.
-- Updated preview browser checks are pending at this commit. Laptop Chrome, Android Chrome, authenticated sessions, real persisted browser drafts, media decoding and the current cloud queue contract remain release gates.
+- Actual cloud Chrome checks passed on code commit `72801d5bd1bd493011334c7de1567874644be090`: source hash guard/load, visible v39-preview.2 controls, sample package rendering, duplicate save retaining exactly one in-memory draft, clipboard containing the caption plus two newlines plus tags, simulated 403 retaining prior package and draft while re-enabling Generate, sample test explicitly reporting "Live generation was not tested", and reload clearing preview-only drafts. The desktop viewport was visually inspected. These checks do not represent the user's laptop or Android device.
+- Laptop Chrome, Android Chrome, authenticated sessions, real persisted browser drafts, media decoding and the current cloud queue contract remain release gates.
 - `index.html` remains byte-for-byte v38 with SHA-256 `2702a86a2ae657d6a289eea6b9d3ddc07ebe5ddd76f4eb4329ea5df829af7449`. No production, public-site, cloud queue, DNS or server configuration changes are included. Public-site/admin parity is preserved because this changes no public feature.
 
 Reproduce offline tests with linkedom@0.18.12 installed: `node tests/studio-repair-v39.test.cjs`. Run non-generating access checks: `python3 scripts/diagnose-studio-access.py`. Keep credentials out of command arguments, commits and chat.
+
+Verified isolated preview: https://raw.githack.com/wolfsgarage-hub/Wolfs-admin/72801d5bd1bd493011334c7de1567874644be090/preview-studio-v39.html?v=39-preview.2
 
 ## Existing source and live state
 
