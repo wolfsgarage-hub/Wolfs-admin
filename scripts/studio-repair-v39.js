@@ -167,6 +167,7 @@
   }
   function body(fn) { var s = fn.toString(); return s.slice(s.indexOf('{') + 1, s.lastIndexOf('}')); }
   function apply(html) {
+    if (typeof html === 'string') html = html.replace(/\r\n/g, '\n');
     if (typeof html !== 'string' || !html.includes('<!-- ============== STUDIO MODULE ============== -->')) throw new Error('Not the existing Wolf\'s Garage admin.');
     html = once(html, '<span class="topbar-ver">v38</span>', '<span class="topbar-ver">v39-preview.2</span>');
     html = once(html, "No API key on this phone. Studio calls go through the Wolf's Garage proxy, which holds the key server-side. Token below is ONLY needed if you open this page as a local file.", "Studio uses the Wolf's Garage service. Provider API keys stay on the server. Access depends on the address you open and the service's WG proxy token policy. Saved tokens do not carry between different origins or browsers. Leave the override blank to reuse a shared WG token already saved here. Never paste a provider API key.");

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="wg-version" content="1.1">
+<meta name="wg-version" content="1.2.0">
 <meta name="robots" content="noindex,nofollow">
-<title>WG Social Queue v1.1</title>
+<title>WG Social Queue v1.2.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0A0A0A;--red:#CC0000;--bone:#F5F1E8;--bone-dim:#b8b3a6;--copper:#C8922A;--panel:#141414;--panel-2:#1c1c1c;--border:rgba(245,241,232,.12)}
@@ -96,7 +96,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   'use strict';
   // Pure logic only. No document, no fetch, no localStorage in this block: it is extracted by
   // scripts/test-social-queue.mjs and run under node:test against a bare window object.
-  var SQ_VERSION = '1.1';   // the contract's version constant; <meta name="wg-version"> and <title> carry the same string
+  var SQ_VERSION = '1.2.0';   // the contract's version constant; <meta name="wg-version"> and <title> carry the same string
   var SQ = {};
   SQ.VERSION = SQ_VERSION;
   SQ.BUCKET_URL = 'https://pcqoivjzcokgdtlvoona.supabase.co/storage/v1/object/public/social-media/';
@@ -363,6 +363,8 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   window.SQ = SQ;
 })(window);
 </script>
+<script src="scripts/instagram-workflow-v39.js?v=39.0.0"></script>
+<style>#sq-coverage{margin:16px 0;padding:14px;border:1px solid var(--line,#444)}#sq-coverage summary{cursor:pointer;font-weight:700}#sq-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin-top:12px}#sq-days a{display:block;padding:10px;border:1px solid #444;color:#F5F1E8;text-decoration:none;background:#151515}#sq-days b,#sq-days span{display:block}#sq-days span{font-size:11px;margin-top:7px;color:#C8922A}#sq-days .empty-day{opacity:.65}#sq-coverage p{font-size:12px;line-height:1.5}</style>
 </head>
 <body>
 <header>
@@ -381,6 +383,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     <div id="tick">loading</div>
   </div>
   <div id="banner"></div>
+  <details id="sq-coverage" open><summary id="sq-coverage-title">NEXT TWO WEEKS</summary><p>Projected review line at the current Pacific slots, not reserved publishing dates. Pending or incomplete posts are not approved coverage. <a href="index.html?tab=studio">Open the post maker</a></p><div id="sq-days"></div></details>
   <div class="tabs">
     <button class="tab on" data-tab="line" type="button">Line</button>
     <button class="tab" data-tab="handles" type="button">Handles</button>
@@ -393,7 +396,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   <div class="pane" id="paneRuns"><div id="tabRuns"></div></div>
 </main>
 <div class="pin"></div>
-<footer>Wolf's Garage LLC · Portland, Oregon · social queue v1.0</footer>
+<footer>Wolf's Garage LLC · Portland, Oregon · social queue v1.2.0</footer>
 <div id="msg"></div>
 <script id="sq-app">
 (function () {
@@ -473,7 +476,15 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     localStorage.removeItem('wgEvAdminKey'); localStorage.removeItem('wgProxyToken'); localStorage.removeItem('wg:proxytok'); toast('Keys cleared');
   });
 
+  function renderCoverage() {
+    if(!window.WGIG)return;
+    var c=window.WGIG.coverage({line:state.line,slot_plan:state.slot_plan,settings:state.settings});
+    $('sq-coverage-title').textContent='NEXT TWO WEEKS: '+c.ready+' approved, '+c.review+' to review, '+c.incomplete+' incomplete, '+c.missing+' empty';
+    var host=$('sq-days');host.replaceChildren();
+    c.cards.forEach(function(card){var a=document.createElement('a');if(card.post)a.href='?'+(DEMO?'demo=1&':'')+'sel='+encodeURIComponent(card.post.id);else a.className='empty-day';var d=document.createElement('b');d.textContent=card.date;var t=document.createElement('span');t.textContent=(card.time||'NO SLOT')+' Pacific / '+card.state.toUpperCase();a.append(d,t);host.append(a);});
+  }
   function renderHeader() {
+    renderCoverage();
     var today = SQ.pacificToday(), dow = new Date(today + 'T12:00:00').getDay();
     var byDay = {};
     (state.slot_plan || []).forEach(function (r) { byDay[r.weekday] = r; });
@@ -965,7 +976,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       if (r.line) { renderLine(); }
       if (r.detail) { renderDetail(); }
     })
-      .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Load failed: ' + esc(e.message) + '</div>'; $('tick').textContent = 'load failed'; });
+      .catch(function (e) { $('lineCol').innerHTML = '<div class="empty">Load failed: ' + esc(e.message) + '</div>'; $('tick').textContent = 'load failed'; $('sq-coverage-title').textContent = 'Queue refresh failed. Any displayed coverage is stale.'; });
   }
   function refresh() {
     if (state.tab === 'handles') { return renderHandles(); }

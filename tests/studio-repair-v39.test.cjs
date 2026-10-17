@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const { parseHTML } = require('linkedom');
 const patch = require('../scripts/studio-repair-v39.js');
-const original = fs.readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+const original = require('node:child_process').execFileSync('git', ['show', 'e4660bb529ad594831970bc5bd9a43cf4f1d0f4a:index.html'], {cwd:require('node:path').join(__dirname,'..'),encoding:'utf8'}).replace(/\r\n/g,'\n');
 const html = patch.apply(original);
 const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m => !m[1].includes('src=') && !m[1].includes('application/json'));
 const last = scripts[scripts.length - 1][2];
