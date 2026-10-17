@@ -2,6 +2,40 @@
 
 Checked October 15, 2026; authorization follow-up October 16, 2026. Status: preview only, not production-ready.
 
+## Laptop follow-up: October 16, 23:15 Pacific (October 17 UTC)
+
+Remote Desktop Commander is now connected. The prior laptop-access blocker is resolved. The existing `wolfs-ops` social client successfully used its saved events admin credential to read the live queue; credentials stayed on the laptop and were not printed. Supabase management/source inspection is still unavailable through a connector, but the current local migrations and contracts are now readable.
+
+Current queue evidence: 12 pending, zero approved, zero publishing, zero published in seven days; `live_publishing=off`; daily slot 19:15 Pacific; successful recent `comments_pull` tick. `social_line_needs` returns `line_depth=10`, `in_line=12`, `needed=0`. The two-week target is therefore not configured, and pending drafts are not scheduled/approved coverage. SocialPrep is enabled; legacy MetaPublish and WeekBuilder tasks are disabled.
+
+The first demonstrated failure in the **nightly preparation path** is separate from the Studio proxy: its generator invokes Claude Code, whose local auth status returns `loggedIn: false`. The executable itself runs. A bounded synthetic no-file/no-tool request exited 1. No photos were sent in this diagnostic.
+
+The old preparation code catches that failure, creates a quality-zero heuristic record, saves/uploads it, and then skips that source on later nights because a record exists. October 16's run log shows 60 such failures followed by `described=60` and an overall success marker. The local ledger contains 934 records, of which 542 have zero/unknown quality. The present sign-in failure does not establish the cause of every historical record.
+
+An isolated local branch, `repair/social-prep-20261017`, now contains a correction: sign-in preflight without generation; strict validation before durable record writes; bounded retries of failed records; preservation of private/resale classifications; exclusion of unknown-quality records from post selection; preservation of existing media on analysis failure; and independent queue-depth verification before writing a completion marker. The scheduled production checkout has not been changed. The separate `wolfs-ops` source remains on the laptop, not copied into this public admin repository.
+
+The final focused suite passed **48 tests, zero failures**, including 13 new failure-path tests, after correcting the historical-record retry path to preserve private/resale exclusions. All three modified Python modules parse and `git diff --check` passes. An earlier broader run was stopped after exposing the now-covered retry regression; the full repository suite was not completed. The real repaired wrapper exited 9 while signed out, with `model_sign_in_required`, no completion flag, and no photo-record file. This confirms fail-closed handling, not successful generation. Local code commit: `16afcf10c07611d465b46d362f37c21156ad5978`; the development worktree is clean.
+
+Studio access follow-up: empty-message requests with the saved **publishing proxy token** still return 403 from the GitHub Pages origin and validation 400 from raw.githack. The publishing token has not been verified as a valid Studio credential. No origin policy or authentication requirement was changed, and no additional paid proxy generation was run.
+
+The existing Claude subscription sign-in flow was opened on the laptop; user account approval remains necessary. No credentials, login code, or consent were entered by the agent. Next work remains real generation, bounded recovery of failed records, the integrated fourteen-day queue flow, persisted drafts, and actual browser verification. Production v38, publishing settings, tasks, and public-site behavior remain unchanged; PR #4 stays draft and unmerged.
+
+```text
+LIVE VERSION: Admin v38 unchanged; social preparation repair v1 is development-only.
+COMMIT: local wolfs-ops 16afcf10c07611d465b46d362f37c21156ad5978.
+VERCEL DEPLOYMENT: none; no deployment performed.
+BRANCH: repair/social-prep-20261017; admin audit on repair/instagram-studio-v39.
+FILES CHANGED: social vision.py, cli.py, builder.py, preparation wrapper, three test files, local repair report; this admin audit.
+FEATURES COMPLETED: safe preparation-failure handling and independent queue-depth completion check.
+TESTS PASSED: 48 focused regressions, three Python syntax checks, diff check, real signed-out wrapper guard.
+BUGS FOUND: signed-out model CLI; failed photo records counted as complete; queue target ten, not fourteen.
+BUGS FIXED: false-success and failed-record handling in the isolated development branch.
+WHAT WAS PRESERVED: production v38, active PC checkout, private/resale exclusions, credentials, queue posts, live switch, tasks, public-site parity.
+NEEDS ANDROID TAP TESTING: real integrated generation, persisted drafts, cloud queue, clipboard and media handling.
+EXACT ANDROID TEST STEPS: after integration, sign in, generate a real post, save/reload, confirm one durable draft and its queued media, retry a failed request and confirm prior output remains.
+KNOWN LIMITS: user sign-in pending; two-week automation incomplete; no merge, publishing activation or production deployment.
+```
+
 ## October 17: corrected product scope and automation investigation
 
 The user clarified that Studio must be part of the existing program that makes posts and lines up two weeks of automatic Instagram publishing. The single-package fixture preview does not satisfy this requirement. Its regression repairs are supporting work, not a completed posting system.
