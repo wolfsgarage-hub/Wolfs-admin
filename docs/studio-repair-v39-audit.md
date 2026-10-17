@@ -2,6 +2,30 @@
 
 Checked October 15, 2026; authorization follow-up October 16, 2026. Status: preview only, not production-ready.
 
+## October 17: corrected product scope and automation investigation
+
+The user clarified that Studio must be part of the existing program that makes posts and lines up two weeks of automatic Instagram publishing. The single-package fixture preview does not satisfy this requirement. Its regression repairs are supporting work, not a completed posting system.
+
+The required end-to-end behavior is: select suitable real media from the existing library, generate grounded captions in Wolf's voice, persist complete posts in the existing social queue, fill the next 14 days using the configured posting cadence, and let the established publisher deliver them. A rolling refill must run without an open browser. Fourteen days is a coverage horizon, not an assumption of exactly fourteen posts. Preserve existing queue decisions, media provenance, brand rules, and public-site/admin parity. Do not revive the retired JSON queue or introduce a second publishing queue.
+
+### Evidence and first missing connection
+
+- Current `Wolfs-admin/social-queue.html` uses the existing Supabase `social_line`, `social_post_upsert`, `social_post_caption`, `social_post_decide`, `social_post_pin`, and `social_setting_set` RPCs, plus `wg-ig-publish`. The repository identifies the active publisher as `wg-social-tick`. The UI has approval, schedule, media, and explicit live-publishing controls. Its partial `social_post_upsert` call only demonstrates updating tags on an existing post; it does not establish the full insertion or generation contract.
+- Studio's repaired preview intentionally blocks the retired `data/post-queue.json` writer and has no replacement cloud-queue integration. Therefore a locally generated or saved package is not a queued Instagram post.
+- In `wolfsgarage-growth-engine`, inspected `rebuild/growth-engine-core` commit `26ac8a73b15633da8741b9bf86bbfcdd5b071958`, `api/schedule-approved-post.js` returns a not-connected/manual-reminder response even when Instagram environment variables exist. It does not schedule a post. `api/generate-calendar.js` produces a seven-day calendar rather than a media-grounded 14-day queue. These are source findings, not verification of the currently deployed Growth Engine.
+- The October 16 handoff document, **OpenAI Takeover Handoff: Wolf's Garage, GGG, Hustle & Flow**, reports direct inspection of the deployed `social` schema and functions that day: 934 photo records, 62 voice samples, 12 pending posts, a successful 15-minute publisher tick, and `live_publishing = off`. It also reports a PC preparation component in `wolfs-ops` (`python -m social`, 1:17 AM) from function comments. These are dated handoff findings; this session has not independently read the live database or PC preparation code.
+- That handoff reports inspection of `anthropic-proxy` v4: permitted brand, raw.githack, and Vercel origins, or a matching `x-wg-token`. GitHub Pages is absent from the described allowlist. This independently reported contract is consistent with the observed Pages 403 / raw.githack 400 and 200 comparison above. The diagnostic chose an origin outside that described policy without a token. It is not evidence that generation is generally broken. A current direct source/log inspection and saved-token browser test remain outstanding.
+
+### Access limits and next executable work
+
+The Supabase connector is not available in this session, and the connected shop computer is offline. The private `wolfs-ops-backups` mirror contains a September 23 backup ZIP, not an unpacked source tree. The GitHub connector rejected its binary fetch, and the base64 file read returned no contents; no backup contents, credentials, or unrelated records were accessed. The stale backup cannot establish the current preparation workflow.
+
+Reconnect the existing awarewolf Supabase project (`pcqoivjzcokgdtlvoona`) so the deployed RPC definitions, preparation contract, settings, and relevant run logs can be inspected. Recover the current `wolfs-ops` social source from the connected laptop if the live functions still depend on it. Under repository rule AFR-001, do not invent queue fields, fake a successful scheduler, or build replacement infrastructure before resolving these contracts.
+
+Then implement the smallest integration on the isolated development branch: generation to durable queue, idempotent 14-day refill using the existing cadence and media eligibility rules, and clear coverage/failure status in the existing admin. Validate real media generation, draft recovery across reload/devices, duplicate prevention, scheduling/time-zone behavior, publisher dry runs, and Android/laptop Chrome. Any eventual publishing activation must follow the existing release gate and the user's reviewed live settings; this investigation changed none of them.
+
+No application code or production settings changed in this follow-up. Production v38 remains unchanged. PR #4 remains unmerged. This is an investigation checkpoint, not a delivered two-week automation workflow.
+
 ## October 16 follow-up: v39-preview.2
 
 The first demonstrated mismatch was the diagnostic origin. The repository manual identifies `https://raw.githack.com` as the admin host. The October 15 request instead supplied `https://wolfsgarage-hub.github.io` and no WG token. Both origins complete preflight, but their POST authorization behavior differs:
