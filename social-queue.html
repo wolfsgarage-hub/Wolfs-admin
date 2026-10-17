@@ -383,7 +383,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
     <div id="tick">loading</div>
   </div>
   <div id="banner"></div>
-  <details id="sq-coverage" open><summary id="sq-coverage-title">NEXT TWO WEEKS</summary><p>Projected review line at the current Pacific slots, not reserved publishing dates. Pending or incomplete posts are not approved coverage. <a href="index.html?tab=studio">Open the post maker</a></p><div id="sq-days"></div></details>
+  <details id="sq-coverage" open><summary id="sq-coverage-title">NEXT TWO WEEKS</summary><p>Projected review line at the current Pacific slots, not reserved publishing dates. Exact future-date pins are held until the cloud scheduling guard is verified; expired event drafts cannot be approved. Pending or incomplete posts are not approved coverage. <a href="index.html?tab=studio">Open the post maker</a></p><div id="sq-days"></div></details>
   <div class="tabs">
     <button class="tab on" data-tab="line" type="button">Line</button>
     <button class="tab" data-tab="handles" type="button">Handles</button>
@@ -479,7 +479,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   function renderCoverage() {
     if(!window.WGIG)return;
     var c=window.WGIG.coverage({line:state.line,slot_plan:state.slot_plan,settings:state.settings});
-    $('sq-coverage-title').textContent='NEXT TWO WEEKS: '+c.ready+' approved, '+c.review+' to review, '+c.incomplete+' incomplete, '+c.missing+' empty';
+    $('sq-coverage-title').textContent='NEXT TWO WEEKS: '+c.ready+' approved, '+c.review+' to review, '+c.incomplete+' incomplete, '+c.missing+' empty'+(c.held?', '+c.held+' held for date review':'');
     var host=$('sq-days');host.replaceChildren();
     c.cards.forEach(function(card){var a=document.createElement('a');if(card.post)a.href='?'+(DEMO?'demo=1&':'')+'sel='+encodeURIComponent(card.post.id);else a.className='empty-day';var d=document.createElement('b');d.textContent=card.date;var t=document.createElement('span');t.textContent=(card.time||'NO SLOT')+' Pacific / '+card.state.toUpperCase();a.append(d,t);host.append(a);});
   }
@@ -534,6 +534,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   }
   $('liveBtn').addEventListener('click', function () {
     var plan = SQ.armPlan((state.settings || {}).live_publishing);
+    if(plan.next==='on' && window.WGIG && state.line.some(function(p){return p.status==='approved' && window.WGIG.reviewHold(p);})){toast('Not armed. An approved post has missing media/caption or an unsafe event date. Fix or remove it from the line first.');return;}
     if (plan.mustType) {
       var typed = prompt(plan.confirm, '');
       if (typed === null) { return; }
@@ -582,6 +583,8 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
   // text, or the radio he picked in the detail panel for this same post. Typed words still go
   // through USE THIS so the voice sample is filed.
   function approveWithCaption(p, id) {
+    var hold=window.WGIG && window.WGIG.reviewHold(p);
+    if(hold){toast(hold==='future pin'?'Future-date approval is held until cloud scheduling protection is verified. Use an unpinned review line.':hold==='past event'?'This event has already passed. Refresh its content or remove it from the line.':'Add actual media and a caption before approval.');return loadLine();}
     var opts = p.caption_options || [];
     if (p.caption_final || !opts.length) { return decide(id, 'approve', 'approved on social-queue'); }
     var pick = (state.selectedId === id && state.captionPick != null) ? state.captionPick : 0;
@@ -596,6 +599,7 @@ footer{font-family:'Oswald',sans-serif;text-align:center;color:#555;font-size:.7
       .catch(function (e) { toast('Failed: ' + e.message); loadLine(); });   // repaint so the disabled button comes back
   }
   function pinPost(id, date) {
+    if(date && date>SQ.pacificToday()){toast('Exact future-date pinning is held until the cloud guard is verified. Keep the post unpinned and use line order.');return Promise.resolve();}
     return rpc('social_post_pin', { p_id: id, p_date: date || null })
       .then(function () { toast(date ? 'Pinned to ' + date : 'Unpinned'); return loadLine(); })
       .catch(function (e) { toast('Pin failed: ' + e.message); });
