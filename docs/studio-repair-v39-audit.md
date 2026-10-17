@@ -1,6 +1,84 @@
 # Studio v39 repair audit
 
-Checked October 15, 2026; authorization follow-up October 16, 2026. Status: preview only, not production-ready.
+Checked October 15, 2026; follow-ups October 16–17, 2026. Status: development only, not production-ready.
+
+## Latest follow-up: October 17, after owner completed sign-in
+
+**The laptop generation login is resolved. Two-week posting is still not released.**
+The owner completed Claude Code's visible authorization flow. The existing repaired
+post builder now reports signed in, and a real bounded text request returned exactly
+`WG_PREP_DIAGNOSTIC_OK`. This supersedes the signed-out checkpoint below.
+
+The approved Divco repository photo passed strict structured photo analysis and
+generated three caption options through the existing laptop pipeline. The photo
+record and isolated file draft survived save/reload; a later simulated request failure
+left the saved draft unchanged. These are real generation results plus local file
+checks, not real browser storage or Supabase draft-write verification. The sample
+is an already branded 1080x566 demo slide, so it was not used as original production
+media or added to the live queue. Passing the caption gate is not editorial approval.
+
+### Scheduling defect reproduced and corrected in development
+
+The latest local migration defining `social.claim_due` only sorted a pin for today
+first. It did not exclude future pins. Executing that repository definition in a
+fresh PostgreSQL test database demonstrated that a sole approved post pinned for
+tomorrow could be claimed today.
+
+The isolated branch now includes
+`202610171530_social_future_pin_guard.sql`, adding one eligibility condition:
+`pinned_date is null or pinned_date <= v_today`. Authentication, advisory locking,
+today's priority, past-pin catch-up, slot windows, one feed post per Pacific day,
+reel handling, status transitions, logging, and live gates remain unchanged.
+The function body was independently compared with its predecessor: this predicate
+is the only functional difference. The migration has **not** been deployed; the
+actual deployed function still requires comparison through Supabase management access.
+
+Local code commit: `6d5de343a15c38293470330e08507348dcb1a619` on
+`repair/social-prep-20261017`, parent `16afcf10c07611d465b46d362f37c21156ad5978`.
+The worktree is clean. The active scheduled checkout has not been changed.
+
+### Verification and remaining gates
+
+- **13 PostgreSQL checks passed**, using PGlite 0.5.10 and the actual repository
+  schema and RPC definitions in an empty local database. Tests cover reproducing
+  the old defect; future-date protection; today-pin priority; pending/story exclusion;
+  reel and past-pin behavior; invalid test credential denial; window/in-flight/daily
+  gates; dry reset; duplicate draft saves and failed-write rollback; approval adopting
+  the selected option; and a simulated 14-day sequence. Auth validators and time are
+  synthetic in this database. These tests do not prove deployed authentication.
+- **7 migration regression checks passed**. The earlier focused Python suite passed
+  48 tests; it was not rerun wholesale for the SQL-only correction.
+- Live queue remains **12 pending, 0 approved, depth 10, publishing off**. The existing
+  setting RPC supports depth 14, but fourteen pending rows do not establish fourteen
+  publishable, dated, approved posts. No live setting was changed.
+- The existing library has 332 analyzed, eligible unused photos across seven capture
+  days. This is source capacity, not ready posts. The builder allows one post per
+  capture day in a run. The old weekend-shows draft also needs date/content review.
+- No new cloud drafts, media uploads, approvals, pins, Instagram posts, scheduled-task
+  changes, public-site changes, or production deployment were made in this follow-up.
+- Claude Code generation is separate from Studio's `anthropic-proxy` token path.
+  That token path and intended server policy remain unverified; no authentication
+  exception or origin change was introduced.
+- Remaining release work: inspect deployed functions; apply reviewed correction;
+  configure and fill the real two-week buffer; verify pending cloud drafts and media;
+  verify laptop/Android Chrome and the publisher's dry trail. PR #4 stays draft and
+  unmerged. Production main remains `e4660bb529ad594831970bc5bd9a43cf4f1d0f4a` (v38).
+
+```text
+LIVE VERSION: Admin v38 unchanged; social repair development revision 2
+COMMIT: local wolfs-ops 6d5de343a15c38293470330e08507348dcb1a619
+VERCEL DEPLOYMENT: none
+BRANCH: repair/social-prep-20261017; audit on repair/instagram-studio-v39
+FILES CHANGED: future-pin SQL migration; PostgreSQL harness; migration tests; repair reports
+FEATURES COMPLETED: authenticated laptop generation validation; future-pin correction prepared
+TESTS PASSED: 13 PostgreSQL checks; 7 migration checks; real text/photo/caption and local draft recovery
+BUGS FOUND: future-pinned approved posts eligible before their date in prior repository definition
+BUGS FIXED: development claim filter excludes future pins
+WHAT WAS PRESERVED: production Admin, public site, main checkout, auth, live queue, publishing off
+NEEDS ANDROID TAP TESTING: real integrated generation, saved drafts, media and queue/calendar
+EXACT ANDROID TEST STEPS: after connected HTTPS preview exists, generate; save/reload one draft; verify dates/media; retry a failed request and verify retained output
+KNOWN LIMITS: no migration deployed; no real two-week lineup yet; cloud/browser validation outstanding; separate Studio token path unverified
+```
 
 ## Laptop follow-up: October 16, 23:15 Pacific (October 17 UTC)
 
