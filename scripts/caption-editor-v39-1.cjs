@@ -80,6 +80,7 @@ function apply(root) {
   }
   files[assemblerName]=a;
   files['scripts/test-social-queue.mjs']=fs.readFileSync(path.join(root,'scripts/test-social-queue.mjs'),'utf8').replace(/1\.2\.0/g,'1.3.0');
+  files['tests/instagram-workflow-v39.test.cjs']=fs.readFileSync(path.join(root,'tests/instagram-workflow-v39.test.cjs'),'utf8').replace('v39\\.0\\.0','v39\\.1\\.0');
   for(const [name,content] of Object.entries(files))fs.writeFileSync(path.join(root,name),content);
   return Object.keys(files);
 }

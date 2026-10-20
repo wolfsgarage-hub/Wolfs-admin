@@ -78,6 +78,7 @@ once("renderDrafts(); tellUser('Saved to Drafts on this device.');","renderDraft
 once("tellUser('This package is already in Drafts.'); return;","tellUser('This package is already in Drafts.'); return true;");
 once("'Cloud draft saved. Add actual media before approval.'","'Instagram cloud draft saved. Add media before approval. Other platforms were not scheduled.'");
 html=html.replace(/\r\n/g,'\n').replace(/^[ \t]+$/gm,'');
+const previousRelease=html; html=require('./caption-editor-v39-1.cjs').studio(html);
 const current=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/\r\n/g,'\n').replace(/^[ \t]+$/gm,'');
-if(current!==base && current!==html)throw Error('Root changed outside this assembler. Reconcile before writing.');
+if(current!==base && current!==previousRelease && current!==html)throw Error('Root changed outside this assembler. Reconcile before writing.');
 if(process.argv.includes('--write'))fs.writeFileSync(path.join(root,'index.html'),html);else process.stdout.write(html);
