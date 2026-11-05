@@ -1,4 +1,5 @@
 name: Render Reel
+# v1.1: treat dispatch values as data, never shell source.
 
 on:
   workflow_dispatch:
@@ -39,15 +40,20 @@ jobs:
 
       - name: Determine output ID
         id: prep
+        env:
+          OUTPUT_ID_INPUT: ${{ github.event.inputs.output_id || github.event.client_payload.output_id }}
         run: |
-          OUTPUT_ID="${{ github.event.inputs.output_id || github.event.client_payload.output_id }}"
+          OUTPUT_ID="$OUTPUT_ID_INPUT"
           if [ -z "$OUTPUT_ID" ]; then
             OUTPUT_ID="reel-$(date +%s)"
           fi
-          # Sanitize: only allow alphanumeric, dash, underscore (max 64 chars)
-          OUTPUT_ID=$(echo "$OUTPUT_ID" | tr -cd 'a-zA-Z0-9_-' | head -c 64)
-          echo "output_id=$OUTPUT_ID" >> "$GITHUB_OUTPUT"
-          echo "Using output ID: $OUTPUT_ID"
+          # Reject invalid filenames; never silently truncate or rewrite IDs.
+          if [[ ! "$OUTPUT_ID" =~ ^[a-zA-Z0-9_-]{1,64}$ ]]; then
+            echo "::error::Output ID must contain 1-64 letters, numbers, dashes, or underscores."
+            exit 1
+          fi
+          printf 'output_id=%s\n' "$OUTPUT_ID" >> "$GITHUB_OUTPUT"
+          printf 'Using output ID: %s\n' "$OUTPUT_ID"
 
       - name: Write brief
         env:
@@ -67,18 +73,22 @@ jobs:
           echo "Brief is valid JSON"
 
       - name: Render reel
+        env:
+          OUTPUT_ID: ${{ steps.prep.outputs.output_id }}
         run: |
           python3 scripts/render_reel.py \
             --brief /tmp/wgreel/brief.json \
-            --output renders/${{ steps.prep.outputs.output_id }}.mp4
+            --output "renders/$OUTPUT_ID.mp4"
           ls -lh renders/
 
       - name: Commit and push result
+        env:
+          OUTPUT_ID: ${{ steps.prep.outputs.output_id }}
         run: |
           git config user.name "Wolf's Garage Render Bot"
           git config user.email "noreply@wolfsgarage.com"
-          git add renders/${{ steps.prep.outputs.output_id }}.mp4
-          git commit -m "render: ${{ steps.prep.outputs.output_id }}"
+          git add -- "renders/$OUTPUT_ID.mp4"
+          git commit -m "render: $OUTPUT_ID"
           # Retry push to handle concurrent updates
           for attempt in 1 2 3 4 5; do
             if git pull --rebase --autostash && git push; then
@@ -91,7 +101,9 @@ jobs:
           exit 1
 
       - name: Output URL
+        env:
+          OUTPUT_ID: ${{ steps.prep.outputs.output_id }}
         run: |
-          URL="https://raw.githubusercontent.com/${{ github.repository }}/main/renders/${{ steps.prep.outputs.output_id }}.mp4"
+          URL="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/renders/$OUTPUT_ID.mp4"
           echo "Render URL: $URL"
           echo "::notice::Render complete: $URL"
